@@ -32,10 +32,10 @@ export default function Customers() {
     notes: "",
   });
 
-  // 🔹 chế độ hiển thị trên MOBILE: "list" | "create"
+  // 🔹 mobile: hiển thị "list" | "create"
   const [viewMode, setViewMode] = useState("list");
 
-  // 🔹 Nạp danh sách khách + thống kê
+  // 🔹 tải danh sách + thống kê
   const loadList = async () => {
     try {
       const data = await api("/customers");
@@ -60,7 +60,7 @@ export default function Customers() {
         total_orders,
         total_revenue,
       });
-    } catch (err) {
+    } catch {
       notify.error("Không thể tải thống kê khách hàng");
     }
   };
@@ -69,7 +69,7 @@ export default function Customers() {
     loadList();
   }, []);
 
-  // 🔍 Lọc nhanh client
+  // 🔍 lọc nhanh
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return list;
@@ -80,7 +80,7 @@ export default function Customers() {
     );
   }, [list, search]);
 
-  // ➕ Thêm khách hàng
+  // ➕ thêm khách hàng
   const submit = async (e) => {
     e.preventDefault();
     try {
@@ -88,7 +88,7 @@ export default function Customers() {
         method: "POST",
         body: JSON.stringify(form),
       });
-      notify.success("✅ Đã thêm khách hàng mới");
+      notify.success("Đã thêm khách hàng mới");
       setForm({
         name: "",
         phone: "",
@@ -97,32 +97,30 @@ export default function Customers() {
         notes: "",
       });
       await loadList();
-      // mobile: sau khi thêm xong có thể quay lại danh sách nếu muốn
-      // setViewMode("list");
-    } catch (err) {
-      notify.error("❌ Lỗi khi thêm khách hàng");
+    } catch {
+      notify.error("Lỗi khi thêm khách hàng");
     }
   };
 
-  // 🔎 Xem chi tiết khách
+  // 🔎 xem chi tiết khách
   const viewDetail = async (c) => {
     setSelected(c);
     setLoadingDetail(true);
+    if (window.innerWidth < 768) setViewMode("detail");
     try {
       const data = await api(`/customers/${c.id}`);
       setDetail(data);
-    } catch (e) {
-      notify.error("❌ Không tải được chi tiết khách hàng");
-    } finally {
-      setLoadingDetail(false);
+    } catch {
+      notify.error("Không tải được chi tiết khách hàng");
     }
+    setLoadingDetail(false);
   };
 
   return (
     <div className="relative z-0 space-y-6 pb-20 md:pb-10">
       <CustomerStats stats={stats} />
 
-      {/* 🔹 TAB đơn giản cho MOBILE */}
+      {/* 🔹 TAB MOBILE */}
       <div className="flex gap-2 px-4 md:hidden">
         <button
           onClick={() => setViewMode("list")}
@@ -134,6 +132,7 @@ export default function Customers() {
         >
           Danh sách
         </button>
+
         <button
           onClick={() => setViewMode("create")}
           className={`flex-1 py-2 rounded-lg text-sm font-medium ${
@@ -146,27 +145,75 @@ export default function Customers() {
         </button>
       </div>
 
-      {/* PC: giữ nguyên layout 2 cột */}
-      <div className="hidden md:grid md:grid-cols-2 gap-6 relative z-0">
-        <CustomerForm form={form} setForm={setForm} submit={submit} />
-        <CustomerList
-          filtered={filtered}
-          selected={selected}
-          setSelected={setSelected}
-          viewDetail={viewDetail}
-          search={search}
-          setSearch={setSearch}
-          loadList={loadList}
-          detail={detail}
-          setDetail={setDetail}
-          editing={editing}
-          setEditing={setEditing}
-          loadingDetail={loadingDetail}
-        />
+      {/* PC layout 2 cột */}
+      <div className="hidden md:grid md:grid-cols-3 gap-6 relative z-0">
+        {/* tạo khách */}
+        <div className="md:col-span-1">
+          <CustomerForm form={form} setForm={setForm} submit={submit} />
+        </div>
+
+        {/* danh sách */}
+        <div className="md:col-span-1">
+          <CustomerList
+            filtered={filtered}
+            selected={selected}
+            setSelected={setSelected}
+            viewDetail={viewDetail}
+            search={search}
+            setSearch={setSearch}
+            loadList={loadList}
+            detail={detail}
+            setDetail={setDetail}
+            editing={editing}
+            setEditing={setEditing}
+            loadingDetail={loadingDetail}
+          />
+        </div>
+
+        {/* CHI TIẾT KHÁCH */}
+        <div className="md:col-span-1">
+          {detail && (
+            <div className="p-4 rounded-lg border bg-white shadow">
+              <CustomerDetail
+                detail={detail}
+                editing={editing}
+                setEditing={setEditing}
+                viewDetail={viewDetail}
+                setDetail={setDetail}
+                setSelected={setSelected}
+                loadList={loadList}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* MOBILE: chỉ hiển thị 1 khối theo viewMode */}
+      {/* MOBILE */}
       <div className="md:hidden px-4 pt-[60px] pb-[80px]">
+        {/* MOBILE FULL PAGE DETAIL */}
+        {viewMode === "detail" && detail && (
+          <div className="fixed inset-0 bg-white z-50 overflow-y-auto px-4 py-4">
+
+            {/* Nút quay lại */}
+            <button
+              onClick={() => setViewMode("list")}
+              className="mb-4 text-blue-600 text-sm"
+            >
+              ← Quay lại
+            </button>
+
+            <CustomerDetail
+              detail={detail}
+              editing={editing}
+              setEditing={setEditing}
+              viewDetail={viewDetail}
+              setDetail={setDetail}
+              setSelected={setSelected}
+              loadList={loadList}
+            />
+          </div>
+        )}
+
         {viewMode === "create" && (
           <CustomerForm form={form} setForm={setForm} submit={submit} />
         )}
@@ -186,6 +233,21 @@ export default function Customers() {
             setEditing={setEditing}
             loadingDetail={loadingDetail}
           />
+        )}
+
+        {/* MOBILE DETAIL */}
+        {viewMode === "list" && detail && (
+          <div className="mt-4 p-4 rounded-lg border bg-white shadow">
+            <CustomerDetail
+              detail={detail}
+              editing={editing}
+              setEditing={setEditing}
+              viewDetail={viewDetail}
+              setDetail={setDetail}
+              setSelected={setSelected}
+              loadList={loadList}
+            />
+          </div>
         )}
       </div>
     </div>

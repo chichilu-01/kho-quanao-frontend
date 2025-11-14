@@ -9,7 +9,6 @@ export default function MobileTabs({ options, viewMode, setViewMode }) {
         bg-white dark:bg-gray-900
         px-3 py-2
       "
-      style={{ paddingTop: "env(safe-area-inset-top)" }} // iPhone safe zone
     >
       <div className="flex gap-2">
         {options.map((opt) => {
