@@ -95,7 +95,7 @@ export default function CustomerList({
         </table>
       </div>
 
-      {/* Panel chi tiết */}
+      {/* Panel chi tiết 
       <div className="mt-5 border-t pt-4">
         {!selected ? (
           <div className="text-gray-500">
@@ -116,7 +116,7 @@ export default function CustomerList({
             loadList={loadList}
           />
         )}
-      </div>
+      </div>*/}
     </div>
   );
 }
