@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
+import { FiList, FiPlus, FiEdit3 } from "react-icons/fi";
 import { api } from "../../api/client";
 
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
 import ProductDetail from "./ProductDetail";
 import { RestockModal, DeleteModal } from "./ProductModals";
+import MobileTabs from "../../components/common/MobileTabs";
 
 export default function Products() {
   const [list, setList] = useState([]);
@@ -22,6 +24,9 @@ export default function Products() {
 
   const [listLoading, setListLoading] = useState(false);
 
+  // 🔥 Tabs cho MOBILE: list | create | edit
+  const [viewMode, setViewMode] = useState("list");
+
   // ------------------------------------------------------------------
   // LOAD DATA
   // ------------------------------------------------------------------
@@ -36,12 +41,11 @@ export default function Products() {
       const arr = Array.isArray(data) ? data : [];
       setList(arr);
 
-      // Auto-select product
       if (selectId) {
         const found = arr.find((x) => x.id === selectId);
         setSelected(found || null);
       } else if (!selected && arr?.length) {
-        setSelected(arr[0]); // first item
+        setSelected(arr[0]);
       }
     } catch (err) {
       toast.error("❌ Lỗi tải danh sách sản phẩm");
@@ -77,6 +81,20 @@ export default function Products() {
     });
   }, [list, search, selectedBrand]);
 
+  // -------------------------------------------------
+  // Cấu hình tabs cho trang Products (mobile)
+  // -------------------------------------------------
+  const productTabs = [
+    { value: "list", label: "Danh sách", icon: FiList },
+    { value: "create", label: "Thêm mới", icon: FiPlus },
+    {
+      value: "edit",
+      label: "Sửa",
+      icon: FiEdit3,
+      disabled: !selected,
+    },
+  ];
+
   // ------------------------------------------------------------------
   // RENDER
   // ------------------------------------------------------------------
@@ -84,11 +102,18 @@ export default function Products() {
     <>
       <Toaster position="top-right" toastOptions={{ duration: 2200 }} />
 
+      {/* TABS MOBILE (chỉ hiện dưới md) */}
+      <MobileTabs
+        options={productTabs}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+      />
+
       {/* --------------------------------------------------------------- */}
-      {/* LAYOUT */}
+      {/* PC LAYOUT (md+) – giữ nguyên 2 cột */}
       {/* --------------------------------------------------------------- */}
-      <div className="grid md:grid-cols-2 gap-6 p-4 animate-fadeIn">
-        {/* ----------- LEFT: FORM TẠO SẢN PHẨM ----------- */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn">
+        {/* LEFT: FORM TẠO SẢN PHẨM */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -97,19 +122,21 @@ export default function Products() {
           <ProductForm load={load} />
         </motion.div>
 
-        {/* ----------- RIGHT: LIST + DETAIL ----------- */}
+        {/* RIGHT: LIST + DETAIL */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="card overflow-hidden"
         >
-          {/* LIST */}
           <ProductList
             list={list}
             filtered={filtered}
             brands={brands}
             selected={selected}
-            setSelected={setSelected}
+            setSelected={(p) => {
+              setSelected(p);
+              setViewMode("edit"); // nếu đang ở mobile, lần sau bấm tab "Sửa" sẽ có data
+            }}
             listLoading={listLoading}
             setSearch={setSearch}
             search={search}
@@ -123,8 +150,53 @@ export default function Products() {
             reload={load}
           />
 
-          {/* CHI TIẾT – MOBILE: nằm dưới LIST */}
           {selected && (
+            <ProductDetail
+              selected={selected}
+              setSelected={setSelected}
+              load={load}
+            />
+          )}
+        </motion.div>
+      </div>
+
+      {/* --------------------------------------------------------------- */}
+      {/* MOBILE LAYOUT – nội dung theo tab */}
+      {/* --------------------------------------------------------------- */}
+      <div className="md:hidden p-4 pb-6">
+        <motion.div
+          key={viewMode}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-4"
+        >
+          {viewMode === "list" && (
+            <ProductList
+              list={list}
+              filtered={filtered}
+              brands={brands}
+              selected={selected}
+              setSelected={(p) => {
+                setSelected(p);
+                setViewMode("edit");
+              }}
+              listLoading={listLoading}
+              setSearch={setSearch}
+              search={search}
+              selectedBrand={selectedBrand}
+              setSelectedBrand={setSelectedBrand}
+              onRestock={(p) => {
+                setRestockProduct(p);
+                setRestockQty("");
+                setRestockModal(true);
+              }}
+              reload={load}
+            />
+          )}
+
+          {viewMode === "create" && <ProductForm load={load} />}
+
+          {viewMode === "edit" && selected && (
             <ProductDetail
               selected={selected}
               setSelected={setSelected}

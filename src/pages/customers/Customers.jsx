@@ -32,6 +32,9 @@ export default function Customers() {
     notes: "",
   });
 
+  // 🔹 chế độ hiển thị trên MOBILE: "list" | "create"
+  const [viewMode, setViewMode] = useState("list");
+
   // 🔹 Nạp danh sách khách + thống kê
   const loadList = async () => {
     try {
@@ -47,7 +50,10 @@ export default function Customers() {
     try {
       const res = await api("/orders");
       const total_orders = res.length;
-      const total_revenue = res.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      const total_revenue = res.reduce(
+        (sum, o) => sum + Number(o.total || 0),
+        0,
+      );
       const customers = await api("/customers");
       setStats({
         total_customers: customers.length,
@@ -70,7 +76,7 @@ export default function Customers() {
     return list.filter(
       (c) =>
         (c.name || "").toLowerCase().includes(q) ||
-        (c.phone || "").toLowerCase().includes(q)
+        (c.phone || "").toLowerCase().includes(q),
     );
   }, [list, search]);
 
@@ -91,6 +97,8 @@ export default function Customers() {
         notes: "",
       });
       await loadList();
+      // mobile: sau khi thêm xong có thể quay lại danh sách nếu muốn
+      // setViewMode("list");
     } catch (err) {
       notify.error("❌ Lỗi khi thêm khách hàng");
     }
@@ -114,7 +122,32 @@ export default function Customers() {
     <div className="relative z-0 space-y-6 pb-20 md:pb-10">
       <CustomerStats stats={stats} />
 
-      <div className="grid md:grid-cols-2 gap-6 relative z-0">
+      {/* 🔹 TAB đơn giản cho MOBILE */}
+      <div className="flex gap-2 px-4 md:hidden">
+        <button
+          onClick={() => setViewMode("list")}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+            viewMode === "list"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          Danh sách
+        </button>
+        <button
+          onClick={() => setViewMode("create")}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+            viewMode === "create"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          Thêm khách
+        </button>
+      </div>
+
+      {/* PC: giữ nguyên layout 2 cột */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6 relative z-0">
         <CustomerForm form={form} setForm={setForm} submit={submit} />
         <CustomerList
           filtered={filtered}
@@ -130,6 +163,30 @@ export default function Customers() {
           setEditing={setEditing}
           loadingDetail={loadingDetail}
         />
+      </div>
+
+      {/* MOBILE: chỉ hiển thị 1 khối theo viewMode */}
+      <div className="md:hidden px-4">
+        {viewMode === "create" && (
+          <CustomerForm form={form} setForm={setForm} submit={submit} />
+        )}
+
+        {viewMode === "list" && (
+          <CustomerList
+            filtered={filtered}
+            selected={selected}
+            setSelected={setSelected}
+            viewDetail={viewDetail}
+            search={search}
+            setSearch={setSearch}
+            loadList={loadList}
+            detail={detail}
+            setDetail={setDetail}
+            editing={editing}
+            setEditing={setEditing}
+            loadingDetail={loadingDetail}
+          />
+        )}
       </div>
     </div>
   );
