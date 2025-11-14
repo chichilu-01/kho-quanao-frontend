@@ -223,29 +223,42 @@ export default function Products() {
 
               {listViewMode === "grid" && (
                 <div className="grid grid-cols-2 gap-3">
-                  {filtered.map((p) => (
-                    <motion.div
-                      key={p.id}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => {
-                        setSelected(p);
-                        setViewMode("edit");
-                      }}
-                      className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow"
-                    >
-                      <img
-                        src={p.image || "/placeholder.png"}
-                        alt=""
-                        className="w-full h-32 object-cover rounded-lg"
-                      />
-                      <p className="font-semibold text-sm mt-2 line-clamp-2">
-                        {p.name}
-                      </p>
-                      <p className="text-blue-600 font-bold mt-1">
-                        {p.sale_price?.toLocaleString()}₫
-                      </p>
-                    </motion.div>
-                  ))}
+                  {filtered.map((p) => {
+                    const img =
+                      p.image ||
+                      p.image_url ||
+                      p.thumbnail ||
+                      p.media_url ||
+                      "/placeholder.png";
+
+                    const price = p.sale_price ?? p.salePrice ?? p.price ?? 0;
+
+                    return (
+                      <motion.div
+                        key={p.id}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          setSelected(p);
+                          setViewMode("edit");
+                        }}
+                        className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow"
+                      >
+                        <img
+                          src={img}
+                          alt=""
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+
+                        <p className="font-semibold text-sm mt-2 line-clamp-2">
+                          {p.name}
+                        </p>
+
+                        <p className="text-blue-600 font-bold mt-1">
+                          {price.toLocaleString()}₫
+                        </p>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </>
