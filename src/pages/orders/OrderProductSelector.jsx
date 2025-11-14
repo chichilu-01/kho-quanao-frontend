@@ -62,7 +62,7 @@ export default function OrderProductSelector({
           value={selectedProductId}
           onChange={(e) => setSelectedProductId(e.target.value)}
         >
-          <option value="">-- Chọn sản phẩm --</option>
+          <option value=""> -- Chọn sản phẩm -- </option>
           {products.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name} {p.brand ? `(${p.brand})` : ""}
