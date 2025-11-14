@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSun, FiMoon } from "react-icons/fi";
 
-export default function ThemeToggle({ small = false }) {
+export default function ThemeToggle() {
   const getInitialTheme = () => {
     if ("theme" in localStorage) return localStorage.theme === "dark";
+    // 🌓 Nếu người dùng chưa chọn, lấy theo hệ điều hành
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   };
 
@@ -15,42 +16,6 @@ export default function ThemeToggle({ small = false }) {
     localStorage.theme = dark ? "dark" : "light";
   }, [dark]);
 
-  // 🍀 Style nhỏ dành cho BottomNav (mobile)
-  if (small) {
-    return (
-      <motion.button
-        onClick={() => setDark(!dark)}
-        whileTap={{ scale: 0.85 }}
-        className="w-11 h-11 flex items-center justify-center rounded-full bg-black/80 border border-yellow-500/40 shadow-md"
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {dark ? (
-            <motion.span
-              key="sun-mini"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <FiSun className="text-yellow-400 text-xl" />
-            </motion.span>
-          ) : (
-            <motion.span
-              key="moon-mini"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <FiMoon className="text-blue-400 text-xl" />
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.button>
-    );
-  }
-
-  // ⭐ Phiên bản lớn (PC)
   return (
     <motion.button
       onClick={() => setDark(!dark)}
@@ -87,6 +52,7 @@ export default function ThemeToggle({ small = false }) {
         )}
       </AnimatePresence>
 
+      {/* 🌟 Hiệu ứng glow nhẹ khi ở dark mode */}
       {dark && (
         <motion.div
           className="absolute inset-0 rounded-full bg-yellow-500/10 blur-md"
