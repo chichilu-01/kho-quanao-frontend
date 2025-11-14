@@ -192,25 +192,29 @@ export default function Customers() {
       <div className="md:hidden px-4 pt-[60px] pb-[80px]">
         {/* MOBILE FULL PAGE DETAIL */}
         {viewMode === "detail" && detail && (
-          <div className="fixed inset-0 bg-white z-50 overflow-y-auto px-4 py-4">
-
+          <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
             {/* Nút quay lại */}
-            <button
-              onClick={() => setViewMode("list")}
-              className="mb-4 text-blue-600 text-sm"
-            >
-              ← Quay lại
-            </button>
+            <div className="p-4">
+              <button
+                onClick={() => setViewMode("list")}
+                className="text-blue-600 text-sm"
+              >
+                ← Quay lại
+              </button>
+            </div>
 
-            <CustomerDetail
-              detail={detail}
-              editing={editing}
-              setEditing={setEditing}
-              viewDetail={viewDetail}
-              setDetail={setDetail}
-              setSelected={setSelected}
-              loadList={loadList}
-            />
+            {/* CustomerDetail full màn hình, không padding, không margin */}
+            <div className="w-full">
+              <CustomerDetail
+                detail={detail}
+                editing={editing}
+                setEditing={setEditing}
+                viewDetail={viewDetail}
+                setDetail={setDetail}
+                setSelected={setSelected}
+                loadList={loadList}
+              />
+            </div>
           </div>
         )}
 
@@ -235,7 +239,7 @@ export default function Customers() {
           />
         )}
 
-        {/* MOBILE DETAIL */}
+        {/* MOBILE DETAIL 
         {viewMode === "list" && detail && (
           <div className="mt-4 p-4 rounded-lg border bg-white shadow">
             <CustomerDetail
@@ -248,7 +252,7 @@ export default function Customers() {
               loadList={loadList}
             />
           </div>
-        )}
+        )}*/}
       </div>
     </div>
   );
