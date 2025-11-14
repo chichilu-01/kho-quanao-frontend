@@ -223,42 +223,43 @@ export default function Products() {
 
               {listViewMode === "grid" && (
                 <div className="grid grid-cols-2 gap-3">
-                  {filtered.map((p) => {
-                    const img =
-                      p.image ||
-                      p.image_url ||
-                      p.thumbnail ||
-                      p.media_url ||
-                      "/placeholder.png";
-
-                    const price = p.sale_price ?? p.salePrice ?? p.price ?? 0;
-
-                    return (
-                      <motion.div
-                        key={p.id}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => {
-                          setSelected(p);
-                          setViewMode("edit");
-                        }}
-                        className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow"
-                      >
+                  {filtered.map((p) => (
+                    <motion.div
+                      key={p.id}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => {
+                        setSelected(p);
+                        setViewMode("edit");
+                      }}
+                      className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow cursor-pointer"
+                    >
+                      {/* ẢNH – dùng đúng cover_image giống ProductList */}
+                      {p.cover_image ? (
                         <img
-                          src={img}
+                          src={p.cover_image}
                           alt=""
                           className="w-full h-32 object-cover rounded-lg"
                         />
+                      ) : (
+                        <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+                      )}
 
-                        <p className="font-semibold text-sm mt-2 line-clamp-2">
-                          {p.name}
-                        </p>
+                      {/* TÊN */}
+                      <p className="font-semibold text-sm mt-2 line-clamp-2 text-gray-900 dark:text-gray-100">
+                        {p.name}
+                      </p>
 
-                        <p className="text-blue-600 font-bold mt-1">
-                          {price.toLocaleString()}₫
-                        </p>
-                      </motion.div>
-                    );
-                  })}
+                      {/* BRAND + SKU */}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {p.brand || "—"} • {p.sku}
+                      </p>
+
+                      {/* GIÁ — dùng đúng hàm format trong ProductList */}
+                      <p className="text-blue-600 dark:text-green-400 font-bold mt-2">
+                        {Number(p.sale_price || 0).toLocaleString("vi-VN")}đ
+                      </p>
+                    </motion.div>
+                  ))}
                 </div>
               )}
             </>
