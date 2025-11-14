@@ -6,8 +6,6 @@ import {
   FiDownload,
   FiPackage,
   FiCalendar,
-  FiArrowUp,
-  FiArrowDown,
   FiGrid,
   FiList,
   FiClock,
@@ -24,10 +22,8 @@ export default function StockHistory() {
     endDate: "",
   });
 
-  // 🔥 Chế độ xem: table | timeline | card
   const [viewMode, setViewMode] = useState("timeline");
 
-  // ================= LOAD DATA =================
   const load = async () => {
     try {
       setLoading(true);
@@ -40,13 +36,9 @@ export default function StockHistory() {
       const data = await api(`/stock/history?${params.toString()}`);
       setList(data);
 
-      if (data.length === 0) {
-        notify.info("Không có bản ghi phù hợp.");
-      } else {
-        notify.success(`Đã tải ${data.length} bản ghi.`);
-      }
+      if (data.length === 0) notify.info("Không có bản ghi phù hợp.");
+      else notify.success(`Đã tải ${data.length} bản ghi.`);
     } catch (err) {
-      console.error(err);
       notify.error("Không thể tải lịch sử kho!");
     } finally {
       setLoading(false);
@@ -57,7 +49,6 @@ export default function StockHistory() {
     load();
   }, []);
 
-  // ================= GROUP BY DATE =================
   const grouped = useMemo(() => {
     const map = {};
     list.forEach((item) => {
@@ -71,7 +62,6 @@ export default function StockHistory() {
       .map(([date, items]) => ({ date, items }));
   }, [list]);
 
-  // ================= EXPORT CSV =================
   const exportCSV = () => {
     if (!list.length) return notify.info("Không có dữ liệu để xuất.");
 
@@ -92,8 +82,8 @@ export default function StockHistory() {
         item.reason === "import"
           ? "Nhập hàng"
           : item.reason === "order"
-          ? "Bán hàng"
-          : item.reason;
+            ? "Bán hàng"
+            : item.reason;
 
       const date = new Date(item.created_at).toLocaleString("vi-VN");
 
@@ -116,19 +106,14 @@ export default function StockHistory() {
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `lich_su_kho_${new Date()
-      .toISOString()
-      .slice(0, 10)}.csv`;
+    link.download = `lich_su_kho_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
 
     notify.success("Đã xuất file CSV!");
   };
 
-  // ================= CARD VIEW =================
   const CardItem = ({ item }) => (
-    <div
-      className="p-4 rounded-xl border bg-white dark:bg-gray-800 shadow-sm space-y-2"
-    >
+    <div className="p-4 rounded-xl border bg-white dark:bg-gray-800 shadow-sm space-y-2">
       <div className="flex justify-between items-center">
         <div className="font-semibold text-gray-800 dark:text-gray-100">
           {item.product_name}
@@ -153,7 +138,6 @@ export default function StockHistory() {
     </div>
   );
 
-  // ================= UI =================
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -166,49 +150,39 @@ export default function StockHistory() {
           <FiPackage className="text-blue-500" /> Lịch sử kho
         </h2>
 
-        <div className="flex gap-2">
-          {/* TOGGLE VIEW */}
-          <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl border">
-            <button
-              onClick={() => setViewMode("table")}
-              className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
-                viewMode === "table"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              <FiList /> Table
-            </button>
-
-            <button
-              onClick={() => setViewMode("timeline")}
-              className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
-                viewMode === "timeline"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              <FiClock /> Timeline
-            </button>
-
-            <button
-              onClick={() => setViewMode("card")}
-              className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
-                viewMode === "card"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              <FiGrid /> Card
-            </button>
-          </div>
-
-          {/* CSV BUTTON */}
+        {/* TOGGLE VIEW ONLY */}
+        <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-xl border">
           <button
-            onClick={exportCSV}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm shadow"
+            onClick={() => setViewMode("table")}
+            className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
+              viewMode === "table"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 dark:text-gray-300"
+            }`}
           >
-            <FiDownload /> CSV
+            <FiList /> Table
+          </button>
+
+          <button
+            onClick={() => setViewMode("timeline")}
+            className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
+              viewMode === "timeline"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 dark:text-gray-300"
+            }`}
+          >
+            <FiClock /> Timeline
+          </button>
+
+          <button
+            onClick={() => setViewMode("card")}
+            className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${
+              viewMode === "card"
+                ? "bg-blue-600 text-white"
+                : "text-gray-600 dark:text-gray-300"
+            }`}
+          >
+            <FiGrid /> Card
           </button>
         </div>
       </div>
@@ -216,9 +190,7 @@ export default function StockHistory() {
       {/* FILTER BAR */}
       <div className="flex flex-wrap gap-3 items-end mb-5 bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border">
         <div>
-          <label className="block text-sm text-gray-600 dark:text-gray-300">
-            Loại giao dịch
-          </label>
+          <label className="block text-sm">Loại giao dịch</label>
           <select
             value={filters.reason}
             onChange={(e) =>
@@ -256,6 +228,7 @@ export default function StockHistory() {
           />
         </div>
 
+        {/* APPLY + RESET + CSV */}
         <div className="flex gap-2">
           <button
             onClick={load}
@@ -273,25 +246,33 @@ export default function StockHistory() {
           >
             <FiRefreshCw /> Reset
           </button>
+
+          {/* CSV moved here */}
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm shadow"
+          >
+            <FiDownload /> CSV
+          </button>
         </div>
       </div>
 
-      {/* ================= CONTENT ================= */}
+      {/* CONTENT */}
       {loading ? (
         <p className="text-gray-500">⏳ Đang tải...</p>
       ) : list.length === 0 ? (
         <p className="text-gray-500 italic">Không có lịch sử.</p>
       ) : (
         <>
-          {/* TABLE VIEW */}
+          {/* TABLE */}
           {viewMode === "table" && (
             <div className="overflow-auto border rounded-xl shadow">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-gray-200 dark:bg-gray-700">
                   <tr>
                     <th className="p-2">#</th>
-                    <th className="p-2 text-left">Tên</th>
-                    <th className="p-2 text-center">Thay đổi</th>
+                    <th className="p-2">Tên</th>
+                    <th className="p-2">Thay đổi</th>
                     <th className="p-2">Màu</th>
                     <th className="p-2">Size</th>
                     <th className="p-2">Lý do</th>
@@ -301,13 +282,9 @@ export default function StockHistory() {
 
                 <tbody>
                   {list.map((item, idx) => (
-                    <tr
-                      key={item.id}
-                      className="border-t hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
+                    <tr key={item.id} className="border-t hover:bg-gray-50">
                       <td className="p-2 text-center">{idx + 1}</td>
                       <td className="p-2">{item.product_name}</td>
-
                       <td
                         className={`p-2 text-center font-semibold ${
                           item.change_qty > 0
@@ -319,19 +296,12 @@ export default function StockHistory() {
                           ? `+${item.change_qty}`
                           : item.change_qty}
                       </td>
-
-                      <td className="p-2 text-center">
-                        {item.color || "-"}
-                      </td>
-                      <td className="p-2 text-center">
-                        {item.size || "-"}
-                      </td>
-
+                      <td className="p-2 text-center">{item.color || "-"}</td>
+                      <td className="p-2 text-center">{item.size || "-"}</td>
                       <td className="p-2 text-center">
                         {item.reason === "import" ? "Nhập hàng" : "Bán hàng"}
                       </td>
-
-                      <td className="p-2 text-center text-gray-600 dark:text-gray-300">
+                      <td className="p-2 text-center text-gray-600">
                         {new Date(item.created_at).toLocaleString("vi-VN")}
                       </td>
                     </tr>
@@ -341,7 +311,7 @@ export default function StockHistory() {
             </div>
           )}
 
-          {/* TIMELINE VIEW */}
+          {/* TIMELINE */}
           {viewMode === "timeline" && (
             <div className="space-y-6">
               {grouped.map((group) => (
@@ -351,7 +321,7 @@ export default function StockHistory() {
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <FiCalendar className="text-blue-500" />
-                    <span className="font-medium text-gray-800 dark:text-gray-100">
+                    <span className="font-medium text-gray-800">
                       {new Date(group.date).toLocaleDateString("vi-VN")}
                     </span>
                   </div>
@@ -363,9 +333,7 @@ export default function StockHistory() {
                         className="p-3 rounded-lg border bg-white dark:bg-gray-800 shadow-sm flex justify-between items-center"
                       >
                         <div>
-                          <div className="font-medium text-gray-800 dark:text-gray-100">
-                            {item.product_name}
-                          </div>
+                          <div className="font-medium">{item.product_name}</div>
                           <div className="text-xs text-gray-500">
                             SKU: {item.product_sku} | {item.color || "-"} |{" "}
                             {item.size || "-"}
@@ -384,15 +352,13 @@ export default function StockHistory() {
                               ? `+${item.change_qty}`
                               : item.change_qty}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {item.reason === "import"
-                              ? "Nhập kho"
-                              : "Bán hàng"}
+                          <div className="text-xs">
+                            {item.reason === "import" ? "Nhập kho" : "Bán hàng"}
                           </div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(
-                              item.created_at,
-                            ).toLocaleTimeString("vi-VN")}
+                          <div className="text-xs text-gray-500">
+                            {new Date(item.created_at).toLocaleTimeString(
+                              "vi-VN",
+                            )}
                           </div>
                         </div>
                       </div>
@@ -403,7 +369,7 @@ export default function StockHistory() {
             </div>
           )}
 
-          {/* CARD VIEW */}
+          {/* CARD */}
           {viewMode === "card" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {list.map((item) => (
