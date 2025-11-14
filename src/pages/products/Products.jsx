@@ -31,7 +31,7 @@ export default function Products() {
   const [viewMode, setViewMode] = useState("list");
 
   // ❗️ THÊM MỚI: chỉ để đổi list ↔ grid, KHÔNG ảnh hưởng logic cũ
-  const [listViewMode, setListViewMode] = useState("list"); // list | grid
+  const [listViewMode, setListViewMode] = useState("grid"); // list | grid
 
   // ------------------------------------------------------------------
   // LOAD DATA
@@ -186,7 +186,7 @@ export default function Products() {
                   }
                   className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
                 >
-                  {listViewMode === "list" ? (
+                  {listViewMode === "grid" ? (
                     <FiGrid className="text-xl" />
                   ) : (
                     <FiList className="text-xl" />
