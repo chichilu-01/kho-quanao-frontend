@@ -10,7 +10,7 @@ import ProductDetail from "./ProductDetail";
 import { RestockModal, DeleteModal } from "./ProductModals";
 import MobileTabs from "../../components/common/MobileTabs";
 
-// ❗️ THÊM MỚI: Toggle dạng list / grid
+// ❗️ THÊM ICON GRID
 import { FiGrid } from "react-icons/fi";
 
 export default function Products() {
@@ -27,11 +27,14 @@ export default function Products() {
 
   const [listLoading, setListLoading] = useState(false);
 
-  // 🔥 Tabs cho MOBILE: list | create | edit
+  // Tabs mobile
   const [viewMode, setViewMode] = useState("list");
 
-  // ❗️ THÊM MỚI: chỉ để đổi list ↔ grid, KHÔNG ảnh hưởng logic cũ
-  const [listViewMode, setListViewMode] = useState("grid"); // list | grid
+  // Dạng xem: list hoặc grid
+  const [listViewMode, setListViewMode] = useState("grid");
+
+  // ❗️ THÊM: số cột của dạng lưới
+  const [gridColumns, setGridColumns] = useState(2);
 
   // ------------------------------------------------------------------
   // LOAD DATA
@@ -66,7 +69,7 @@ export default function Products() {
   }, []);
 
   // ------------------------------------------------------------------
-  // FILTERS
+  // FILTER
   // ------------------------------------------------------------------
   const brands = useMemo(
     () => [...new Set(list.map((p) => p.brand).filter(Boolean))],
@@ -88,7 +91,7 @@ export default function Products() {
   }, [list, search, selectedBrand]);
 
   // -------------------------------------------------
-  // Cấu hình tabs cho trang Products (mobile)
+  // TABS
   // -------------------------------------------------
   const productTabs = [
     { value: "list", label: "Danh sách", icon: FiList },
@@ -108,18 +111,15 @@ export default function Products() {
     <>
       <Toaster position="top-right" toastOptions={{ duration: 2200 }} />
 
-      {/* TABS MOBILE (chỉ hiện dưới md) */}
+      {/* TABS MOBILE */}
       <MobileTabs
         options={productTabs}
         viewMode={viewMode}
         setViewMode={setViewMode}
       />
 
-      {/* --------------------------------------------------------------- */}
-      {/* PC LAYOUT (md+) – giữ nguyên hoàn toàn */}
-      {/* --------------------------------------------------------------- */}
+      {/* PC layout giữ nguyên */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn">
-        {/* LEFT: FORM TẠO SẢN PHẨM */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -128,7 +128,6 @@ export default function Products() {
           <ProductForm load={load} />
         </motion.div>
 
-        {/* RIGHT: LIST + DETAIL */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -166,35 +165,145 @@ export default function Products() {
         </motion.div>
       </div>
 
-      {/* --------------------------------------------------------------- */}
-      {/* MOBILE LAYOUT */}
-      {/* --------------------------------------------------------------- */}
+      {/* MOBILE */}
       <div className="md:hidden pt-[60px] pb-[80px] px-3">
         <motion.div
           key={viewMode}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full"
         >
           {viewMode === "list" && (
             <>
-              {/* Nút đổi List ↔ Grid (mới thêm) */}
-              <div className="flex justify-end mb-3">
-                <button
+              {/* ⭐ 4 NÚT: Toggle list/grid + 1/2/3 cột */}
+              {/* 🔥 HÀNG NÚT PRO MAX */}
+              <div className="flex justify-end gap-2 mb-4">
+                {/* Toggle List / Grid */}
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
+                  whileHover={{ scale: 1.06 }}
                   onClick={() =>
-                    setListViewMode((m) => (m === "list" ? "grid" : "list"))
+                    setListViewMode((m) => (m === "grid" ? "list" : "grid"))
                   }
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
+                  className="
+                    relative w-10 h-10 flex items-center justify-center
+                    rounded-xl bg-white dark:bg-gray-800
+                    shadow-sm border border-gray-200 dark:border-gray-700
+                    transition-all overflow-hidden
+                  "
                 >
+                  {/* Ripple */}
+                  <span className="absolute inset-0 bg-blue-200/20 dark:bg-blue-400/10 opacity-0 hover:opacity-100 transition-all"></span>
+
                   {listViewMode === "grid" ? (
-                    <FiGrid className="text-xl" />
+                    <FiGrid className="text-xl text-blue-600 dark:text-blue-400" />
                   ) : (
-                    <FiList className="text-xl" />
+                    <FiList className="text-xl text-blue-600 dark:text-blue-400" />
                   )}
-                </button>
+                </motion.button>
+
+                {/* BUTTON TEMPLATE */}
+                {((num) => (
+                  <motion.button
+                    key={num}
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() => setGridColumns(num)}
+                    className={`
+                      relative px-4 h-10 flex items-center justify-center gap-1 rounded-xl text-sm font-semibold
+                      overflow-hidden border transition-all
+                      ${
+                        gridColumns === num
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 shadow-sm"
+                      }
+                    `}
+                  >
+                    {/* Ripple overlay */}
+                    <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-all"></span>
+
+                    {/* ICONS đẹp hơn */}
+                    {num === 1 && (
+                      <div className="grid grid-cols-1 gap-[2px] w-3 h-4">
+                        <span className="block w-full h-full bg-current rounded"></span>
+                      </div>
+                    )}
+
+                    {num === 2 && (
+                      <div className="grid grid-cols-2 gap-[2px] w-3 h-4">
+                        <span className="block bg-current rounded"></span>
+                        <span className="block bg-current rounded"></span>
+                      </div>
+                    )}
+
+                    {num === 3 && (
+                      <div className="grid grid-cols-3 gap-[2px] w-3 h-4">
+                        <span className="block bg-current rounded"></span>
+                        <span className="block bg-current rounded"></span>
+                        <span className="block bg-current rounded"></span>
+                      </div>
+                    )}
+
+                    {num}
+                  </motion.button>
+                ))(1)}
+
+                {((num) => (
+                  <motion.button
+                    key={num}
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() => setGridColumns(num)}
+                    className={`
+                      relative px-4 h-10 flex items-center justify-center gap-1 rounded-xl text-sm font-semibold
+                      overflow-hidden border transition-all
+                      ${
+                        gridColumns === num
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 shadow-sm"
+                      }
+                    `}
+                  >
+                    <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-all"></span>
+
+                    <div className="grid grid-cols-2 gap-[2px] w-3 h-4">
+                      <span className="block bg-current rounded"></span>
+                      <span className="block bg-current rounded"></span>
+                    </div>
+
+                    {num}
+                  </motion.button>
+                ))(2)}
+
+                {((num) => (
+                  <motion.button
+                    key={num}
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() => setGridColumns(num)}
+                    className={`
+                      relative px-4 h-10 flex items-center justify-center gap-1 rounded-xl text-sm font-semibold
+                      overflow-hidden border transition-all
+                      ${
+                        gridColumns === num
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 shadow-sm"
+                      }
+                    `}
+                  >
+                    <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-all"></span>
+
+                    <div className="grid grid-cols-3 gap-[2px] w-3 h-4">
+                      <span className="block bg-current rounded"></span>
+                      <span className="block bg-current rounded"></span>
+                      <span className="block bg-current rounded"></span>
+                    </div>
+
+                    {num}
+                  </motion.button>
+                ))(3)}
               </div>
 
-              {/* LIST VIEW (giữ nguyên ProductList) */}
+              {/* LIST MODE */}
               {listViewMode === "list" && (
                 <ProductList
                   list={list}
@@ -219,10 +328,9 @@ export default function Products() {
                 />
               )}
 
-              {/* GRID VIEW */}
-
+              {/* GRID MODE */}
               {listViewMode === "grid" && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid gap-3 grid-cols-${gridColumns}`}>
                   {filtered.map((p) => (
                     <motion.div
                       key={p.id}
@@ -233,7 +341,6 @@ export default function Products() {
                       }}
                       className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow cursor-pointer"
                     >
-                      {/* ẢNH – dùng đúng cover_image giống ProductList */}
                       {p.cover_image ? (
                         <img
                           src={p.cover_image}
@@ -244,17 +351,14 @@ export default function Products() {
                         <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
                       )}
 
-                      {/* TÊN */}
                       <p className="font-semibold text-sm mt-2 line-clamp-2 text-gray-900 dark:text-gray-100">
                         {p.name}
                       </p>
 
-                      {/* BRAND + SKU */}
                       <p className="text-xs text-gray-500 mt-1">
                         {p.brand || "—"} • {p.sku}
                       </p>
 
-                      {/* GIÁ — dùng đúng hàm format trong ProductList */}
                       <p className="text-blue-600 dark:text-green-400 font-bold mt-2">
                         {Number(p.sale_price || 0).toLocaleString("vi-VN")}đ
                       </p>
@@ -265,27 +369,18 @@ export default function Products() {
             </>
           )}
 
-          {viewMode === "create" && (
-            <div className="w-full">
-              <ProductForm load={load} />
-            </div>
-          )}
-
+          {viewMode === "create" && <ProductForm load={load} />}
           {viewMode === "edit" && selected && (
-            <div className="w-full">
-              <ProductDetail
-                selected={selected}
-                setSelected={setSelected}
-                load={load}
-              />
-            </div>
+            <ProductDetail
+              selected={selected}
+              setSelected={setSelected}
+              load={load}
+            />
           )}
         </motion.div>
       </div>
 
-      {/* --------------------------------------------------------------- */}
-      {/* MODALS */}
-      {/* --------------------------------------------------------------- */}
+      {/* MODALS giữ nguyên */}
       <RestockModal
         open={restockModal}
         setOpen={setRestockModal}
