@@ -4,13 +4,11 @@ export default function MobileTabs({ options, viewMode, setViewMode }) {
   return (
     <div
       className="
-      md:hidden 
-      sticky top-0 z-40 
-      bg-white/90 dark:bg-gray-900/90 
-      backdrop-blur-md 
-      px-3 py-2 
-      border-b border-gray-200 dark:border-gray-700
-    "
+        md:hidden
+        fixed top-0 left-0 right-0 z-40
+        bg-white dark:bg-gray-900
+        px-3 py-2
+      "
     >
       <div className="flex gap-2">
         {options.map((opt) => {
@@ -28,15 +26,14 @@ export default function MobileTabs({ options, viewMode, setViewMode }) {
                 }
               }}
               className={`
-                flex-1 flex items-center justify-center gap-1 
+                flex-1 flex items-center justify-center gap-1
                 py-2.5 rounded-xl font-medium text-sm transition-all
-                border 
                 ${
                   active
-                    ? "bg-blue-600 text-white border-blue-700 shadow-md shadow-blue-500/20"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-700"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
                 }
-                ${opt.disabled ? "opacity-40" : "active:scale-95"}
+                ${opt.disabled ? "opacity-40" : ""}
               `}
             >
               {opt.icon && (

@@ -161,14 +161,14 @@ export default function Products() {
       </div>
 
       {/* --------------------------------------------------------------- */}
-      {/* MOBILE LAYOUT – nội dung theo tab */}
+      {/* MOBILE LAYOUT – FULL SCREEN */}
       {/* --------------------------------------------------------------- */}
-      <div className="md:hidden p-4 pb-6">
+      <div className="md:hidden pt-[60px] pb-[80px] px-3">
         <motion.div
           key={viewMode}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card p-4"
+          className="w-full"
         >
           {viewMode === "list" && (
             <ProductList
@@ -194,14 +194,20 @@ export default function Products() {
             />
           )}
 
-          {viewMode === "create" && <ProductForm load={load} />}
+          {viewMode === "create" && (
+            <div className="w-full">
+              <ProductForm load={load} />
+            </div>
+          )}
 
           {viewMode === "edit" && selected && (
-            <ProductDetail
-              selected={selected}
-              setSelected={setSelected}
-              load={load}
-            />
+            <div className="w-full">
+              <ProductDetail
+                selected={selected}
+                setSelected={setSelected}
+                load={load}
+              />
+            </div>
           )}
         </motion.div>
       </div>

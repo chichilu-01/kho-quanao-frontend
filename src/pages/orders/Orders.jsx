@@ -252,23 +252,32 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* 🔥 MOBILE MODE — chỉ hiển thị 1 khối */}
-      <div className="md:hidden p-3">
+      {/* --------------------------------------------------------------- */}
+      {/* 🔥 MOBILE LAYOUT – FULL SCREEN, NO CARD */}
+      {/* --------------------------------------------------------------- */}
+      <div className="md:hidden px-3 pt-[60px] pb-[80px]">
         {viewMode === "list" && (
-          <OrderList
-            filtered={filtered}
-            loading={loading}
-            selected={selected}
-            setSelected={setSelected}
-          />
+          <div className="w-full">
+            <OrderList
+              filtered={filtered}
+              loading={loading}
+              selected={selected}
+              setSelected={(o) => {
+                setSelected(o);
+                setViewMode("detail");
+              }}
+            />
+          </div>
         )}
 
         {viewMode === "detail" && (
-          <OrderDetail
-            selected={selected}
-            updateStatus={updateStatus}
-            updating={updating}
-          />
+          <div className="w-full">
+            <OrderDetail
+              selected={selected}
+              updateStatus={updateStatus}
+              updating={updating}
+            />
+          </div>
         )}
       </div>
     </>

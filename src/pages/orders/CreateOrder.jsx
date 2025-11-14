@@ -132,12 +132,16 @@ export default function CreateOrder() {
         />
       </div>
 
-      {/* MOBILE CONTENT */}
-      <div className="md:hidden p-4 pb-24">
+      {/* --------------------------------------------------------------- */}
+      {/* MOBILE FULL SCREEN LAYOUT */}
+      {/* --------------------------------------------------------------- */}
+      <div className="md:hidden px-4 pt-[60px] pb-[80px]">
         {viewMode === "customer" && (
           <motion.div
+            key="customer"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
+            className="w-full"
           >
             <OrderCustomerForm
               customers={customers}
@@ -153,8 +157,10 @@ export default function CreateOrder() {
 
         {viewMode === "products" && (
           <motion.div
+            key="products"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
+            className="w-full"
           >
             <OrderProductSelector
               products={products}
@@ -169,8 +175,10 @@ export default function CreateOrder() {
 
         {viewMode === "cart" && (
           <motion.div
+            key="cart"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
+            className="w-full"
           >
             <OrderCart
               items={items}

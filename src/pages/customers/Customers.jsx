@@ -166,7 +166,7 @@ export default function Customers() {
       </div>
 
       {/* MOBILE: chỉ hiển thị 1 khối theo viewMode */}
-      <div className="md:hidden px-4">
+      <div className="md:hidden px-4 pt-[60px] pb-[80px]">
         {viewMode === "create" && (
           <CustomerForm form={form} setForm={setForm} submit={submit} />
         )}
