@@ -10,6 +10,9 @@ import ProductDetail from "./ProductDetail";
 import { RestockModal, DeleteModal } from "./ProductModals";
 import MobileTabs from "../../components/common/MobileTabs";
 
+// ❗️ THÊM MỚI: Toggle dạng list / grid
+import { FiGrid } from "react-icons/fi";
+
 export default function Products() {
   const [list, setList] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -26,6 +29,9 @@ export default function Products() {
 
   // 🔥 Tabs cho MOBILE: list | create | edit
   const [viewMode, setViewMode] = useState("list");
+
+  // ❗️ THÊM MỚI: chỉ để đổi list ↔ grid, KHÔNG ảnh hưởng logic cũ
+  const [listViewMode, setListViewMode] = useState("list"); // list | grid
 
   // ------------------------------------------------------------------
   // LOAD DATA
@@ -110,7 +116,7 @@ export default function Products() {
       />
 
       {/* --------------------------------------------------------------- */}
-      {/* PC LAYOUT (md+) – giữ nguyên 2 cột */}
+      {/* PC LAYOUT (md+) – giữ nguyên hoàn toàn */}
       {/* --------------------------------------------------------------- */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn">
         {/* LEFT: FORM TẠO SẢN PHẨM */}
@@ -135,7 +141,7 @@ export default function Products() {
             selected={selected}
             setSelected={(p) => {
               setSelected(p);
-              setViewMode("edit"); // nếu đang ở mobile, lần sau bấm tab "Sửa" sẽ có data
+              setViewMode("edit");
             }}
             listLoading={listLoading}
             setSearch={setSearch}
@@ -161,7 +167,7 @@ export default function Products() {
       </div>
 
       {/* --------------------------------------------------------------- */}
-      {/* MOBILE LAYOUT – FULL SCREEN */}
+      {/* MOBILE LAYOUT */}
       {/* --------------------------------------------------------------- */}
       <div className="md:hidden pt-[60px] pb-[80px] px-3">
         <motion.div
@@ -171,27 +177,78 @@ export default function Products() {
           className="w-full"
         >
           {viewMode === "list" && (
-            <ProductList
-              list={list}
-              filtered={filtered}
-              brands={brands}
-              selected={selected}
-              setSelected={(p) => {
-                setSelected(p);
-                setViewMode("edit");
-              }}
-              listLoading={listLoading}
-              setSearch={setSearch}
-              search={search}
-              selectedBrand={selectedBrand}
-              setSelectedBrand={setSelectedBrand}
-              onRestock={(p) => {
-                setRestockProduct(p);
-                setRestockQty("");
-                setRestockModal(true);
-              }}
-              reload={load}
-            />
+            <>
+              {/* Nút đổi List ↔ Grid (mới thêm) */}
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={() =>
+                    setListViewMode((m) => (m === "list" ? "grid" : "list"))
+                  }
+                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800"
+                >
+                  {listViewMode === "list" ? (
+                    <FiGrid className="text-xl" />
+                  ) : (
+                    <FiList className="text-xl" />
+                  )}
+                </button>
+              </div>
+
+              {/* LIST VIEW (giữ nguyên ProductList) */}
+              {listViewMode === "list" && (
+                <ProductList
+                  list={list}
+                  filtered={filtered}
+                  brands={brands}
+                  selected={selected}
+                  setSelected={(p) => {
+                    setSelected(p);
+                    setViewMode("edit");
+                  }}
+                  listLoading={listLoading}
+                  setSearch={setSearch}
+                  search={search}
+                  selectedBrand={selectedBrand}
+                  setSelectedBrand={setSelectedBrand}
+                  onRestock={(p) => {
+                    setRestockProduct(p);
+                    setRestockQty("");
+                    setRestockModal(true);
+                  }}
+                  reload={load}
+                />
+              )}
+
+              {/* GRID VIEW */}
+
+              {listViewMode === "grid" && (
+                <div className="grid grid-cols-2 gap-3">
+                  {filtered.map((p) => (
+                    <motion.div
+                      key={p.id}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => {
+                        setSelected(p);
+                        setViewMode("edit");
+                      }}
+                      className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow"
+                    >
+                      <img
+                        src={p.image || "/placeholder.png"}
+                        alt=""
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <p className="font-semibold text-sm mt-2 line-clamp-2">
+                        {p.name}
+                      </p>
+                      <p className="text-blue-600 font-bold mt-1">
+                        {p.sale_price?.toLocaleString()}₫
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {viewMode === "create" && (
