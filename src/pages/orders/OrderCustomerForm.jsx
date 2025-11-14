@@ -31,7 +31,7 @@ export default function OrderCustomerForm({
             <FiSearch className="absolute left-3 top-3 text-gray-400" />
             <input
               className="input pl-9"
-              placeholder="Tìm khách hàng..."
+              placeholder="     Tìm khách hàng..."
               onChange={(e) => setCustomerId(e.target.value)}
             />
           </div>
@@ -41,7 +41,7 @@ export default function OrderCustomerForm({
             value={customerId}
             onChange={(e) => setCustomerId(e.target.value)}
           >
-            <option value="">-- Chọn khách hàng --</option>
+            <option value=""> -- Chọn khách hàng -- </option>
             {customers.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name} {c.phone ? `(${c.phone})` : ""}

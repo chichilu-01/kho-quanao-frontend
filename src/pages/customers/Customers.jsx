@@ -32,6 +32,7 @@ export default function Customers() {
     notes: "",
   });
 
+  // 👇 Thêm tab "stats"
   const [viewMode, setViewMode] = useState("list");
 
   const loadList = async () => {
@@ -113,9 +114,7 @@ export default function Customers() {
 
   return (
     <div className="relative z-0 space-y-6 pb-20 md:pb-10">
-      <CustomerStats stats={stats} />
-
-      {/* 🔹 TAB MOBILE */}
+      {/* 🔹 TAB MOBILE — thêm tab Thống kê */}
       <div className="flex gap-2 px-4 md:hidden">
         <button
           onClick={() => setViewMode("list")}
@@ -138,9 +137,21 @@ export default function Customers() {
         >
           Thêm khách
         </button>
+
+        {/* TAB THỐNG KÊ */}
+        <button
+          onClick={() => setViewMode("stats")}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium ${
+            viewMode === "stats"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+        >
+          Thống kê
+        </button>
       </div>
 
-      {/* PC */}
+      {/* PC layout giữ nguyên */}
       <div className="hidden md:grid md:grid-cols-3 gap-6 relative z-0">
         <div className="md:col-span-1">
           <CustomerForm form={form} setForm={setForm} submit={submit} />
@@ -208,10 +219,12 @@ export default function Customers() {
           </div>
         )}
 
+        {/* MOBILE TAB: CREATE */}
         {viewMode === "create" && (
           <CustomerForm form={form} setForm={setForm} submit={submit} />
         )}
 
+        {/* MOBILE TAB: LIST */}
         {viewMode === "list" && (
           <CustomerList
             filtered={filtered}
@@ -228,6 +241,9 @@ export default function Customers() {
             loadingDetail={loadingDetail}
           />
         )}
+
+        {/* MOBILE TAB: STATS */}
+        {viewMode === "stats" && <CustomerStats stats={stats} />}
       </div>
     </div>
   );
