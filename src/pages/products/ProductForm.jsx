@@ -68,7 +68,8 @@ export default function ProductForm({ load }) {
   };
 
   return (
-    <div className="relative pb-24">
+    // không cần relative + pb-24 nữa, chỉ để padding nhẹ
+    <div className="pb-4">
       <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
         <FiPlusCircle className="text-blue-500" /> Thêm sản phẩm mới
       </h3>
@@ -166,27 +167,23 @@ export default function ProductForm({ load }) {
           />
         </div>
 
-        {/* SPACER để chừa chỗ cho nút sticky */}
-        <div className="h-4"></div>
+        {/* ---- Nút Lưu ngay dưới chọn ảnh ---- */}
+        <div className="pt-2">
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            disabled={loading}
+            type="submit"
+            onClick={submit}
+            className="
+              w-full mt-4 py-3 rounded-xl 
+              bg-gradient-to-r from-blue-500 to-blue-600 
+              text-white font-semibold shadow-lg text-sm
+            "
+          >
+            {loading ? "⏳ Đang tạo..." : "💾 Lưu sản phẩm"}
+          </motion.button>
+        </div>
       </form>
-
-      {/* ---- Nút Lưu dính đáy ---- */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-t dark:border-gray-700">
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          disabled={loading}
-          type="submit"
-          form="product-form-id"
-          onClick={submit}
-          className="
-            w-full py-3 rounded-xl 
-            bg-gradient-to-r from-blue-500 to-blue-600 
-            text-white font-semibold shadow-lg text-sm
-          "
-        >
-          {loading ? "⏳ Đang tạo..." : "💾 Lưu sản phẩm"}
-        </motion.button>
-      </div>
     </div>
   );
 }
