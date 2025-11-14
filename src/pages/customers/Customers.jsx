@@ -32,10 +32,8 @@ export default function Customers() {
     notes: "",
   });
 
-  // 🔹 mobile: hiển thị "list" | "create"
   const [viewMode, setViewMode] = useState("list");
 
-  // 🔹 tải danh sách + thống kê
   const loadList = async () => {
     try {
       const data = await api("/customers");
@@ -69,7 +67,6 @@ export default function Customers() {
     loadList();
   }, []);
 
-  // 🔍 lọc nhanh
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return list;
@@ -80,7 +77,6 @@ export default function Customers() {
     );
   }, [list, search]);
 
-  // ➕ thêm khách hàng
   const submit = async (e) => {
     e.preventDefault();
     try {
@@ -102,7 +98,6 @@ export default function Customers() {
     }
   };
 
-  // 🔎 xem chi tiết khách
   const viewDetail = async (c) => {
     setSelected(c);
     setLoadingDetail(true);
@@ -145,14 +140,12 @@ export default function Customers() {
         </button>
       </div>
 
-      {/* PC layout 2 cột */}
+      {/* PC */}
       <div className="hidden md:grid md:grid-cols-3 gap-6 relative z-0">
-        {/* tạo khách */}
         <div className="md:col-span-1">
           <CustomerForm form={form} setForm={setForm} submit={submit} />
         </div>
 
-        {/* danh sách */}
         <div className="md:col-span-1">
           <CustomerList
             filtered={filtered}
@@ -170,7 +163,6 @@ export default function Customers() {
           />
         </div>
 
-        {/* CHI TIẾT KHÁCH */}
         <div className="md:col-span-1">
           {detail && (
             <div className="p-4 rounded-lg border bg-white shadow">
@@ -189,11 +181,10 @@ export default function Customers() {
       </div>
 
       {/* MOBILE */}
-      <div className="md:hidden px-4 pt-[60px] pb-[80px]">
-        {/* MOBILE FULL PAGE DETAIL */}
+      <div className="md:hidden pt-[60px] pb-[80px]">
+        {/* FULL SCREEN DETAIL */}
         {viewMode === "detail" && detail && (
           <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-            {/* Nút quay lại */}
             <div className="p-4">
               <button
                 onClick={() => setViewMode("list")}
@@ -203,7 +194,6 @@ export default function Customers() {
               </button>
             </div>
 
-            {/* CustomerDetail full màn hình, không padding, không margin */}
             <div className="w-full">
               <CustomerDetail
                 detail={detail}
@@ -238,21 +228,6 @@ export default function Customers() {
             loadingDetail={loadingDetail}
           />
         )}
-
-        {/* MOBILE DETAIL 
-        {viewMode === "list" && detail && (
-          <div className="mt-4 p-4 rounded-lg border bg-white shadow">
-            <CustomerDetail
-              detail={detail}
-              editing={editing}
-              setEditing={setEditing}
-              viewDetail={viewDetail}
-              setDetail={setDetail}
-              setSelected={setSelected}
-              loadList={loadList}
-            />
-          </div>
-        )}*/}
       </div>
     </div>
   );
