@@ -6,10 +6,38 @@ import {
   FiShoppingBag,
   FiArchive,
   FiPlusCircle,
+  FiSun,
+  FiMoon,
 } from "react-icons/fi";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export default function BottomNav() {
+  // 🌙 DARK MODE STATES
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") {
+      setDark(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newMode = !dark;
+    setDark(newMode);
+
+    if (newMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  };
+
+  // MENU CHÍNH
   const navItems = [
     { to: "/", icon: <FiHome />, label: "Tổng quan" },
     { to: "/products", icon: <FiBox />, label: "Sản phẩm" },
@@ -20,7 +48,13 @@ export default function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center bg-black/90 backdrop-blur-md border-t border-yellow-700/30 py-2 shadow-[0_-2px_10px_rgba(255,215,0,0.2)]">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center
+      bg-black/90 backdrop-blur-md border-t border-yellow-700/30 py-2
+      shadow-[0_-2px_10px_rgba(255,215,0,0.2)]
+    "
+    >
+      {/* ================= NAV ITEMS ================= */}
       {navItems.map((item) => (
         <NavLink
           key={item.to}
@@ -37,6 +71,8 @@ export default function BottomNav() {
             <>
               <div className="text-lg relative">
                 {item.icon}
+
+                {/* Glow vàng */}
                 {isActive && (
                   <motion.span
                     layoutId="navGlow"
@@ -52,14 +88,16 @@ export default function BottomNav() {
                   />
                 )}
               </div>
+
               <span className="mt-0.5 font-medium tracking-tight">
                 {item.label}
               </span>
 
-              {/* 💫 Ánh sáng chạy ngang khi active */}
+              {/* Line sáng chạy */}
               {isActive && (
                 <motion.div
-                  className="absolute -bottom-0.5 h-[2px] w-5/6 bg-gradient-to-r from-transparent via-yellow-400 to-transparent rounded-full"
+                  className="absolute -bottom-0.5 h-[2px] w-5/6 
+                  bg-gradient-to-r from-transparent via-yellow-400 to-transparent rounded-full"
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: [0, 1, 0] }}
                   transition={{
@@ -73,6 +111,43 @@ export default function BottomNav() {
           )}
         </NavLink>
       ))}
+
+      {/* ================= DARK MODE TOGGLE ================= */}
+      <motion.button
+        onClick={toggleTheme}
+        whileTap={{ scale: 0.85 }}
+        whileHover={{ scale: 1.1 }}
+        className="
+          ml-2 w-11 h-11 flex items-center justify-center
+          rounded-full bg-gray-700/50 border border-yellow-600/40
+          shadow-[0_0_10px_rgba(255,215,0,0.3)]
+          backdrop-blur-md
+        "
+      >
+        <AnimatePresence mode="wait">
+          {dark ? (
+            <motion.div
+              key="moon"
+              initial={{ opacity: 0, rotate: -90 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              exit={{ opacity: 0, rotate: 90 }}
+              transition={{ duration: 0.25 }}
+            >
+              <FiMoon size={20} className="text-yellow-400" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="sun"
+              initial={{ opacity: 0, rotate: 90 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              exit={{ opacity: 0, rotate: -90 }}
+              transition={{ duration: 0.25 }}
+            >
+              <FiSun size={20} className="text-yellow-300" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.button>
     </nav>
   );
 }
