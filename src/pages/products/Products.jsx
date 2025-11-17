@@ -116,7 +116,7 @@ export default function Products() {
         options={productTabs}
         viewMode={viewMode}
         setViewMode={setViewMode}
-        className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md"
+        className="fixed top-0 left-0 right-0 z-[9999] bg-white shadow-md"
       />
 
       {/* PC layout giữ nguyên */}
