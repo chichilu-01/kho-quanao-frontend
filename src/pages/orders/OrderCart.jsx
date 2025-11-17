@@ -30,7 +30,7 @@ export default function OrderCart({
   const updateQty = (idx, qty) => {
     setItems((prev) => {
       const clone = [...prev];
-      qty = Math.max(10, Number(qty || 10));
+      qty = Math.max(1, Number(qty || 1));
 
       // check tồn kho
       if (qty > clone[idx].stock) {
@@ -155,7 +155,7 @@ export default function OrderCart({
       className={`bg-white rounded-2xl border shadow-md
         ${
           isMobile
-            ? "fixed inset-0 z-50 p-4 pt-[70px] rounded-t-3xl overflow-hidden"
+            ? "fixed left-0 right-0 bottom-0 top-[70px] z-40 p-4 overflow-hidden"
             : "p-6"
         }
 `}
@@ -194,8 +194,8 @@ export default function OrderCart({
             <thead className="bg-gray-100 sticky top-0 text-gray-700">
               <tr>
                 <th className="p-2">Sản phẩm</th>
-                <th className="p-2 w-20 text-center">SL</th>
-                <th className="p-2 w-24">Giá</th>
+                <th className="p-2 w-15 text-center">SL</th>
+                <th className="p-2 w-28">Giá</th>
                 <th className="p-2 w-28 text-right">Thành tiền</th>
                 <th className="p-2 w-10"></th>
               </tr>

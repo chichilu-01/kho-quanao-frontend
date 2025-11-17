@@ -87,6 +87,7 @@ export default function CreateOrder() {
         options={orderTabs}
         viewMode={viewMode}
         setViewMode={setViewMode}
+        className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md"
       />
 
       {/* PC: giữ nguyên 2 cột */}
@@ -135,7 +136,7 @@ export default function CreateOrder() {
       {/* --------------------------------------------------------------- */}
       {/* MOBILE FULL SCREEN LAYOUT */}
       {/* --------------------------------------------------------------- */}
-      <div className="md:hidden px-4 pt-[60px] pb-[80px]">
+      <div className="md:hidden px-4 pt-[70px] pb-[80px]">
         {viewMode === "customer" && (
           <motion.div
             key="customer"
