@@ -6,6 +6,8 @@ import CustomerForm from "./CustomerForm";
 import CustomerList from "./CustomerList";
 import CustomerDetail from "./CustomerDetail";
 import { FiGrid, FiList as FiListIcon } from "react-icons/fi";
+import { FiPhoneCall } from "react-icons/fi";
+import { FaFacebookF } from "react-icons/fa";
 
 function money(n) {
   return Number(n || 0).toLocaleString("vi-VN") + "đ";
@@ -252,7 +254,6 @@ export default function Customers() {
         {/* LIST */}
         {viewMode === "list" && (
           <div className="px-4">
-
             {/* 🔥 NÚT ĐỔI GRID / LIST */}
             <div className="flex justify-end mb-3">
               <button
@@ -273,17 +274,17 @@ export default function Customers() {
             {/* ⭐ GRID VIEW CÓ AVATAR PRO */}
             {listViewMode === "grid" && (
               <div className="grid grid-cols-2 gap-4">
-                {filtered.map((c, i) => (
+                {filtered.map((c) => (
                   <div
                     key={c.id}
                     onClick={() => viewDetail(c)}
-                    className="relative p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700  
-                               cursor-pointer shadow-sm transition-all duration-300
+                    className="relative overflow-hidden p-4 rounded-2xl bg-white dark:bg-gray-900 
+                               border border-gray-200 dark:border-gray-700 cursor-pointer 
+                               transition-all duration-300 shadow-sm
                                hover:shadow-xl hover:-translate-y-[4px] hover:border-blue-400/50
-                               animate-fadeIn"
-                    style={{ animationDelay: `${i * 60}ms` }}
+                               active:scale-95"
                   >
-                    {/* VIP Badge */}
+                    {/* VIP badge */}
                     {c.total_orders > 3 && (
                       <span className="absolute top-1 right-1 bg-yellow-400 text-[10px] px-2 py-[2px] rounded-full font-bold shadow">
                         VIP
@@ -295,7 +296,7 @@ export default function Customers() {
                       <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-white text-lg
                                    shadow-[4px_4px_10px_rgba(0,0,0,0.2),-3px_-3px_8px_rgba(255,255,255,0.3)]
-                                   border border-white/20 animate-avatarPulse"
+                                   border border-white/20"
                         style={{
                           background: getAvatarGradient(c.name),
                         }}
@@ -303,38 +304,48 @@ export default function Customers() {
                         {getInitial(c.name)}
                       </div>
 
-                      {/* Info */}
+                      {/* Thông tin khách — HIGHLIGHT TÊN */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                        <p className="font-bold text-gray-900 dark:text-gray-100 text-[15px] leading-tight">
                           {c.name}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">{c.phone}</p>
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+
+                        <p className="text-xs text-gray-500">{c.phone}</p>
+
+                        <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
                           {c.address || "—"}
                         </p>
                       </div>
                     </div>
 
-                    {/* Quick Buttons */}
-                    <div className="flex gap-3 mt-3 text-xs opacity-90">
+                    {/* Nút Gọi + FB (icon) */}
+                    <div className="flex gap-3 mt-3 text-xs opacity-95">
+                      {/* CALL */}
                       <a
                         href={`tel:${c.phone}`}
-                        className="flex-1 py-1.5 rounded-lg text-center bg-blue-50 dark:bg-blue-900/30 
-                                   text-blue-600 dark:text-blue-300 font-medium hover:bg-blue-100 active:scale-95 transition"
+                        className="flex-1 py-2 rounded-lg flex items-center justify-center gap-1
+                                   bg-blue-50 dark:bg-blue-900/30 
+                                   text-blue-600 dark:text-blue-300 font-medium 
+                                   hover:bg-blue-100 transition"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Gọi
+                        <FiPhoneCall className="text-sm" />
+                        <span className="text-[11px]">Gọi</span>
                       </a>
 
+                      {/* FB */}
                       {c.facebook_url && (
                         <a
                           href={c.facebook_url}
                           target="_blank"
-                          className="flex-1 py-1.5 rounded-lg text-center bg-indigo-50 dark:bg-indigo-900/30 
-                                     text-indigo-600 dark:text-indigo-300 font-medium hover:bg-indigo-100 active:scale-95 transition"
+                          className="flex-1 py-2 rounded-lg flex items-center justify-center gap-1
+                                     bg-indigo-50 dark:bg-indigo-900/30 
+                                     text-indigo-600 dark:text-indigo-300 font-medium 
+                                     hover:bg-indigo-100 transition"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          FB
+                          <FaFacebookF className="text-sm" />
+                          <span className="text-[11px]">FB</span>
                         </a>
                       )}
                     </div>
@@ -360,10 +371,8 @@ export default function Customers() {
                 loadingDetail={loadingDetail}
               />
             )}
-
           </div>
         )}
-
 
         {/* STATS */}
         {viewMode === "stats" && <CustomerStats stats={stats} />}
