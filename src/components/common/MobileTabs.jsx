@@ -10,16 +10,14 @@ export default function MobileTabs({
     <div
       className={`
         md:hidden
-        fixed top-0 left-0 right-0
-        z-[9999]               /* Đè lên mọi thứ */
-        backdrop-blur-md
-        bg-white/90 dark:bg-gray-900/80
+        fixed top-0 left-0 right-0 z-[9999]
+        backdrop-blur-md bg-white/80 dark:bg-gray-900/70
         border-b border-gray-200 dark:border-gray-700
         shadow-lg shadow-black/5
         px-3 py-2
         ${className}
       `}
-      style={{ height: "64px" }} /* Chiều cao chuẩn */
+      style={{ height: "64px" }}
     >
       <div className="flex gap-2 h-full">
         {options.map((opt) => {
@@ -48,7 +46,6 @@ export default function MobileTabs({
                 ${opt.disabled ? "opacity-40" : ""}
               `}
             >
-              {/* Icon */}
               {opt.icon && (
                 <motion.div
                   animate={{ scale: active ? 1.15 : 1 }}
@@ -61,7 +58,6 @@ export default function MobileTabs({
                 </motion.div>
               )}
 
-              {/* Label */}
               <motion.span
                 animate={{ opacity: active ? 1 : 0.8 }}
                 className="text-[13px]"
@@ -69,7 +65,6 @@ export default function MobileTabs({
                 {opt.label}
               </motion.span>
 
-              {/* Glow Ring */}
               {active && (
                 <motion.div
                   layoutId="tabs-glow"

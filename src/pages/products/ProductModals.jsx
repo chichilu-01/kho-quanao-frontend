@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { api } from "../../api/client";
 
 /* ---------------------------------------------
-   RESTOCK MODAL
+   RESTOCK MODAL — phiên bản PRO
 ---------------------------------------------- */
 export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
   const close = () => setOpen(false);
@@ -34,20 +34,23 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center
-                   bg-black/40 backdrop-blur-sm p-3"
+        className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center
+                   bg-black/50 backdrop-blur-sm p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
-          initial={{ y: 80, opacity: 0 }}
+          initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: "spring", damping: 25 }}
-          className="w-full max-w-sm rounded-2xl p-5 
-                     bg-white dark:bg-gray-800 shadow-2xl space-y-4"
+          exit={{ y: 120, opacity: 0 }}
+          transition={{ type: "spring", damping: 22 }}
+          className="w-full max-w-sm rounded-3xl p-6 
+                     bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl
+                     shadow-2xl border border-gray-200/40 dark:border-gray-700/40
+                     space-y-4"
         >
+          {/* HEADER */}
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-lg flex items-center gap-2">
               <FiTruck className="text-blue-600" /> Nhập thêm hàng
@@ -55,38 +58,42 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
 
             <button
               onClick={close}
-              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              className="p-2 rounded-full hover:bg-gray-200/60 dark:hover:bg-gray-700/50"
             >
-              <FiX size={20} />
+              <FiX size={20} className="text-gray-600 dark:text-gray-300" />
             </button>
           </div>
 
-          <p className="text-sm text-gray-500 dark:text-gray-300">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Sản phẩm: <b>{product.name}</b>
           </p>
 
+          {/* INPUT */}
           <input
             type="number"
-            className="input dark:bg-gray-700 py-3 rounded-xl text-center 
+            className="input dark:bg-gray-700 py-3 rounded-2xl text-center 
                        text-lg font-semibold"
             placeholder="Nhập số lượng…"
             value={qty}
             onChange={(e) => setQty(e.target.value)}
           />
 
-          <div className="flex justify-end gap-2 pt-2">
+          {/* BUTTONS */}
+          <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={close}
-              className="px-4 py-2 rounded-xl border border-gray-300 
-                         dark:border-gray-600 dark:text-gray-200"
+              className="px-5 py-2.5 rounded-xl border border-gray-300 
+                         dark:border-gray-600 dark:text-gray-200
+                         hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             >
               Hủy
             </button>
 
             <button
               onClick={confirmRestock}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 
-                         text-white font-semibold shadow"
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 
+                         text-white font-semibold shadow-lg shadow-blue-500/20
+                         active:scale-95 transition"
             >
               Xác nhận
             </button>
@@ -98,7 +105,7 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
 }
 
 /* ---------------------------------------------
-   DELETE MODAL (QUAN TRỌNG)
+   DELETE MODAL — phiên bản PRO
 ---------------------------------------------- */
 export function DeleteModal({
   open,
@@ -131,20 +138,23 @@ export function DeleteModal({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center
-                   bg-black/40 backdrop-blur-sm p-3"
+        className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center
+                   bg-black/50 backdrop-blur-sm p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
-          initial={{ y: 80, opacity: 0 }}
+          initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: "spring", damping: 25 }}
-          className="w-full max-w-sm rounded-2xl p-5 
-                     bg-white dark:bg-gray-800 shadow-2xl space-y-4"
+          exit={{ y: 120, opacity: 0 }}
+          transition={{ type: "spring", damping: 22 }}
+          className="w-full max-w-sm rounded-3xl p-6 
+                     bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl
+                     shadow-2xl border border-gray-200/40 dark:border-gray-700/40
+                     space-y-4"
         >
+          {/* HEADER */}
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-lg text-red-600 flex items-center gap-2">
               <FiTrash2 /> Ẩn sản phẩm
@@ -152,29 +162,31 @@ export function DeleteModal({
 
             <button
               onClick={() => setOpen(false)}
-              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              className="p-2 rounded-full hover:bg-gray-200/60 dark:hover:bg-gray-700/50"
             >
-              <FiX size={20} />
+              <FiX size={20} className="text-gray-600 dark:text-gray-300" />
             </button>
           </div>
 
-          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
             Bạn có chắc muốn ẩn sản phẩm <b>{selected.name}</b>?
           </p>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => setOpen(false)}
-              className="px-4 py-2 rounded-xl border border-gray-300 
-                         dark:border-gray-600 dark:text-gray-200"
+              className="px-5 py-2.5 rounded-xl border border-gray-300 
+                         dark:border-gray-600 dark:text-gray-200
+                         hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             >
               Hủy
             </button>
 
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 
-                         text-white font-semibold shadow"
+              className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 
+                         text-white font-semibold shadow-lg shadow-red-500/20
+                         active:scale-95 transition"
             >
               Xác nhận
             </button>
