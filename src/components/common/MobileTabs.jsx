@@ -1,17 +1,25 @@
 import { motion } from "framer-motion";
 
-export default function MobileTabs({ options, viewMode, setViewMode }) {
+export default function MobileTabs({
+  options,
+  viewMode,
+  setViewMode,
+  className = "",
+}) {
   return (
     <div
-      className="
-      md:hidden
-      fixed top-0 left-0 right-0 z-50
-      backdrop-blur-md bg-white/80 dark:bg-gray-900/70
-      border-b border-gray-200 dark:border-gray-700
-      shadow-lg shadow-black/5
-      px-3 py-2
-    "
-      style={{ height: "64px" }}
+      className={`
+        md:hidden
+        fixed top-0 left-0 right-0
+        z-[9999]               /* Đè lên mọi thứ */
+        backdrop-blur-md
+        bg-white/90 dark:bg-gray-900/80
+        border-b border-gray-200 dark:border-gray-700
+        shadow-lg shadow-black/5
+        px-3 py-2
+        ${className}
+      `}
+      style={{ height: "64px" }} /* Chiều cao chuẩn */
     >
       <div className="flex gap-2 h-full">
         {options.map((opt) => {
@@ -61,7 +69,7 @@ export default function MobileTabs({ options, viewMode, setViewMode }) {
                 {opt.label}
               </motion.span>
 
-              {/* Glow Ring (hiệu ứng premium) */}
+              {/* Glow Ring */}
               {active && (
                 <motion.div
                   layoutId="tabs-glow"
