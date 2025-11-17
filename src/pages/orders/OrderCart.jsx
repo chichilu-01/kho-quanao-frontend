@@ -77,6 +77,7 @@ export default function OrderCart({
       });
 
       if (selectedProductId) await loadVariants(selectedProductId);
+
       setCreatedOrder({
         id: res.id,
         customer:
@@ -87,6 +88,7 @@ export default function OrderCart({
         note,
         items,
       });
+
       setItems([]);
       setNote("");
       notify.success(`✅ Đơn hàng #${res.id} đã được tạo thành công!`);
@@ -142,31 +144,35 @@ export default function OrderCart({
             <thead className="bg-gray-100 sticky top-0">
               <tr className="text-left">
                 <th className="p-2">Sản phẩm</th>
-                <th className="p-2 w-24">SL</th>
+                <th className="p-2 w-28">SL</th>
                 <th className="p-2 w-24">Giá</th>
                 <th className="p-2 w-28 text-right">Thành tiền</th>
                 <th className="p-2 w-10"></th>
               </tr>
             </thead>
+
             <tbody>
               {items.map((it, idx) => (
                 <tr key={idx} className="border-t hover:bg-gray-50">
                   <td className="p-2">{it.product_name}</td>
+
+                  {/* ---------------------------- */}
+                  {/* 🔥 KHỐI SỐ LƯỢNG NÂNG CẤP PRO */}
+                  {/* ---------------------------- */}
                   <td className="p-2">
-                    <div className="flex items-center gap-1">
-                      {/* Nút trừ */}
+                    <div className="flex items-center gap-2 justify-center">
+                      {/* – BUTTON */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           updateQty(idx, it.quantity - 1);
                         }}
-                        className="w-7 h-7 flex items-center justify-center rounded-md 
-                                   bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg"
+                        className="qty-btn"
                       >
-                        −
+                        –
                       </button>
 
-                      {/* Input số lượng */}
+                      {/* INPUT */}
                       <input
                         type="number"
                         inputMode="numeric"
@@ -175,36 +181,30 @@ export default function OrderCart({
                         value={it.quantity}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => updateQty(idx, Number(e.target.value))}
-                        className="w-12 text-center border rounded-md bg-white 
-                                   focus:ring-2 focus:ring-blue-400 focus:outline-none
-                                   touch-manipulation"
-                        style={{
-                          WebkitAppearance: "none",
-                          MozAppearance: "textfield",
-                        }}
+                        className="qty-input qty-bounce"
                       />
 
-                      {/* Nút cộng */}
+                      {/* + BUTTON */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-
                           if (it.quantity + 1 > it.stock) {
                             notify.info(
                               `⚠️ Chỉ còn ${it.stock} sản phẩm tồn kho`,
                             );
                             return;
                           }
-
                           updateQty(idx, it.quantity + 1);
                         }}
-                        className="w-7 h-7 flex items-center justify-center rounded-md 
-                                   bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg"
+                        className={`qty-btn ${it.quantity >= it.stock ? "qty-btn-disabled" : ""}`}
+                        disabled={it.quantity >= it.stock}
                       >
                         +
                       </button>
                     </div>
                   </td>
+
+                  {/* GIÁ */}
                   <td className="p-2">
                     <input
                       type="number"
@@ -220,14 +220,16 @@ export default function OrderCart({
                       className="input w-20"
                     />
                   </td>
+
+                  {/* THÀNH TIỀN */}
                   <td className="p-2 text-right font-semibold text-green-700">
                     {money(it.price * it.quantity)}
                   </td>
+
                   <td className="p-2 text-right">
                     <button
                       onClick={() => removeItem(idx)}
                       className="text-red-600 hover:text-red-800"
-                      title="Xóa"
                     >
                       <FiTrash2 />
                     </button>
@@ -272,6 +274,7 @@ export default function OrderCart({
             <h3 className="font-semibold text-lg mb-2 text-green-700 flex items-center gap-2">
               <FiCheckCircle /> Đơn hàng đã tạo thành công!
             </h3>
+
             <p>
               Mã đơn hàng: <b>#{createdOrder.id}</b>
             </p>
@@ -279,6 +282,7 @@ export default function OrderCart({
               Khách hàng: <b>{createdOrder.customer?.name}</b>
             </p>
             <p>Tổng tiền: {money(createdOrder.total)}</p>
+
             <button
               onClick={printInvoice}
               className="btn mt-3 bg-blue-600 text-white hover:bg-blue-700 w-full rounded-lg"
