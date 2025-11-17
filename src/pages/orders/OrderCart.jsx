@@ -30,7 +30,7 @@ export default function OrderCart({
   const updateQty = (idx, qty) => {
     setItems((prev) => {
       const clone = [...prev];
-      qty = Math.max(1, Number(qty || 1));
+      qty = Math.max(10, Number(qty || 10));
 
       // check tồn kho
       if (qty > clone[idx].stock) {
@@ -153,7 +153,12 @@ export default function OrderCart({
       initial={{ opacity: 0, y: isMobile ? 40 : 12 }}
       animate={{ opacity: 1, y: 0 }}
       className={`bg-white rounded-2xl border shadow-md
-        ${isMobile ? "fixed inset-0 z-50 p-4 pt-6 overflow-hidden" : "p-6"}`}
+        ${
+          isMobile
+            ? "fixed inset-0 z-50 p-4 pt-[70px] rounded-t-3xl overflow-hidden"
+            : "p-6"
+        }
+`}
       style={{
         height: isMobile ? "100vh" : "auto",
         WebkitOverflowScrolling: "touch",
@@ -189,7 +194,7 @@ export default function OrderCart({
             <thead className="bg-gray-100 sticky top-0 text-gray-700">
               <tr>
                 <th className="p-2">Sản phẩm</th>
-                <th className="p-2 w-28 text-center">SL</th>
+                <th className="p-2 w-20 text-center">SL</th>
                 <th className="p-2 w-24">Giá</th>
                 <th className="p-2 w-28 text-right">Thành tiền</th>
                 <th className="p-2 w-10"></th>
@@ -213,7 +218,7 @@ export default function OrderCart({
                           e.stopPropagation();
                           updateQty(idx, it.quantity - 1);
                         }}
-                        className="qty-btn"
+                        className="qty-btn w-7 h-7 flex items-center justify-center"
                       >
                         –
                       </motion.button>
@@ -230,6 +235,9 @@ export default function OrderCart({
                         onChange={(e) => updateQty(idx, Number(e.target.value))}
                         className="qty-input qty-bounce"
                         style={{
+                          width: "36px", // nhỏ lại nhưng vẫn bấm được
+                          padding: "0px",
+                          textAlign: "center",
                           WebkitAppearance: "none",
                           MozAppearance: "textfield",
                         }}
