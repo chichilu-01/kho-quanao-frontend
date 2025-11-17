@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { FiShoppingCart, FiTrash2, FiCheckCircle } from "react-icons/fi";
-import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
 
 const money = (v) =>
@@ -25,14 +24,20 @@ export default function OrderCart({
   loadVariants,
   selectedProductId,
 }) {
+  // ===========================
+  // UPDATE QTY
+  // ===========================
   const updateQty = (idx, qty) => {
     setItems((prev) => {
       const clone = [...prev];
       qty = Math.max(1, Number(qty || 1));
+
+      // check tồn kho
       if (qty > clone[idx].stock) {
         notify.info(`⚠️ Chỉ còn ${clone[idx].stock} sản phẩm tồn kho`);
         return prev;
       }
+
       clone[idx].quantity = qty;
       return clone;
     });
@@ -49,10 +54,15 @@ export default function OrderCart({
     items.length > 0 &&
     (!!customerId || (isNewCustomer && newCustomer.name?.trim()));
 
+  // ===========================
+  // SUBMIT ORDER
+  // ===========================
   const submit = async () => {
     if (!canSubmit) return;
     setLoading(true);
+
     let finalCustomerId = customerId;
+
     try {
       if (isNewCustomer) {
         const created = await api("/customers", {
@@ -71,6 +81,7 @@ export default function OrderCart({
           price: it.price,
         })),
       };
+
       const res = await api("/orders", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -91,6 +102,7 @@ export default function OrderCart({
 
       setItems([]);
       setNote("");
+
       notify.success(`✅ Đơn hàng #${res.id} đã được tạo thành công!`);
     } catch {
       notify.error("❌ Lỗi khi tạo đơn hàng");
@@ -99,10 +111,15 @@ export default function OrderCart({
     }
   };
 
+  // ===========================
+  // PRINT PDF
+  // ===========================
   const printInvoice = () => {
     if (!createdOrder) return;
+
     const doc = new jsPDF();
     doc.text("HÓA ĐƠN BÁN HÀNG", 105, 20, { align: "center" });
+
     const rows = createdOrder.items.map((it, i) => [
       i + 1,
       it.product_name,
@@ -111,11 +128,13 @@ export default function OrderCart({
       money(it.price),
       money(it.price * it.quantity),
     ]);
+
     doc.autoTable({
       startY: 30,
       head: [["#", "Sản phẩm", "Phân loại", "SL", "Giá", "Thành tiền"]],
       body: rows,
     });
+
     doc.text(
       `Tổng cộng: ${money(createdOrder.total)}`,
       150,
@@ -124,27 +143,53 @@ export default function OrderCart({
     doc.save(`HoaDon_${createdOrder.id}.pdf`);
   };
 
+  // ===========================================================
+  // ⭐ MOBILE FULLSCREEN BOTTOM SHEET CONTAINER
+  // ===========================================================
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: isMobile ? 40 : 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white p-6 rounded-2xl border shadow-md"
+      className={`bg-white rounded-2xl border shadow-md
+        ${isMobile ? "fixed inset-0 z-50 p-4 pt-6 overflow-hidden" : "p-6"}`}
+      style={{
+        height: isMobile ? "100vh" : "auto",
+        WebkitOverflowScrolling: "touch",
+      }}
     >
-      <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-gray-700">
-        <FiShoppingCart className="text-green-600" /> Giỏ hàng
-      </h3>
+      {/* MOBILE DRAG HANDLE */}
+      {isMobile && (
+        <div className="w-12 h-1.5 bg-gray-400/50 rounded-full mx-auto mb-3"></div>
+      )}
 
+      {/* STICKY HEADER */}
+      <div className="sticky top-0 bg-white pb-3 z-20">
+        <h3 className="font-bold text-xl flex items-center gap-2 text-gray-700">
+          <FiShoppingCart className="text-green-600" /> Giỏ hàng
+        </h3>
+      </div>
+
+      {/* =================== */}
+      {/* LIST ITEMS */}
+      {/* =================== */}
       {items.length === 0 ? (
-        <div className="text-gray-500 italic text-center py-12">
+        <div className="text-gray-500 italic text-center py-16 text-lg">
           🛒 Chưa có sản phẩm nào
         </div>
       ) : (
-        <div className="overflow-auto max-h-[380px] border rounded-xl">
+        <div
+          className="overflow-auto border rounded-xl"
+          style={{
+            maxHeight: isMobile ? "55vh" : "380px",
+          }}
+        >
           <table className="w-full text-sm">
-            <thead className="bg-gray-100 sticky top-0">
-              <tr className="text-left">
+            <thead className="bg-gray-100 sticky top-0 text-gray-700">
+              <tr>
                 <th className="p-2">Sản phẩm</th>
-                <th className="p-2 w-28">SL</th>
+                <th className="p-2 w-28 text-center">SL</th>
                 <th className="p-2 w-24">Giá</th>
                 <th className="p-2 w-28 text-right">Thành tiền</th>
                 <th className="p-2 w-10"></th>
@@ -156,13 +201,14 @@ export default function OrderCart({
                 <tr key={idx} className="border-t hover:bg-gray-50">
                   <td className="p-2">{it.product_name}</td>
 
-                  {/* ---------------------------- */}
-                  {/* 🔥 KHỐI SỐ LƯỢNG NÂNG CẤP PRO */}
-                  {/* ---------------------------- */}
+                  {/* ================================================== */}
+                  {/* 🔥 SL BLOCK — PRO ANIMATION + NO-ZOOM INPUT MOBILE */}
+                  {/* ================================================== */}
                   <td className="p-2">
                     <div className="flex items-center gap-2 justify-center">
                       {/* – BUTTON */}
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.75 }}
                         onClick={(e) => {
                           e.stopPropagation();
                           updateQty(idx, it.quantity - 1);
@@ -170,10 +216,11 @@ export default function OrderCart({
                         className="qty-btn"
                       >
                         –
-                      </button>
+                      </motion.button>
 
                       {/* INPUT */}
-                      <input
+                      <motion.input
+                        whileFocus={{ scale: 1.05 }}
                         type="number"
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -182,10 +229,15 @@ export default function OrderCart({
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => updateQty(idx, Number(e.target.value))}
                         className="qty-input qty-bounce"
+                        style={{
+                          WebkitAppearance: "none",
+                          MozAppearance: "textfield",
+                        }}
                       />
 
                       {/* + BUTTON */}
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.75 }}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (it.quantity + 1 > it.stock) {
@@ -196,11 +248,13 @@ export default function OrderCart({
                           }
                           updateQty(idx, it.quantity + 1);
                         }}
-                        className={`qty-btn ${it.quantity >= it.stock ? "qty-btn-disabled" : ""}`}
                         disabled={it.quantity >= it.stock}
+                        className={`qty-btn ${
+                          it.quantity >= it.stock ? "qty-btn-disabled" : ""
+                        }`}
                       >
                         +
-                      </button>
+                      </motion.button>
                     </div>
                   </td>
 
@@ -241,10 +295,16 @@ export default function OrderCart({
         </div>
       )}
 
+      {/* ========================= */}
+      {/* TOTAL */}
+      {/* ========================= */}
       <div className="text-right font-bold text-lg mt-4 text-gray-800">
         Tổng cộng: <span className="text-green-700">{money(total)}</span>
       </div>
 
+      {/* ========================= */}
+      {/* NOTE */}
+      {/* ========================= */}
       <textarea
         className="input w-full mt-3"
         rows={2}
@@ -253,9 +313,12 @@ export default function OrderCart({
         onChange={(e) => setNote(e.target.value)}
       />
 
+      {/* ========================= */}
+      {/* SUBMIT BUTTON */}
+      {/* ========================= */}
       <button
         className={`btn w-full mt-4 text-white font-semibold rounded-lg transition ${
-          canSubmit ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400"
+          canSubmit ? "" : "bg-gray-400"
         }`}
         onClick={submit}
         disabled={!canSubmit}
@@ -263,12 +326,15 @@ export default function OrderCart({
         {loading ? "⏳ Đang tạo đơn..." : "✅ Tạo đơn hàng"}
       </button>
 
+      {/* ========================= */}
+      {/* SUCCESS BOX */}
+      {/* ========================= */}
       <AnimatePresence>
         {createdOrder && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -12 }}
             className="bg-green-50 border border-green-300 rounded-xl p-5 mt-6 shadow-inner"
           >
             <h3 className="font-semibold text-lg mb-2 text-green-700 flex items-center gap-2">

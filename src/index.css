@@ -2,7 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 🌤️ RC Studio Premium Light Theme */
+/* ===========================================================
+   🌟 RC STUDIO PRO THEME — 2025
+   Phong cách cao cấp, chuyên nghiệp, hỗ trợ dark mode toàn diện
+   =========================================================== */
+
+/* Cấu hình nền và font */
 html {
   scroll-behavior: smooth;
 }
@@ -17,29 +22,54 @@ body,
   transition: all 0.5s ease;
 }
 
-/* 🌈 Inputs & Buttons */
+/* 🌗 Dark mode nền */
+.dark,
+.dark body,
+.dark #root {
+  background: linear-gradient(180deg, #0b0b0b 0%, #141414 50%, #1c1c1c 100%);
+  color: #f1f1f1;
+}
+
+/* 🌈 Input PRO */
 .input {
   @apply w-full px-3 py-2 rounded-xl border border-[#e3ded5] bg-white text-[#2a2a2a] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2c94c] focus:border-[#f2c94c] transition-all duration-200;
 }
 
+/* Dark mode input */
+.dark .input {
+  @apply bg-[#121212] border-[#2a2a2a] text-gray-200 placeholder-gray-500 focus:ring-[#d4a017];
+}
+
+/* 🌟 Button PRO */
 .btn {
   @apply inline-flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-xl bg-gradient-to-r from-[#f2c94c] to-[#d4a017] text-white hover:from-[#f5d56e] hover:to-[#e0b938] focus:ring-2 focus:ring-[#f2c94c] shadow-md hover:shadow-yellow-400/20 transition-all duration-200;
 }
 
-/* 🪶 Cards & Tables */
-.card {
-  @apply bg-white border border-[#e9e4da] rounded-2xl p-5 shadow-sm hover:shadow-md hover:shadow-[#f2c94c]/20 transition-all duration-300;
+/* Dark mode button */
+.dark .btn {
+  @apply from-[#d4a017] to-[#f2c94c] text-black hover:from-[#e0b938] hover:to-[#f5d56e];
 }
 
+/* 🌫️ PRO Card với Glass */
+.card {
+  @apply relative bg-white/90 dark:bg-gray-900/60 backdrop-blur-md border border-[#e9e4da]/50 dark:border-[#2a2a2a] rounded-2xl p-5 shadow-sm hover:shadow-md hover:shadow-[#f2c94c]/30 transition-all duration-300;
+}
+
+.card:hover {
+  box-shadow: 0 0 15px rgba(242, 201, 76, 0.25);
+  transform: translateY(-2px);
+}
+
+/* 📊 Table */
 .table th {
-  @apply bg-[#faf7f2] text-[#444] text-left p-2 font-medium;
+  @apply bg-[#faf7f2] dark:bg-[#1b1b1b] text-[#444] dark:text-gray-300 text-left p-2 font-medium;
 }
 
 .table td {
-  @apply border-t border-[#e5e1d9] p-2;
+  @apply border-t border-[#e5e1d9] dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200;
 }
 
-/* 🌙 Scrollbar */
+/* 🌈 Scrollbar PRO */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -49,18 +79,44 @@ body,
   border-radius: 10px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4a017 0%, #f2c94c 100%);
+}
+
 /* ✨ Hiệu ứng chữ vàng */
 .glow-text {
-  text-shadow: 0 0 6px rgba(242, 201, 76, 0.3),
+  text-shadow:
+    0 0 6px rgba(242, 201, 76, 0.3),
     0 0 15px rgba(242, 201, 76, 0.5),
     0 0 30px rgba(212, 160, 23, 0.4);
 }
 
 .logo-glow {
-  filter: drop-shadow(0 0 8px rgba(242, 201, 76, 0.5));
+  filter: drop-shadow(0 0 8px rgba(242, 201, 76, 0.6));
 }
 
-/* 💫 Animation nhẹ */
+/* 💫 Glow Pulse Animation */
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    text-shadow:
+      0 0 8px rgba(242, 201, 76, 0.5),
+      0 0 20px rgba(212, 160, 23, 0.4);
+  }
+
+  50% {
+    text-shadow:
+      0 0 15px rgba(242, 201, 76, 0.9),
+      0 0 30px rgba(212, 160, 23, 0.7);
+  }
+}
+
+.glow-pulse {
+  animation: glowPulse 2.5s infinite ease-in-out;
+}
+
+/* 🎬 Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -76,3 +132,51 @@ body,
 .animate-fadeIn {
   animation: fadeIn 0.6s ease-in-out;
 }
+
+@keyframes slideIn {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes scalePop {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scalePop {
+  animation: scalePop 0.4s ease-out;
+}
+
+/* 🕶️ Tooltip (nếu dùng ReactTooltip) */
+.tooltip {
+  @apply bg-black/80 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm shadow-lg;
+}
+
+/* 🌗 Transition mượt toàn hệ thống */
+* {
+  transition: background-color 0.3s ease,
+    color 0.3s ease,
+    border 0.3s ease;
+}
+
+/* ===========================================================
+   END — RC Studio PRO THEME
+   =========================================================== */
