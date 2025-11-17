@@ -153,13 +153,57 @@ export default function OrderCart({
                 <tr key={idx} className="border-t hover:bg-gray-50">
                   <td className="p-2">{it.product_name}</td>
                   <td className="p-2">
-                    <input
-                      type="number"
-                      min="1"
-                      value={it.quantity}
-                      onChange={(e) => updateQty(idx, e.target.value)}
-                      className="input w-16"
-                    />
+                    <div className="flex items-center gap-1">
+                      {/* Nút trừ */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateQty(idx, it.quantity - 1);
+                        }}
+                        className="w-7 h-7 flex items-center justify-center rounded-md 
+                                   bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg"
+                      >
+                        −
+                      </button>
+
+                      {/* Input số lượng */}
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        min={1}
+                        value={it.quantity}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => updateQty(idx, Number(e.target.value))}
+                        className="w-12 text-center border rounded-md bg-white 
+                                   focus:ring-2 focus:ring-blue-400 focus:outline-none
+                                   touch-manipulation"
+                        style={{
+                          WebkitAppearance: "none",
+                          MozAppearance: "textfield",
+                        }}
+                      />
+
+                      {/* Nút cộng */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          if (it.quantity + 1 > it.stock) {
+                            notify.info(
+                              `⚠️ Chỉ còn ${it.stock} sản phẩm tồn kho`,
+                            );
+                            return;
+                          }
+
+                          updateQty(idx, it.quantity + 1);
+                        }}
+                        className="w-7 h-7 flex items-center justify-center rounded-md 
+                                   bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg"
+                      >
+                        +
+                      </button>
+                    </div>
                   </td>
                   <td className="p-2">
                     <input
