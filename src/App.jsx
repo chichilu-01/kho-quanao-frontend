@@ -17,7 +17,7 @@ export default function App() {
       </div>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 pt-[65px] px-3 md:px-8 md:pt-8 pb-[80px] md:pb-8 overflow-y-auto">
+      <main className="flex-1 pt-0 md:pt-8 px-3 md:px-8 pb-[80px] md:pb-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-6 animate-fadeIn">
           <Routes>
             <Route path="/" element={<Dashboard />} />
