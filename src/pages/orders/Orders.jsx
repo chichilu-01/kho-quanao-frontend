@@ -255,7 +255,7 @@ export default function Orders() {
       {/* --------------------------------------------------------------- */}
       {/* 🔥 MOBILE LAYOUT – FULL SCREEN, NO CARD */}
       {/* --------------------------------------------------------------- */}
-      <div className="md:hidden px-3 pt-[60px] pb-[80px]">
+      <div className="md:hidden px-3 pt-[70px] pb-[80px]">
         {viewMode === "list" && (
           <div className="w-full">
             <OrderList

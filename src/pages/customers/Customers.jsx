@@ -147,37 +147,61 @@ export default function Customers() {
   return (
     <div className="relative z-0 space-y-6 pb-20 md:pb-10">
       {/* TAB MOBILE */}
-      <div className="flex gap-2 px-4 md:hidden">
-        <button
-          onClick={() => setViewMode("list")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-            viewMode === "list"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          Danh sách
-        </button>
-        <button
-          onClick={() => setViewMode("create")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-            viewMode === "create"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          Thêm khách
-        </button>
-        <button
-          onClick={() => setViewMode("stats")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium ${
-            viewMode === "stats"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          Thống kê
-        </button>
+      {/* 🔥 MOBILE TABS FIXED – PRO STYLE */}
+      <div
+        className="
+          md:hidden fixed top-0 left-0 right-0 z-40
+          px-3 py-2
+          bg-white/90 dark:bg-gray-900/90 backdrop-blur-md
+          shadow-[0_2px_8px_rgba(0,0,0,0.08)]
+        "
+      >
+        <div className="flex gap-2">
+          {/* TAB: LIST */}
+          <button
+            onClick={() => setViewMode("list")}
+            className={`
+              flex-1 py-2 rounded-xl text-sm font-medium transition-all
+              ${
+                viewMode === "list"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+            `}
+          >
+            Danh sách
+          </button>
+
+          {/* TAB: CREATE */}
+          <button
+            onClick={() => setViewMode("create")}
+            className={`
+              flex-1 py-2 rounded-xl text-sm font-medium transition-all
+              ${
+                viewMode === "create"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+            `}
+          >
+            Thêm khách
+          </button>
+
+          {/* TAB: STATS */}
+          <button
+            onClick={() => setViewMode("stats")}
+            className={`
+              flex-1 py-2 rounded-xl text-sm font-medium transition-all
+              ${
+                viewMode === "stats"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+            `}
+          >
+            Thống kê
+          </button>
+        </div>
       </div>
 
       {/* PC LAYOUT GIỮ NGUYÊN */}
@@ -221,7 +245,7 @@ export default function Customers() {
       </div>
 
       {/* MOBILE */}
-      <div className="md:hidden pt-[60px] pb-[80px]">
+      <div className="md:hidden pt-[70px] pb-[80px]">
         {/* FULL DETAIL */}
         {viewMode === "detail" && detail && (
           <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
