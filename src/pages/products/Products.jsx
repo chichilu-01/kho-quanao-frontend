@@ -116,7 +116,6 @@ export default function Products() {
         options={productTabs}
         viewMode={viewMode}
         setViewMode={setViewMode}
-        className=""
       />
 
       {/* PC layout giữ nguyên */}
@@ -167,7 +166,7 @@ export default function Products() {
       </div>
 
       {/* MOBILE */}
-      <div className="md:hidden px-3 pt-[60px] pb-[80px]">
+      <div className="md:hidden pt-[70px] pb-[80px]">
         <motion.div
           key={viewMode}
           initial={{ opacity: 0, y: 10 }}
