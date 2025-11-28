@@ -42,7 +42,7 @@ export default function MobileMenu() {
         dragElastic={0.12}
         dragMomentum={false}
         whileTap={{ scale: 0.9 }}
-        className="fixed top-3 left-3 z-[9999] cursor-grab active:cursor-grabbing"
+        className="fixed bottom-20 left-3 z-[9999] cursor-grab active:cursor-grabbing"
       >
         <button
           onClick={() => setOpen(!open)}
