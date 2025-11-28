@@ -111,14 +111,6 @@ export default function Products() {
     <>
       <Toaster position="top-right" toastOptions={{ duration: 2200 }} />
       {/* TABS MOBILE */}
-      /*
-      <MobileTabs
-        options={productTabs}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        className="fixed !top-0 !left-0 !right-0 z-50 bg-white shadow-md"
-      />
-      */
       {/* MOBILE TABS FIXED – PRO STYLE */}
       <div
         className="
