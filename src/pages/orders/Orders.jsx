@@ -139,7 +139,7 @@ export default function Orders() {
   return (
     <>
       {/* 🔥 TAB CHO MOBILE */}
-      <div className="fixed flex gap-2 p-3 md:hidden">
+      <div className="flex gap-2 p-3 md:hidden">
         <button
           onClick={() => setViewMode("list")}
           className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 ${

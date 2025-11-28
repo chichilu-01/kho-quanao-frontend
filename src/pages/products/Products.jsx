@@ -110,15 +110,73 @@ export default function Products() {
   return (
     <>
       <Toaster position="top-right" toastOptions={{ duration: 2200 }} />
-
       {/* TABS MOBILE */}
+      /*
       <MobileTabs
         options={productTabs}
         viewMode={viewMode}
         setViewMode={setViewMode}
         className="fixed !top-0 !left-0 !right-0 z-50 bg-white shadow-md"
       />
+      */
+      {/* MOBILE TABS FIXED – PRO STYLE */}
+      <div
+        className="
+          md:hidden fixed top-0 left-0 right-0 z-50
+          px-3 py-2
+          bg-white/90 dark:bg-gray-900/90 backdrop-blur-md
+          shadow-[0_2px_8px_rgba(0,0,0,0.08)]
+        "
+      >
+        <div className="flex gap-2">
+          {/* TAB: LIST */}
+          <button
+            onClick={() => setViewMode("list")}
+            className={`
+              flex-1 py-2 rounded-xl text-sm font-medium transition-all
+              ${
+                viewMode === "list"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+            `}
+          >
+            Danh sách
+          </button>
 
+          {/* TAB: CREATE */}
+          <button
+            onClick={() => setViewMode("create")}
+            className={`
+              flex-1 py-2 rounded-xl text-sm font-medium transition-all
+              ${
+                viewMode === "create"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+            `}
+          >
+            Thêm mới
+          </button>
+
+          {/* TAB: EDIT */}
+          <button
+            disabled={!selected}
+            onClick={() => selected && setViewMode("edit")}
+            className={`
+              flex-1 py-2 rounded-xl text-sm font-medium transition-all
+              ${
+                viewMode === "edit" && selected
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+              ${!selected ? "opacity-40" : ""}
+            `}
+          >
+            Sửa
+          </button>
+        </div>
+      </div>
       {/* PC layout giữ nguyên */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn">
         <motion.div
@@ -165,7 +223,6 @@ export default function Products() {
           )}
         </motion.div>
       </div>
-
       {/* MOBILE */}
       <div className="md:hidden px-3 pt-[56px] pb-[80px]">
         <motion.div
@@ -380,7 +437,6 @@ export default function Products() {
           )}
         </motion.div>
       </div>
-
       {/* MODALS giữ nguyên */}
       <RestockModal
         open={restockModal}
@@ -390,7 +446,6 @@ export default function Products() {
         setQty={setRestockQty}
         reload={load}
       />
-
       <DeleteModal
         open={deleteModal}
         setOpen={setDeleteModal}
