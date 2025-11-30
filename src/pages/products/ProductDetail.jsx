@@ -217,7 +217,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               whileTap={{ scale: 0.94 }}
               type="submit"
               className="
-                fixed md:static bottom-4 left-1/2 -translate-x-1/2
+                fixed md:static bottom-[80px] left-1/2 -translate-x-1/2
                 w-[88%] md:w-auto py-3 px-7 rounded-xl
                 bg-gradient-to-r from-green-500 to-green-600
                 text-white font-semibold shadow-xl
