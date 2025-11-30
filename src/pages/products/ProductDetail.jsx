@@ -21,33 +21,47 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
-      {/* --------------------------- */}
-      {/* MAIN PRODUCT DETAIL CARD */}
-      {/* --------------------------- */}
+      {/* ================== MAIN PRODUCT DETAIL ================== */}
       <motion.div
         key={selected.id}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="
-          mt-5 p-6 rounded-3xl
-          shadow-[0_8px_30px_rgb(0,0,0,0.12)]
-          backdrop-blur-xl
-          bg-white/60 dark:bg-gray-900/60
-          border border-white/40 dark:border-gray-700/50
-          space-y-8
+          /* 🟢 Mobile: full màn hình */
+          fixed inset-0 z-[9999] 
+          overflow-y-auto
+          pt-[70px] pb-[80px] px-4
+
+          /* 🖥 PC: trở lại card bình thường */
+          md:static md:inset-auto md:z-auto
+          md:mt-5 md:p-6
+          md:rounded-3xl
+
+          /* Nền + border */
+          bg-white dark:bg-gray-900
+          md:bg-white/60 md:dark:bg-gray-900/60
+          border-t md:border md:border-white/40 md:dark:border-gray-700/50
+
+          /* Shadow */
+          shadow-none
+          md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
+          backdrop-blur-none
+          md:backdrop-blur-xl
+
+          space-y-6 md:space-y-8
         "
       >
         {/* HEADER */}
         <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-gray-700/40">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
+          <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-lg md:text-xl flex items-center gap-2">
             <FiEdit className="text-blue-500" />
             Chi tiết sản phẩm
           </h4>
 
           <button
             onClick={() => toast("⚠️ Mở modal xoá ở component cha")}
-            className="text-red-600 hover:text-red-700 flex items-center gap-1 text-sm font-medium"
+            className="text-red-600 hover:text-red-700 flex items-center gap-1 text-xs md:text-sm font-medium"
           >
             <FiTrash2 />
             Xoá
@@ -59,7 +73,8 @@ export default function ProductDetail({ selected, setSelected, load }) {
           <motion.div
             whileHover={{ scale: 1.03 }}
             className="
-              w-44 h-44 rounded-2xl overflow-hidden
+              w-40 h-40 md:w-44 md:h-44 
+              rounded-2xl overflow-hidden
               shadow-lg shadow-black/10 border border-gray-300 dark:border-gray-700
               bg-white dark:bg-gray-800
             "
@@ -79,9 +94,11 @@ export default function ProductDetail({ selected, setSelected, load }) {
             />
             <span
               className="
-                px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 
+                px-4 py-2 rounded-xl 
+                bg-gray-200 dark:bg-gray-700 
                 text-gray-800 dark:text-gray-200
-                text-sm shadow border border-gray-300 dark:border-gray-600
+                text-xs md:text-sm shadow 
+                border border-gray-300 dark:border-gray-600
                 hover:bg-gray-300 dark:hover:bg-gray-600 transition
               "
             >
@@ -124,14 +141,14 @@ export default function ProductDetail({ selected, setSelected, load }) {
               toast.error("❌ " + (err?.message || "Không thể cập nhật"));
             }
           }}
-          className="grid gap-6"
+          className="grid gap-5 md:gap-6"
         >
           <div
             className="
-              p-5 rounded-2xl
-              bg-white/80 dark:bg-gray-800/70
+              p-4 md:p-5 rounded-2xl
+              bg-white/90 dark:bg-gray-800/80
               shadow-md border border-gray-200 dark:border-gray-700
-              grid grid-cols-1 sm:grid-cols-2 gap-5
+              grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5
             "
           >
             {[
@@ -143,7 +160,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               "sale_price",
             ].map((key) => (
               <div key={key} className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-300 capitalize">
+                <label className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300 capitalize">
                   {key.replace("_", " ")}
                 </label>
 
@@ -151,6 +168,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                   className="
                     bg-gray-50 dark:bg-gray-900
                     rounded-xl px-3 py-2
+                    text-sm md:text-base
                     border border-gray-300 dark:border-gray-700
                     focus:ring-2 ring-blue-400 dark:ring-blue-500
                     shadow-sm outline-none transition
@@ -179,9 +197,10 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 fixed md:static bottom-4 left-1/2 -translate-x-1/2
                 w-[88%] md:w-auto py-3 px-7 rounded-xl
                 bg-gradient-to-r from-green-500 to-green-600
-                text-white font-semibold shadow-xl shadow-green-400/30
+                text-white text-sm md:text-base font-semibold 
+                shadow-xl shadow-green-400/30
                 flex items-center justify-center gap-2
-                z-[999]
+                z-[10000]
               "
               type="submit"
             >
@@ -191,13 +210,14 @@ export default function ProductDetail({ selected, setSelected, load }) {
           )}
         </form>
 
-        {/* BUTTON MỞ BIẾN THỂ – AMAZON STYLE */}
+        {/* BUTTON MỞ BIẾN THỂ */}
         <button
           onClick={() => setShowVariantsScreen(true)}
           className="
-            w-full py-3 rounded-xl mt-2
+            w-full py-3 rounded-xl mt-1
             bg-indigo-600 text-white 
-            font-semibold shadow-md
+            text-sm md:text-base font-semibold 
+            shadow-md
             hover:bg-indigo-700 transition
           "
         >
@@ -205,9 +225,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
         </button>
       </motion.div>
 
-      {/* --------------------------- */}
-      {/* VARIANTS SLIDE-IN SCREEN */}
-      {/* --------------------------- */}
+      {/* ================== VARIANTS SLIDE SCREEN ================== */}
       {showVariantsScreen && (
         <motion.div
           initial={{ x: "100%" }}
@@ -215,7 +233,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
           exit={{ x: "100%" }}
           transition={{ duration: 0.25 }}
           className="
-            fixed inset-0 z-[99999]
+            fixed inset-0 z-[10001]
             bg-white dark:bg-gray-900
             shadow-2xl
             overflow-y-auto
@@ -224,11 +242,11 @@ export default function ProductDetail({ selected, setSelected, load }) {
           {/* HEADER */}
           <div
             className="
-            sticky top-0 z-50 
-            bg-white dark:bg-gray-900 p-4 
-            border-b border-gray-200 dark:border-gray-700
-            flex items-center gap-3
-          "
+              sticky top-0 z-50 
+              bg-white dark:bg-gray-900 p-4 
+              border-b border-gray-200 dark:border-gray-700
+              flex items-center gap-3
+            "
           >
             <button
               onClick={() => setShowVariantsScreen(false)}
