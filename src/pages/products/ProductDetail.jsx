@@ -43,7 +43,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
           md:bg-white/60 md:dark:bg-gray-900/60
           md:border md:border-white/40 md:dark:border-gray-700/50
 
-          space-y-6 md:space-y-8
+          space-y-4 md:space-y-8
         "
       >
         {/* HEADER */}
@@ -67,7 +67,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
           <motion.div
             whileHover={{ scale: 1.03 }}
             className="
-              w-44 h-44 rounded-2xl overflow-hidden
+              w-36 h-36 rounded-2xl overflow-hidden
               shadow-lg shadow-black/10 border border-gray-300 dark:border-gray-700
               bg-white dark:bg-gray-800
             "
@@ -136,7 +136,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
         >
           <div
             className="
-              p-5 rounded-2xl
+              p-3 rounded-2xl
               bg-white/80 dark:bg-gray-800/70
               shadow-md border border-gray-200 dark:border-gray-700
               grid grid-cols-1 sm:grid-cols-2 gap-5
