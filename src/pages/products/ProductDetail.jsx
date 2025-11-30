@@ -54,13 +54,19 @@ export default function ProductDetail({ selected, setSelected, load }) {
         </div>
 
         {/* IMAGE + BASIC INFO */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 md:px-0">
+        <div className="
+          flex flex-row items-start gap-4 
+          w-full
+          px-4 md:px-0
+        ">
+
           {/* LEFT — IMAGE */}
           <div className="flex flex-col items-center">
             <motion.div
               whileHover={{ scale: 1.03 }}
               className="
-                w-36 h-36 md:w-44 md:h-44 rounded-2xl overflow-hidden
+                w-32 h-32 md:w-44 md:h-44 
+                rounded-2xl overflow-hidden
                 shadow-lg shadow-black/10
                 border border-gray-300 dark:border-gray-700
                 bg-white dark:bg-gray-800
@@ -79,15 +85,18 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 onChange={handleImageChange}
                 className="hidden"
               />
-              <span className="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm shadow border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+              <span className="px-4 py-1.5 rounded-xl bg-gray-200 dark:bg-gray-700 
+                text-gray-800 dark:text-gray-200 text-xs 
+                shadow border border-gray-300 dark:border-gray-600
+                hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                 Chọn ảnh mới
               </span>
             </label>
           </div>
 
           {/* RIGHT — BASIC INFO + VARIANT BUTTON */}
-          <div className="space-y-4">
-            {/* SKU */}
+          <div className="flex-1 space-y-3">
+
             <Field
               label="SKU"
               value={selected.sku}
@@ -97,7 +106,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
               }}
             />
 
-            {/* NAME */}
             <Field
               label="Tên SP"
               value={selected.name}
@@ -107,7 +115,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
               }}
             />
 
-            {/* CATEGORY */}
             <Field
               label="Danh mục"
               value={selected.category}
@@ -117,7 +124,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
               }}
             />
 
-            {/* BRAND */}
             <Field
               label="Thương hiệu"
               value={selected.brand}
@@ -134,7 +140,8 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 w-full py-2 rounded-xl
                 bg-indigo-600 text-white 
                 font-semibold shadow-md
-                hover:bg-indigo-700 transition text-sm md:text-base
+                hover:bg-indigo-700 transition
+                text-sm md:text-base
               "
             >
               🎨 Biến thể sản phẩm
