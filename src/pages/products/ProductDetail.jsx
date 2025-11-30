@@ -9,7 +9,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
   const [preview, setPreview] = useState(null);
   const [image, setImage] = useState(null);
 
-  // SCREEN BIẾN THỂ (SLIDE-IN)
   const [showVariantsScreen, setShowVariantsScreen] = useState(false);
 
   const handleImageChange = (e) => {
@@ -21,30 +20,28 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
-      {/* MAIN PRODUCT DETAIL */}
+      {/* MAIN CARD */}
       <motion.div
         key={selected.id}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
         className="
-          mt-0 px-0 pt-4 pb-24 w-full rounded-none
+          mt-0 px-0 pt-4 pb-24 w-full
           bg-white dark:bg-gray-900
-          border-t border-gray-200 dark:border-gray-800
-
           md:mt-5 md:p-6 md:rounded-3xl
           md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
           md:bg-white/60 md:dark:bg-gray-900/60
           md:border md:border-white/40 md:dark:border-gray-700/50
-
-          space-y-6 md:space-y-8
+          space-y-6
         "
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-gray-700/40">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
           <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
             <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
           </h4>
+
           <button
             onClick={() => toast("⚠️ Mở modal xoá ở component cha")}
             className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1"
@@ -53,27 +50,24 @@ export default function ProductDetail({ selected, setSelected, load }) {
           </button>
         </div>
 
-        {/* IMAGE + BASIC INFO */}
-        <div className="
-          flex flex-col md:flex-row 
-          items-start md:items-center
-          gap-6
-          w-full
-          px-4 md:px-0
-        ">
-
-          {/* LEFT — IMAGE (PHÁT TRIỂN THEO MOBILE) */}
-          <div className="w-full md:w-auto flex flex-col items-center">
+        {/* IMAGE + FIELDS */}
+        <div
+          className="
+          grid grid-cols-1 md:grid-cols-[160px_1fr]
+          items-start gap-6
+          w-full px-0 md:px-0
+        "
+        >
+          {/* LEFT — IMAGE */}
+          <div className="flex flex-col items-center">
             <motion.div
               whileHover={{ scale: 1.03 }}
               className="
-                w-40 h-40 
-                md:w-48 md:h-48
+                w-40 h-40 md:w-44 md:h-44
                 rounded-2xl overflow-hidden
-                shadow-lg shadow-black/10 
+                shadow-lg shadow-black/10
                 border border-gray-300 dark:border-gray-700
                 bg-white dark:bg-gray-800
-                mx-auto
               "
             >
               <img
@@ -82,23 +76,28 @@ export default function ProductDetail({ selected, setSelected, load }) {
               />
             </motion.div>
 
-            {/* BUTTON CHỌN ẢNH */}
             <label className="cursor-pointer mt-3">
-              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-              <span className="
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+              <span
+                className="
                 px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700
-                text-gray-800 dark:text-gray-200
-                text-sm shadow border border-gray-300 dark:border-gray-600
+                text-gray-800 dark:text-gray-200 text-sm
+                shadow border border-gray-300 dark:border-gray-600
                 hover:bg-gray-300 dark:hover:bg-gray-600 transition
-              ">
+              "
+              >
                 Chọn ảnh mới
               </span>
             </label>
           </div>
 
-          {/* RIGHT — BASIC FIELDS (FULL WIDTH TRÊN MOBILE) */}
-          <div className="flex-1 w-full space-y-3">
-
+          {/* RIGHT — INFO */}
+          <div className="flex-1 space-y-3 px-4 md:px-0">
             <Field
               label="SKU"
               value={selected.sku}
@@ -139,20 +138,18 @@ export default function ProductDetail({ selected, setSelected, load }) {
             <button
               onClick={() => setShowVariantsScreen(true)}
               className="
-                w-full py-3 rounded-xl
-                bg-indigo-600 text-white 
-                font-semibold shadow-md
-                hover:bg-indigo-700 transition
+                w-full py-2 rounded-xl
+                bg-indigo-600 text-white font-semibold
+                shadow-md hover:bg-indigo-700 transition
                 text-sm md:text-base
               "
             >
-              🎨 Quản lý biến thể
+              🎨 Biến thể sản phẩm
             </button>
           </div>
         </div>
 
-
-        {/* FORM FOR OTHER FIELDS */}
+        {/* PRICE FIELDS */}
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -166,6 +163,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 "cost_price",
                 "sale_price",
               ].forEach((k) => fd.append(k, selected[k] || ""));
+
               if (image) fd.append("image", image);
 
               const res = await fetch(
@@ -174,8 +172,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               );
 
               const json = await res.json();
-              if (!res.ok)
-                throw new Error(json?.message || "Cập nhật thất bại");
+              if (!res.ok) throw new Error(json?.message);
 
               toast.success("🎉 Đã lưu thay đổi!");
               await load(selected.id);
@@ -183,39 +180,48 @@ export default function ProductDetail({ selected, setSelected, load }) {
               setPreview(null);
               setImage(null);
             } catch (err) {
-              toast.error("❌ " + (err?.message || "Không thể cập nhật"));
+              toast.error("❌ " + err.message);
             }
           }}
           className="grid gap-6 px-4 md:px-0"
         >
-          <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/70 shadow-md border border-gray-200 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {["cost_price", "sale_price"].map((key) => (
-              <Field
-                key={key}
-                label={key.replace("_", " ")}
-                type="number"
-                value={selected[key]}
-                onChange={(v) => {
-                  setSelected({ ...selected, [key]: v });
-                  setIsDirty(true);
-                }}
-              />
-            ))}
+          <div
+            className="
+            p-3 rounded-2xl bg-white/80 dark:bg-gray-800/70
+            border shadow-md grid grid-cols-1 sm:grid-cols-2 gap-5
+          "
+          >
+            <Field
+              label="Giá nhập"
+              type="number"
+              value={selected.cost_price}
+              onChange={(v) => {
+                setSelected({ ...selected, cost_price: v });
+                setIsDirty(true);
+              }}
+            />
+
+            <Field
+              label="Giá bán"
+              type="number"
+              value={selected.sale_price}
+              onChange={(v) => {
+                setSelected({ ...selected, sale_price: v });
+                setIsDirty(true);
+              }}
+            />
           </div>
 
-          {/* SAVE BUTTON FLOATING */}
           {isDirty && (
             <motion.button
               whileTap={{ scale: 0.94 }}
+              type="submit"
               className="
                 fixed md:static bottom-4 left-1/2 -translate-x-1/2
                 w-[88%] md:w-auto py-3 px-7 rounded-xl
                 bg-gradient-to-r from-green-500 to-green-600
-                text-white font-semibold shadow-xl shadow-green-400/30
-                flex items-center justify-center gap-2
-                z-[999]
+                text-white font-semibold shadow-xl
               "
-              type="submit"
             >
               <FiSave /> Lưu thay đổi
             </motion.button>
@@ -232,14 +238,18 @@ export default function ProductDetail({ selected, setSelected, load }) {
           transition={{ duration: 0.25 }}
           className="fixed inset-0 z-[99999] bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"
         >
-          <div className="sticky top-0 z-50 bg-white dark:bg-gray-900 p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
+          <div
+            className="
+            sticky top-0 z-50 p-4
+            bg-white dark:bg-gray-900 border-b
+          "
+          >
             <button
               onClick={() => setShowVariantsScreen(false)}
               className="text-gray-700 dark:text-gray-200"
             >
               <FiChevronLeft size={22} />
             </button>
-            <h3 className="font-semibold text-lg">Biến thể sản phẩm</h3>
           </div>
 
           <div className="p-4 pb-24">
@@ -251,7 +261,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
   );
 }
 
-/* SMALL FIELD COMPONENT */
 function Field({ label, value, onChange, type = "text" }) {
   return (
     <div className="flex flex-col gap-1">
@@ -260,10 +269,16 @@ function Field({ label, value, onChange, type = "text" }) {
       </label>
       <input
         type={type}
-        className="bg-gray-50 dark:bg-gray-900 rounded-xl px-3 py-2 border border-gray-300 dark:border-gray-700 focus:ring-2 ring-blue-400 dark:ring-blue-500 shadow-sm outline-none transition"
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
+        className="
+          bg-gray-50 dark:bg-gray-900
+          rounded-xl px-3 py-2
+          border border-gray-300 dark:border-gray-700
+          focus:ring-2 ring-blue-400 dark:ring-blue-500
+          shadow-sm outline-none
+        "
+        value={value || ""}
         placeholder={label}
+        onChange={(e) => onChange(e.target.value)}
       />
     </div>
   );
