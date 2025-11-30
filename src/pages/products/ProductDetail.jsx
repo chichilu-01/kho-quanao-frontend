@@ -62,40 +62,61 @@ export default function ProductDetail({ selected, setSelected, load }) {
           </button>
         </div>
 
-        {/* IMAGE SECTION */}
-        <div className="flex flex-col items-center gap-4">
-          <motion.div
-            whileHover={{ scale: 1.03 }}
-            className="
-              w-36 h-36 rounded-2xl overflow-hidden
-              shadow-lg shadow-black/10 border border-gray-300 dark:border-gray-700
-              bg-white dark:bg-gray-800
-            "
-          >
-            <img
-              src={preview || selected.cover_image}
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
-
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-            <span
+        {/* IMAGE + VARIANT BUTTON */}
+        <div className="flex items-center justify-between w-full px-4 md:px-0">
+          {/* IMAGE */}
+          <div className="flex flex-col items-center">
+            <motion.div
+              whileHover={{ scale: 1.03 }}
               className="
-                px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 
-                text-gray-800 dark:text-gray-200
-                text-sm shadow border border-gray-300 dark:border-gray-600
-                hover:bg-gray-300 dark:hover:bg-gray-600 transition
+                w-36 h-36 md:w-44 md:h-44 
+                rounded-2xl overflow-hidden
+                shadow-lg shadow-black/10 
+                border border-gray-300 dark:border-gray-700
+                bg-white dark:bg-gray-800
               "
             >
-              Chọn ảnh mới
-            </span>
-          </label>
+              <img
+                src={preview || selected.cover_image}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+
+            {/* CHOOSE NEW IMAGE */}
+            <label className="cursor-pointer mt-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <span
+                className="
+                  px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 
+                  text-gray-800 dark:text-gray-200
+                  text-sm shadow border border-gray-300 dark:border-gray-600
+                  hover:bg-gray-300 dark:hover:bg-gray-600 transition
+                "
+              >
+                Chọn ảnh mới
+              </span>
+            </label>
+          </div>
+
+          {/* VARIANT BUTTON */}
+          <button
+            onClick={() => setShowVariantsScreen(true)}
+            className="
+              ml-3
+              px-4 py-3 
+              bg-indigo-600 text-white rounded-xl 
+              font-semibold shadow-md
+              hover:bg-indigo-700 transition
+              text-sm md:text-base
+            "
+          >
+            🎨 Biến thể
+          </button>
         </div>
 
         {/* FORM SECTION */}
