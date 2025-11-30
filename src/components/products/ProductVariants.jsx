@@ -22,7 +22,7 @@ export default function ProductVariants({ productId }) {
   const [showBulk, setShowBulk] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
-  // 🔥 Tab cho mobile: list | add | bulk
+  // 🔥 View mode cho mobile
   const [viewMode, setViewMode] = useState("list");
 
   const load = async () => {
@@ -58,155 +58,144 @@ export default function ProductVariants({ productId }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/90 p-4 sm:p-6 rounded-2xl border shadow-md space-y-4"
+      className="
+        bg-white/90 dark:bg-gray-900/90 
+        p-4 sm:p-6 rounded-2xl 
+        border shadow-xl space-y-5
+        backdrop-blur-xl
+      "
     >
-      {/* --------------------------- */}
-      {/* 🔥 MOBILE TABS */}
-      {/* --------------------------- */}
-      <div className="flex gap-2 md:hidden">
-        <button
-          onClick={() => {
-            setViewMode("list");
-            setShowForm(false);
-            setShowBulk(false);
-          }}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 ${
-            viewMode === "list"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          <FiList /> Danh sách
-        </button>
-
-        <button
-          onClick={() => {
-            setViewMode("add");
-            setEditItem(null);
-            setShowBulk(false);
-            setShowForm(true);
-          }}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 ${
-            viewMode === "add"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          <FiPlus /> Thêm
-        </button>
-
-        <button
-          onClick={() => {
-            setViewMode("bulk");
-            setShowForm(false);
-            setShowBulk(true);
-          }}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 ${
-            viewMode === "bulk"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          <FiGrid /> Nhiều
-        </button>
+      {/* ------------------------------------------------------ */}
+      {/* 🔥 MOBILE TABS ĐẸP NHƯ ALIBABA */}
+      {/* ------------------------------------------------------ */}
+      <div className="md:hidden flex justify-between gap-2 bg-gray-100 p-1 rounded-xl shadow-inner">
+        {[
+          { id: "list", label: "Danh sách", icon: FiList },
+          { id: "add", label: "Thêm", icon: FiPlus },
+          { id: "bulk", label: "Nhiều", icon: FiGrid },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => {
+              setViewMode(t.id);
+              setShowForm(t.id === "add");
+              setShowBulk(t.id === "bulk");
+            }}
+            className={`
+              flex-1 flex flex-col items-center py-2 rounded-xl text-xs font-semibold
+              ${viewMode === t.id 
+                ? "bg-white shadow text-blue-600" 
+                : "text-gray-500"
+              }
+            `}
+          >
+            <t.icon className="text-lg mb-1" />
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* --------------------------- */}
-      {/* HEADER PC */}
-      {/* --------------------------- */}
-      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h3 className="font-bold text-lg sm:text-xl flex items-center gap-2 text-gray-800">
+      {/* ------------------------------------------------------ */}
+      {/* 🔥 HEADER PC */}
+      {/* ------------------------------------------------------ */}
+      <div className="hidden md:flex items-center justify-between">
+        <h3 className="font-bold text-xl flex items-center gap-2 text-gray-800 dark:text-gray-200">
           <FiPackage className="text-indigo-500" /> Biến thể sản phẩm
         </h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           <button
             onClick={() => {
               setEditItem(null);
-              setShowBulk(false);
               setShowForm(true);
             }}
-            className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1.5 rounded-lg shadow-md text-sm"
+            className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg flex items-center gap-1 shadow"
           >
             <FiPlus /> Thêm
           </button>
-
           <button
             onClick={() => setShowBulk(true)}
-            className="flex items-center gap-1 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg border text-sm"
+            className="px-3 py-1.5 bg-indigo-50 text-indigo-600 border text-sm rounded-lg flex items-center gap-1"
           >
             <FiGrid /> Tạo nhiều
           </button>
-
           <button
             onClick={load}
-            className="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg border text-sm"
+            className="px-3 py-1.5 bg-gray-100 border text-gray-700 text-sm rounded-lg flex items-center gap-1"
           >
             <FiRefreshCw /> Làm mới
           </button>
         </div>
       </div>
 
-      {/* --------------------------- */}
-      {/* LIST */}
-      {/* --------------------------- */}
+      {/* ------------------------------------------------------ */}
+      {/* 🔥 LIST – MOBILE STYLE ALIBABA */}
+      {/* ------------------------------------------------------ */}
       {viewMode === "list" && (
         <>
           {loading ? (
-            <div className="text-gray-500 text-sm">⏳ Đang tải...</div>
+            <div className="text-center py-5 text-gray-500">⏳ Đang tải...</div>
           ) : variants.length === 0 ? (
-            <div className="text-gray-500 text-sm italic text-center py-3">
+            <div className="text-center py-5 text-gray-500 italic">
               Chưa có biến thể nào.
             </div>
           ) : (
-            <div className="overflow-x-auto border rounded-xl shadow-inner">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-100 text-gray-700">
-                  <tr>
-                    <th className="p-2 text-left">#</th>
-                    <th className="p-2 text-left">Size</th>
-                    <th className="p-2 text-left">Màu</th>
-                    <th className="p-2 text-right">Tồn kho</th>
-                    <th className="p-2 text-right">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {variants.map((v, i) => (
-                    <tr key={v.id} className="border-t hover:bg-gray-50">
-                      <td className="p-2">{i + 1}</td>
-                      <td className="p-2 font-medium">{v.size}</td>
-                      <td className="p-2">{v.color}</td>
-                      <td className="p-2 text-right">{v.stock}</td>
-                      <td className="p-2 text-right space-x-2">
-                        <button
-                          onClick={() => {
-                            setEditItem(v);
-                            setShowBulk(false);
-                            setShowForm(true);
-                            setViewMode("add");
-                          }}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <FiEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(v.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid grid-cols-2 gap-3">
+              {variants.map((v) => (
+                <motion.div
+                  key={v.id}
+                  whileHover={{ scale: 1.02 }}
+                  className="
+                    p-4 rounded-2xl bg-white dark:bg-gray-800 
+                    border border-gray-200 dark:border-gray-700 
+                    shadow-md space-y-2
+                  "
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      {v.size}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                      {v.color}
+                    </span>
+                  </div>
+
+                  <div className="text-sm text-gray-600 dark:text-gray-300">
+                    Tồn kho:{" "}
+                    <span className="font-bold text-gray-900 dark:text-gray-100">
+                      {v.stock}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-1">
+                    <button
+                      onClick={() => {
+                        setEditItem(v);
+                        setShowForm(true);
+                        setShowBulk(false);
+                        setViewMode("add");
+                      }}
+                      className="text-blue-600 dark:text-blue-400 text-lg"
+                    >
+                      <FiEdit />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(v.id)}
+                      className="text-red-600 dark:text-red-400 text-lg"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
         </>
       )}
 
-      {/* --------------------------- */}
-      {/* FORM THÊM / SỬA */}
-      {/* --------------------------- */}
+      {/* ------------------------------------------------------ */}
+      {/* 🔥 FORM THÊM / SỬA */}
+      {/* ------------------------------------------------------ */}
       {showForm && (
         <VariantForm
           productId={productId}
@@ -219,9 +208,9 @@ export default function ProductVariants({ productId }) {
         />
       )}
 
-      {/* --------------------------- */}
-      {/* FORM TẠO NHIỀU */}
-      {/* --------------------------- */}
+      {/* ------------------------------------------------------ */}
+      {/* 🔥 FORM TẠO NHIỀU */}
+      {/* ------------------------------------------------------ */}
       {showBulk && (
         <VariantBulkForm
           productId={productId}
