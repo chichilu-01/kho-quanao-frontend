@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
-import { FiX, FiLayers, FiTag } from "react-icons/fi";
+import { FiX, FiLayers, FiTag, FiChevronLeft } from "react-icons/fi";
 
 export default function VariantBulkForm({ productId, onClose, onSaved }) {
   const [sizesInput, setSizesInput] = useState("");
@@ -75,255 +75,237 @@ export default function VariantBulkForm({ productId, onClose, onSaved }) {
 
   return (
     <motion.div
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       className="
-        fixed inset-0 bg-black/50 backdrop-blur-md 
-        z-50 flex items-end sm:items-center justify-center 
-        p-0 sm:p-4
+        fixed inset-0 z-[999999] 
+        bg-white dark:bg-gray-900 
+        overflow-y-auto
       "
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
     >
-      {/* MAIN CARD */}
-      <motion.div
-        initial={{ y: 60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      {/* HEADER – AMAZON STYLE */}
+      <div
         className="
-          w-full sm:max-w-xl 
-          bg-white dark:bg-gray-900 
-          rounded-t-3xl sm:rounded-3xl 
-          shadow-2xl border border-gray-200 dark:border-gray-700
-          max-h-[92vh] overflow-y-auto 
+          sticky top-0 z-10 
+          bg-white/80 dark:bg-gray-900/80 
+          backdrop-blur-xl 
+          border-b border-gray-200 dark:border-gray-700
+          flex items-center gap-3
+          px-4 py-3
         "
       >
-        {/* STICKY HEADER */}
-        <div
-          className="
-            sticky top-0 z-10 
-            bg-white/90 dark:bg-gray-900/90 
-            backdrop-blur-lg 
-            px-6 py-4 
-            border-b border-gray-200 dark:border-gray-700
-            flex items-center justify-between
-        "
+        <button
+          onClick={onClose}
+          className="text-gray-700 dark:text-gray-300 hover:text-indigo-600"
         >
-          <h3 className="font-bold text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
-            <FiLayers className="text-indigo-500" />
-            Tạo biến thể hàng loạt
-          </h3>
+          <FiChevronLeft size={26} />
+        </button>
 
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-red-600 transition"
-          >
-            <FiX size={26} />
-          </button>
+        <h3 className="font-semibold text-lg flex items-center gap-2">
+          <FiLayers className="text-indigo-500" />
+          Tạo biến thể hàng loạt
+        </h3>
+      </div>
+
+      {/* CONTENT */}
+      <div className="p-5 space-y-6">
+        {/* SIZE */}
+        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-sm">
+          <p className="text-sm font-semibold mb-2">Size</p>
+
+          <input
+            placeholder="S, M, L..."
+            value={sizesInput}
+            onChange={(e) => setSizesInput(e.target.value)}
+            className="
+              w-full px-3 py-2 rounded-xl 
+              bg-white dark:bg-gray-900 
+              border border-gray-300 dark:border-gray-700 
+              text-sm outline-none
+            "
+          />
+
+          {/* Quick tags */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {["S", "M", "L", "XL", "XXL"].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => addTag("size", tag)}
+                className="
+                  px-3 py-1.5 rounded-xl text-xs 
+                  bg-white dark:bg-gray-700 
+                  border border-gray-300 dark:border-gray-600
+                  hover:bg-indigo-600 hover:text-white 
+                  transition
+                "
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Chips */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {sizes.map((s) => (
+              <div
+                key={s}
+                className="
+                  px-3 py-1 rounded-xl 
+                  bg-indigo-100 text-indigo-700 
+                  dark:bg-indigo-600 dark:text-white 
+                  flex items-center gap-1 text-xs
+                "
+              >
+                {s}
+                <span
+                  onClick={() => removeTag("size", s)}
+                  className="cursor-pointer opacity-70 hover:opacity-100"
+                >
+                  ×
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* CONTENT */}
-        <div className="p-6 space-y-6">
-          {/* SIZE */}
-          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-            <p className="text-sm font-semibold mb-2">Size</p>
+        {/* COLOR */}
+        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-sm">
+          <p className="text-sm font-semibold mb-2">Màu sắc</p>
 
-            <input
-              placeholder="S, M, L..."
-              value={sizesInput}
-              onChange={(e) => setSizesInput(e.target.value)}
-              className="
-                w-full px-3 py-2 rounded-xl 
-                bg-white dark:bg-gray-900 
-                border border-gray-300 dark:border-gray-700 
-                text-sm outline-none
-              "
-            />
-
-            {/* Quick tags */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {["S", "M", "L", "XL", "XXL"].map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => addTag("size", tag)}
-                  className="
-                    px-3 py-1.5 rounded-xl text-xs 
-                    bg-white dark:bg-gray-700 
-                    border border-gray-300 dark:border-gray-600
-                    hover:bg-indigo-600 hover:text-white 
-                    transition
-                  "
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-
-            {/* Chips */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {sizes.map((s) => (
-                <div
-                  key={s}
-                  className="
-                    px-3 py-1 rounded-xl 
-                    bg-indigo-100 text-indigo-700 
-                    dark:bg-indigo-600 dark:text-white 
-                    flex items-center gap-1 text-xs
-                  "
-                >
-                  {s}
-                  <span
-                    onClick={() => removeTag("size", s)}
-                    className="cursor-pointer opacity-70 hover:opacity-100"
-                  >
-                    ×
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* COLOR */}
-          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-            <p className="text-sm font-semibold mb-2">Màu sắc</p>
-
-            <input
-              placeholder="Đỏ, Đen, Trắng..."
-              value={colorsInput}
-              onChange={(e) => setColorsInput(e.target.value)}
-              className="
-                w-full px-3 py-2 rounded-xl 
-                bg-white dark:bg-gray-900 
-                border border-gray-300 dark:border-gray-700 
-                text-sm outline-none
-              "
-            />
-
-            {/* Quick color tags */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {["Đỏ", "Đen", "Trắng", "Xanh", "Vàng"].map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => addTag("color", tag)}
-                  className="
-                    px-3 py-1.5 rounded-xl text-xs 
-                    bg-white dark:bg-gray-700 
-                    border border-gray-300 dark:border-gray-600
-                    hover:bg-indigo-600 hover:text-white 
-                    transition
-                  "
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-
-            {/* Chips */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {colors.map((c) => (
-                <div
-                  key={c}
-                  className="
-                    px-3 py-1 rounded-xl 
-                    bg-rose-100 text-rose-700 
-                    dark:bg-rose-600 dark:text-white 
-                    flex items-center gap-1 text-xs
-                  "
-                >
-                  {c}
-                  <span
-                    onClick={() => removeTag("color", c)}
-                    className="cursor-pointer opacity-70 hover:opacity-100"
-                  >
-                    ×
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* STOCK */}
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-              Tồn kho mặc định
-            </p>
-
-            <input
-              type="number"
-              placeholder="VD: 10"
-              value={defaultStock}
-              onChange={(e) => setDefaultStock(e.target.value)}
-              className="
-                w-full px-3 py-2 rounded-xl 
-                bg-gray-50 dark:bg-gray-800 
-                border border-gray-300 dark:border-gray-700 
-                outline-none text-sm
-              "
-            />
-          </div>
-
-          {/* PREVIEW */}
-          <div
+          <input
+            placeholder="Đỏ, Đen, Trắng..."
+            value={colorsInput}
+            onChange={(e) => setColorsInput(e.target.value)}
             className="
-            p-4 rounded-2xl 
-            bg-gray-50 dark:bg-gray-800 
-            border border-gray-300 dark:border-gray-700
-            space-y-2 max-h-44 overflow-auto
+              w-full px-3 py-2 rounded-xl 
+              bg-white dark:bg-gray-900 
+              border border-gray-300 dark:border-gray-700 
+              text-sm outline-none
+            "
+          />
+
+          {/* Quick tags */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {["Đỏ", "Đen", "Trắng", "Xanh", "Vàng"].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => addTag("color", tag)}
+                className="
+                  px-3 py-1.5 rounded-xl text-xs 
+                  bg-white dark:bg-gray-700 
+                  border border-gray-300 dark:border-gray-600
+                  hover:bg-indigo-600 hover:text-white 
+                  transition
+                "
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Chips */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {colors.map((c) => (
+              <div
+                key={c}
+                className="
+                  px-3 py-1 rounded-xl 
+                  bg-rose-100 text-rose-700 
+                  dark:bg-rose-600 dark:text-white 
+                  flex items-center gap-1 text-xs
+                "
+              >
+                {c}
+                <span
+                  onClick={() => removeTag("color", c)}
+                  className="cursor-pointer opacity-70 hover:opacity-100"
+                >
+                  ×
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* STOCK */}
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
+            Tồn kho mặc định
+          </p>
+
+          <input
+            type="number"
+            placeholder="VD: 10"
+            value={defaultStock}
+            onChange={(e) => setDefaultStock(e.target.value)}
+            className="
+              w-full px-3 py-2 rounded-xl 
+              bg-gray-50 dark:bg-gray-800 
+              border border-gray-300 dark:border-gray-700 
+              text-sm outline-none
+            "
+          />
+        </div>
+
+        {/* PREVIEW */}
+        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 space-y-2 max-h-48 overflow-auto shadow-sm">
+          <p className="flex items-center gap-2 font-semibold text-sm">
+            <FiTag className="text-indigo-500" />
+            Sẽ tạo {preview.length} biến thể
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {preview.map((v, i) => (
+              <div
+                key={i}
+                className="
+                  px-3 py-2 rounded-xl 
+                  bg-white dark:bg-gray-900 
+                  border border-gray-300 dark:border-gray-700
+                  text-xs shadow-sm
+                "
+              >
+                <strong>{v.size}</strong> • {v.color}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div
+        className="
+          sticky bottom-0 
+          bg-white/90 dark:bg-gray-900/90 
+          backdrop-blur-xl 
+          border-t border-gray-300 dark:border-gray-700
+          p-4 flex justify-end gap-3
+        "
+      >
+        <button
+          onClick={onClose}
+          className="
+            px-5 py-2 rounded-xl 
+            bg-gray-200 dark:bg-gray-700 
+            text-gray-900 dark:text-gray-100
           "
-          >
-            <p className="flex items-center gap-2 font-semibold text-sm">
-              <FiTag className="text-indigo-500" />
-              Sẽ tạo {preview.length} biến thể
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {preview.map((v, i) => (
-                <div
-                  key={i}
-                  className="
-                    px-3 py-2 rounded-xl 
-                    bg-white dark:bg-gray-900 
-                    border border-gray-300 dark:border-gray-700
-                    text-xs shadow-sm
-                  "
-                >
-                  <strong>{v.size}</strong> • {v.color}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* FOOTER BUTTONS – AMAZON STYLE */}
-        <div
-          className="
-            sticky bottom-0 
-            bg-white/90 dark:bg-gray-900/90 
-            backdrop-blur-lg 
-            p-4 border-t border-gray-200 dark:border-gray-700
-            flex justify-end gap-3
-        "
         >
-          <button
-            onClick={onClose}
-            className="
-              px-5 py-2 rounded-xl 
-              bg-gray-200 dark:bg-gray-700 
-              text-gray-900 dark:text-gray-100
-            "
-          >
-            Hủy
-          </button>
+          Hủy
+        </button>
 
-          <button
-            onClick={handleCreate}
-            className="
-              px-6 py-2 rounded-xl 
-              bg-gradient-to-r from-indigo-600 to-indigo-500 
-              text-white shadow-lg text-sm font-semibold
-            "
-          >
-            Tạo biến thể
-          </button>
-        </div>
-      </motion.div>
+        <button
+          onClick={handleCreate}
+          className="
+            px-6 py-2 rounded-xl 
+            bg-gradient-to-r from-indigo-600 to-indigo-500 
+            text-white font-semibold shadow-lg
+          "
+        >
+          Tạo biến thể
+        </button>
+      </div>
     </motion.div>
   );
 }
