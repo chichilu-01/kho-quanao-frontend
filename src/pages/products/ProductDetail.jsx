@@ -30,18 +30,23 @@ export default function ProductDetail({ selected, setSelected, load }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="
-          /* MOBILE full screen, không padding ngang */
-          mt-0 px-0 pt-4 pb-24
-          w-full
-          rounded-none
+          /* MOBILE FULL AREA nhưng không đè tab trên/dưới */
+          fixed inset-0
+          pt-[70px]       /* chừa không gian cho thanh tab trên */
+          pb-[80px]       /* chừa thanh công cụ dưới */
+          px-0            /* sát 2 mép trái/phải */
+          overflow-y-auto
           bg-white dark:bg-gray-900
-          border-t border-gray-200 dark:border-gray-800
+          z-[9999]
 
-          /* PC giữ nguyên card đẹp */
-          md:mt-5 md:p-6 md:rounded-3xl
-          md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
+          /* PC giữ nguyên giao diện card */
+          md:static md:inset-auto md:z-auto
+          md:mt-5 md:p-6
+          md:rounded-3xl
           md:bg-white/60 md:dark:bg-gray-900/60
           md:border md:border-white/40 md:dark:border-gray-700/50
+          md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
+          md:backdrop-blur-xl
 
           space-y-6 md:space-y-8
         "
