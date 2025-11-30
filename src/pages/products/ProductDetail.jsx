@@ -55,21 +55,25 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
         {/* IMAGE + BASIC INFO */}
         <div className="
-          flex flex-row items-start gap-4 
+          flex flex-col md:flex-row 
+          items-start md:items-center
+          gap-6
           w-full
           px-4 md:px-0
         ">
 
-          {/* LEFT — IMAGE */}
-          <div className="flex flex-col items-center">
+          {/* LEFT — IMAGE (PHÁT TRIỂN THEO MOBILE) */}
+          <div className="w-full md:w-auto flex flex-col items-center">
             <motion.div
               whileHover={{ scale: 1.03 }}
               className="
-                w-32 h-32 md:w-44 md:h-44 
+                w-40 h-40 
+                md:w-48 md:h-48
                 rounded-2xl overflow-hidden
-                shadow-lg shadow-black/10
+                shadow-lg shadow-black/10 
                 border border-gray-300 dark:border-gray-700
                 bg-white dark:bg-gray-800
+                mx-auto
               "
             >
               <img
@@ -78,24 +82,22 @@ export default function ProductDetail({ selected, setSelected, load }) {
               />
             </motion.div>
 
-            <label className="cursor-pointer mt-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-              <span className="px-4 py-1.5 rounded-xl bg-gray-200 dark:bg-gray-700 
-                text-gray-800 dark:text-gray-200 text-xs 
-                shadow border border-gray-300 dark:border-gray-600
-                hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+            {/* BUTTON CHỌN ẢNH */}
+            <label className="cursor-pointer mt-3">
+              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+              <span className="
+                px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700
+                text-gray-800 dark:text-gray-200
+                text-sm shadow border border-gray-300 dark:border-gray-600
+                hover:bg-gray-300 dark:hover:bg-gray-600 transition
+              ">
                 Chọn ảnh mới
               </span>
             </label>
           </div>
 
-          {/* RIGHT — BASIC INFO + VARIANT BUTTON */}
-          <div className="flex-1 space-y-3">
+          {/* RIGHT — BASIC FIELDS (FULL WIDTH TRÊN MOBILE) */}
+          <div className="flex-1 w-full space-y-3">
 
             <Field
               label="SKU"
@@ -137,17 +139,18 @@ export default function ProductDetail({ selected, setSelected, load }) {
             <button
               onClick={() => setShowVariantsScreen(true)}
               className="
-                w-full py-2 rounded-xl
+                w-full py-3 rounded-xl
                 bg-indigo-600 text-white 
                 font-semibold shadow-md
                 hover:bg-indigo-700 transition
                 text-sm md:text-base
               "
             >
-              🎨 Biến thể sản phẩm
+              🎨 Quản lý biến thể
             </button>
           </div>
         </div>
+
 
         {/* FORM FOR OTHER FIELDS */}
         <form
