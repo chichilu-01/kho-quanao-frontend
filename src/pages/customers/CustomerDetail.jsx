@@ -32,7 +32,7 @@ export default function CustomerDetail({
   };
 
   return (
-    <div className="pb-[75px] sm:pb-4">
+    <div className="pb-[70px] sm:pb-4">
       {" "}
       {/* ⬅ đảm bảo không bị che bởi bottom bar */}
       <div
