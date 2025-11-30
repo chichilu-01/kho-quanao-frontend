@@ -9,7 +9,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
   const [preview, setPreview] = useState(null);
   const [image, setImage] = useState(null);
 
-  // SCREEN BIẾN THỂ
+  // SCREEN BIẾN THỂ (SLIDE-IN)
   const [showVariantsScreen, setShowVariantsScreen] = useState(false);
 
   const handleImageChange = (e) => {
@@ -21,57 +21,47 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
-      {/* --------------------------- */}
-      {/* MAIN PRODUCT DETAIL CARD */}
-      {/* --------------------------- */}
+      {/* MAIN PRODUCT DETAIL */}
       <motion.div
         key={selected.id}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
+        transition={{ duration: 0.25 }}
         className="
-          /* MOBILE full screen, không padding ngang */
-          mt-0 px-0 pt-4 pb-24
-          w-full
-          rounded-none
+          mt-0 px-0 pt-4 pb-24 w-full rounded-none
           bg-white dark:bg-gray-900
           border-t border-gray-200 dark:border-gray-800
 
-          /* PC giữ nguyên card đẹp */
           md:mt-5 md:p-6 md:rounded-3xl
           md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
           md:bg-white/60 md:dark:bg-gray-900/60
           md:border md:border-white/40 md:dark:border-gray-700/50
 
-          space-y-4 md:space-y-8
+          space-y-6 md:space-y-8
         "
       >
         {/* HEADER */}
         <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-gray-700/40">
           <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
-            <FiEdit className="text-blue-500" />
-            Chi tiết sản phẩm
+            <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
           </h4>
-
           <button
             onClick={() => toast("⚠️ Mở modal xoá ở component cha")}
-            className="text-red-600 hover:text-red-700 flex items-center gap-1 text-sm font-medium"
+            className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1"
           >
-            <FiTrash2 />
-            Xoá
+            <FiTrash2 /> Xoá
           </button>
         </div>
 
-        {/* IMAGE + VARIANT BUTTON */}
-        <div className="flex items-center justify-between w-full px-4 md:px-0">
-          {/* IMAGE */}
+        {/* IMAGE + BASIC INFO */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4 md:px-0">
+          {/* LEFT — IMAGE */}
           <div className="flex flex-col items-center">
             <motion.div
               whileHover={{ scale: 1.03 }}
               className="
-                w-36 h-36 md:w-44 md:h-44 
-                rounded-2xl overflow-hidden
-                shadow-lg shadow-black/10 
+                w-36 h-36 md:w-44 md:h-44 rounded-2xl overflow-hidden
+                shadow-lg shadow-black/10
                 border border-gray-300 dark:border-gray-700
                 bg-white dark:bg-gray-800
               "
@@ -82,7 +72,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
               />
             </motion.div>
 
-            {/* CHOOSE NEW IMAGE */}
             <label className="cursor-pointer mt-2">
               <input
                 type="file"
@@ -90,36 +79,70 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 onChange={handleImageChange}
                 className="hidden"
               />
-              <span
-                className="
-                  px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 
-                  text-gray-800 dark:text-gray-200
-                  text-sm shadow border border-gray-300 dark:border-gray-600
-                  hover:bg-gray-300 dark:hover:bg-gray-600 transition
-                "
-              >
+              <span className="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm shadow border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                 Chọn ảnh mới
               </span>
             </label>
           </div>
 
-          {/* VARIANT BUTTON */}
-          <button
-            onClick={() => setShowVariantsScreen(true)}
-            className="
-              ml-3
-              px-4 py-3 
-              bg-indigo-600 text-white rounded-xl 
-              font-semibold shadow-md
-              hover:bg-indigo-700 transition
-              text-sm md:text-base
-            "
-          >
-            🎨 Biến thể
-          </button>
+          {/* RIGHT — BASIC INFO + VARIANT BUTTON */}
+          <div className="space-y-4">
+            {/* SKU */}
+            <Field
+              label="SKU"
+              value={selected.sku}
+              onChange={(v) => {
+                setSelected({ ...selected, sku: v });
+                setIsDirty(true);
+              }}
+            />
+
+            {/* NAME */}
+            <Field
+              label="Tên SP"
+              value={selected.name}
+              onChange={(v) => {
+                setSelected({ ...selected, name: v });
+                setIsDirty(true);
+              }}
+            />
+
+            {/* CATEGORY */}
+            <Field
+              label="Danh mục"
+              value={selected.category}
+              onChange={(v) => {
+                setSelected({ ...selected, category: v });
+                setIsDirty(true);
+              }}
+            />
+
+            {/* BRAND */}
+            <Field
+              label="Thương hiệu"
+              value={selected.brand}
+              onChange={(v) => {
+                setSelected({ ...selected, brand: v });
+                setIsDirty(true);
+              }}
+            />
+
+            {/* VARIANT BUTTON */}
+            <button
+              onClick={() => setShowVariantsScreen(true)}
+              className="
+                w-full py-2 rounded-xl
+                bg-indigo-600 text-white 
+                font-semibold shadow-md
+                hover:bg-indigo-700 transition text-sm md:text-base
+              "
+            >
+              🎨 Biến thể sản phẩm
+            </button>
+          </div>
         </div>
 
-        {/* FORM SECTION */}
+        {/* FORM FOR OTHER FIELDS */}
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -153,50 +176,20 @@ export default function ProductDetail({ selected, setSelected, load }) {
               toast.error("❌ " + (err?.message || "Không thể cập nhật"));
             }
           }}
-          className="grid gap-6"
+          className="grid gap-6 px-4 md:px-0"
         >
-          <div
-            className="
-              p-3 rounded-2xl
-              bg-white/80 dark:bg-gray-800/70
-              shadow-md border border-gray-200 dark:border-gray-700
-              grid grid-cols-1 sm:grid-cols-2 gap-5
-            "
-          >
-            {[
-              "sku",
-              "name",
-              "category",
-              "brand",
-              "cost_price",
-              "sale_price",
-            ].map((key) => (
-              <div key={key} className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-300 capitalize">
-                  {key.replace("_", " ")}
-                </label>
-
-                <input
-                  className="
-                    bg-gray-50 dark:bg-gray-900
-                    rounded-xl px-3 py-2
-                    border border-gray-300 dark:border-gray-700
-                    focus:ring-2 ring-blue-400 dark:ring-blue-500
-                    shadow-sm outline-none transition
-                  "
-                  type={
-                    ["cost_price", "sale_price"].includes(key)
-                      ? "number"
-                      : "text"
-                  }
-                  placeholder={key.replace("_", " ")}
-                  value={selected[key] ?? ""}
-                  onChange={(e) => {
-                    setSelected({ ...selected, [key]: e.target.value });
-                    setIsDirty(true);
-                  }}
-                />
-              </div>
+          <div className="p-3 rounded-2xl bg-white/80 dark:bg-gray-800/70 shadow-md border border-gray-200 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {["cost_price", "sale_price"].map((key) => (
+              <Field
+                key={key}
+                label={key.replace("_", " ")}
+                type="number"
+                value={selected[key]}
+                onChange={(v) => {
+                  setSelected({ ...selected, [key]: v });
+                  setIsDirty(true);
+                }}
+              />
             ))}
           </div>
 
@@ -214,38 +207,22 @@ export default function ProductDetail({ selected, setSelected, load }) {
               "
               type="submit"
             >
-              <FiSave />
-              Lưu thay đổi
+              <FiSave /> Lưu thay đổi
             </motion.button>
           )}
         </form>
       </motion.div>
 
-      {/* --------------------------- */}
-      {/* VARIANTS SLIDE-IN SCREEN */}
-      {/* --------------------------- */}
+      {/* VARIANTS SLIDE-IN */}
       {showVariantsScreen && (
         <motion.div
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ duration: 0.25 }}
-          className="
-            fixed inset-0 z-[99999]
-            bg-white dark:bg-gray-900
-            shadow-2xl
-            overflow-y-auto
-          "
+          className="fixed inset-0 z-[99999] bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"
         >
-          {/* HEADER */}
-          <div
-            className="
-            sticky top-0 z-50 
-            bg-white dark:bg-gray-900 p-4 
-            border-b border-gray-200 dark:border-gray-700
-            flex items-center gap-3
-          "
-          >
+          <div className="sticky top-0 z-50 bg-white dark:bg-gray-900 p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
             <button
               onClick={() => setShowVariantsScreen(false)}
               className="text-gray-700 dark:text-gray-200"
@@ -255,12 +232,29 @@ export default function ProductDetail({ selected, setSelected, load }) {
             <h3 className="font-semibold text-lg">Biến thể sản phẩm</h3>
           </div>
 
-          {/* CONTENT */}
           <div className="p-4 pb-24">
             <ProductVariants productId={selected.id} />
           </div>
         </motion.div>
       )}
     </>
+  );
+}
+
+/* SMALL FIELD COMPONENT */
+function Field({ label, value, onChange, type = "text" }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+        {label}
+      </label>
+      <input
+        type={type}
+        className="bg-gray-50 dark:bg-gray-900 rounded-xl px-3 py-2 border border-gray-300 dark:border-gray-700 focus:ring-2 ring-blue-400 dark:ring-blue-500 shadow-sm outline-none transition"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={label}
+      />
+    </div>
   );
 }
