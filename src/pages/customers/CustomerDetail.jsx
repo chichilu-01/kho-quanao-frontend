@@ -32,18 +32,28 @@ export default function CustomerDetail({
   };
 
   return (
-    <>
-      <div className="flex justify-between items-center mb-2">
-        <h4 className="font-medium text-lg">🧾 {detail.name}</h4>
+    <div
+      className="p-4 rounded-2xl bg-white shadow-sm border border-gray-200 
+                    dark:bg-gray-900 dark:border-gray-700"
+    >
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="font-semibold text-xl text-gray-800 dark:text-white flex items-center gap-2">
+          🧾 {detail.name}
+        </h4>
+
         <div className="flex gap-2">
           <button
-            className="btn text-xs bg-yellow-400 hover:bg-yellow-500"
+            className="px-3 py-1.5 rounded-xl text-xs font-medium bg-yellow-300 hover:bg-yellow-400 
+                       transition shadow-sm"
             onClick={() => setEditing(true)}
           >
             ✏️ Sửa
           </button>
+
           <button
-            className="btn text-xs bg-red-500 hover:bg-red-600 text-white"
+            className="px-3 py-1.5 rounded-xl text-xs font-medium bg-red-500 hover:bg-red-600 
+                       text-white transition shadow-sm"
             onClick={handleDelete}
           >
             🗑️ Xoá
@@ -51,39 +61,37 @@ export default function CustomerDetail({
         </div>
       </div>
 
+      {/* INFO */}
       {!editing ? (
-        <div className="grid grid-cols-2 gap-x-6 text-sm mb-3">
-          <div className="text-gray-500">Điện thoại</div>
-          <div>{detail.phone || "—"}</div>
-
-          <div className="text-gray-500">Địa chỉ</div>
-          <div>{detail.address || "—"}</div>
-
-          <div className="text-gray-500">Facebook</div>
-          <div>
-            {detail.facebook_url ? (
-              <a
-                href={detail.facebook_url}
-                target="_blank"
-                className="text-blue-600 underline"
-              >
-                Link
-              </a>
-            ) : (
-              "—"
-            )}
-          </div>
-
-          <div className="text-gray-500">Ghi chú</div>
-          <div>{detail.notes || "—"}</div>
-
-          <div className="text-gray-500">🧮 Tổng đơn</div>
-          <div className="font-semibold">{detail.total_orders} đơn</div>
-
-          <div className="text-gray-500">💰 Chi tiêu</div>
-          <div className="font-semibold text-green-600">
-            {money(detail.total_spent)}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-4">
+          <InfoRow label="📞 Điện thoại" value={detail.phone} />
+          <InfoRow label="📍 Địa chỉ" value={detail.address} />
+          <InfoRow
+            label="🌐 Facebook"
+            value={
+              detail.facebook_url ? (
+                <a
+                  href={detail.facebook_url}
+                  target="_blank"
+                  className="text-blue-600 underline"
+                >
+                  Link
+                </a>
+              ) : (
+                "—"
+              )
+            }
+          />
+          <InfoRow label="📝 Ghi chú" value={detail.notes} />
+          <InfoRow label="🧮 Tổng đơn" value={`${detail.total_orders} đơn`} />
+          <InfoRow
+            label="💰 Chi tiêu"
+            value={
+              <span className="font-semibold text-green-600">
+                {money(detail.total_spent)}
+              </span>
+            }
+          />
         </div>
       ) : (
         <EditCustomerForm
@@ -97,31 +105,44 @@ export default function CustomerDetail({
         />
       )}
 
-      <h5 className="font-medium mb-2 mt-3">🛍️ Lịch sử mua hàng</h5>
+      {/* LỊCH SỬ ĐƠN */}
+      <h5 className="font-semibold mb-3 text-lg text-gray-800 dark:text-white">
+        🛍️ Lịch sử mua hàng
+      </h5>
+
       {detail.orders?.length === 0 ? (
         <div className="text-gray-500 text-sm">Khách chưa có đơn hàng nào.</div>
       ) : (
         <div className="space-y-3">
           {detail.orders.map((o) => (
-            <div key={o.id} className="border rounded p-2 bg-gray-50 text-sm">
-              <div className="flex justify-between">
-                <div>Mã đơn: #{o.id}</div>
-                <div>{new Date(o.created_at).toLocaleString("vi-VN")}</div>
+            <div
+              key={o.id}
+              className="rounded-xl border border-gray-200 bg-gray-50 p-3 shadow-sm 
+                         dark:bg-gray-800 dark:border-gray-700"
+            >
+              <div className="flex justify-between text-sm">
+                <div className="font-medium">Mã đơn: #{o.id}</div>
+                <div className="text-gray-500 dark:text-gray-300">
+                  {new Date(o.created_at).toLocaleString("vi-VN")}
+                </div>
               </div>
-              <div className="mt-1 text-gray-600">
+
+              <div className="mt-1 text-gray-700 dark:text-gray-300">
                 Tổng tiền: <b>{money(o.total)}</b>
               </div>
-              <div className="mt-2 flex flex-wrap gap-3">
+
+              {/* ITEMS */}
+              <div className="mt-3 flex flex-wrap gap-3">
                 {o.items.map((it, i) => (
                   <div key={i} className="flex items-center gap-2">
                     {it.cover_image && (
                       <img
                         src={it.cover_image}
                         alt={it.product_name}
-                        className="w-10 h-10 object-cover rounded border"
+                        className="w-12 h-12 rounded-lg border object-cover shadow-sm"
                       />
                     )}
-                    <span>
+                    <span className="text-gray-800 dark:text-gray-200 text-sm">
                       {it.product_name} × {it.quantity} ({money(it.price)})
                     </span>
                   </div>
@@ -131,6 +152,18 @@ export default function CustomerDetail({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* 👉 COMPONENT NHỎ GIÚP GIAO DIỆN ĐẸP & GỌN */
+function InfoRow({ label, value }) {
+  return (
+    <>
+      <div className="text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="font-medium text-gray-700 dark:text-gray-200">
+        {value || "—"}
+      </div>
     </>
   );
 }
