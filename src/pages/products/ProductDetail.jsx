@@ -19,21 +19,23 @@ export default function ProductDetail({ selected, setSelected, load }) {
   return (
     <motion.div
       key={selected.id}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       className="
-        mt-5 p-4 rounded-xl 
-        bg-gradient-to-br from-gray-50 to-white 
-        dark:from-gray-800 dark:to-gray-700 
-        border border-gray-200 dark:border-gray-700
-        shadow-inner space-y-6
+        mt-5 p-6 rounded-3xl
+        shadow-[0_8px_30px_rgb(0,0,0,0.12)]
+        backdrop-blur-xl
+        bg-white/60 dark:bg-gray-900/60
+        border border-white/40 dark:border-gray-700/50
+        space-y-8
       "
     >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-lg flex items-center gap-2">
+      {/* HEADER */}
+      <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-gray-700/40">
+        <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
           <FiEdit className="text-blue-500" />
-          Thông tin sản phẩm
+          Chi tiết sản phẩm
         </h4>
 
         <button
@@ -41,43 +43,47 @@ export default function ProductDetail({ selected, setSelected, load }) {
           className="text-red-600 hover:text-red-700 flex items-center gap-1 text-sm font-medium"
         >
           <FiTrash2 />
-          Ẩn
+          Xoá
         </button>
       </div>
 
-      {/* Ảnh sản phẩm */}
-      <div className="flex flex-col items-center gap-2">
-        <img
-          src={preview || selected.cover_image}
+      {/* IMAGE SECTION */}
+      <div className="flex flex-col items-center gap-4">
+        <motion.div
+          whileHover={{ scale: 1.03 }}
           className="
-            w-40 h-40 sm:w-32 sm:h-32 
-            rounded-xl object-cover 
-            shadow border
+            w-44 h-44 rounded-2xl overflow-hidden
+            shadow-lg shadow-black/10 border border-gray-300 dark:border-gray-700
+            bg-white dark:bg-gray-800
           "
-        />
+        >
+          <img
+            src={preview || selected.cover_image}
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
 
-        <label className="w-full text-center">
+        <label className="cursor-pointer">
           <input
             type="file"
             accept="image/*"
             onChange={handleImageChange}
             className="hidden"
-            id="imagePicker"
           />
           <span
             className="
-            cursor-pointer px-3 py-1.5 rounded-lg 
-            bg-gray-200 dark:bg-gray-700 
-            text-sm text-gray-700 dark:text-gray-200
-            shadow
-          "
+              px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 
+              text-gray-800 dark:text-gray-200
+              text-sm shadow border border-gray-300 dark:border-gray-600
+              hover:bg-gray-300 dark:hover:bg-gray-600 transition
+            "
           >
             Chọn ảnh mới
           </span>
         </label>
       </div>
 
-      {/* Form */}
+      {/* FORM SECTION */}
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -110,60 +116,83 @@ export default function ProductDetail({ selected, setSelected, load }) {
             toast.error("❌ " + (err?.message || "Không thể cập nhật"));
           }
         }}
-        className="grid gap-4"
+        className="grid gap-6"
       >
-        {/* Card form */}
         <div
           className="
-            p-4 rounded-xl bg-white dark:bg-gray-800 
-            border border-gray-200 dark:border-gray-700 
-            shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-3
+            p-5 rounded-2xl
+            bg-white/80 dark:bg-gray-800/70
+            shadow-md border border-gray-200 dark:border-gray-700
+            grid grid-cols-1 sm:grid-cols-2 gap-5
           "
         >
           {["sku", "name", "category", "brand", "cost_price", "sale_price"].map(
             (key) => (
-              <input
-                key={key}
-                className="input dark:bg-gray-900"
-                placeholder={key.replace("_", " ")}
-                type={
-                  ["cost_price", "sale_price"].includes(key) ? "number" : "text"
-                }
-                value={selected[key] ?? ""}
-                onChange={(e) => {
-                  setSelected({ ...selected, [key]: e.target.value });
-                  setIsDirty(true);
-                }}
-              />
+              <div key={key} className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-300 capitalize">
+                  {key.replace("_", " ")}
+                </label>
+
+                <input
+                  className="
+                    bg-gray-50 dark:bg-gray-900
+                    rounded-xl px-3 py-2
+                    border border-gray-300 dark:border-gray-700
+                    focus:ring-2 ring-blue-400 dark:ring-blue-500
+                    shadow-sm outline-none transition
+                  "
+                  type={
+                    ["cost_price", "sale_price"].includes(key)
+                      ? "number"
+                      : "text"
+                  }
+                  placeholder={key.replace("_", " ")}
+                  value={selected[key] ?? ""}
+                  onChange={(e) => {
+                    setSelected({ ...selected, [key]: e.target.value });
+                    setIsDirty(true);
+                  }}
+                />
+              </div>
             ),
           )}
         </div>
 
-        {/* Footer button – chỉ hiện khi có thay đổi */}
+        {/* SAVE BUTTON FLOATING */}
         {isDirty && (
           <motion.button
-            whileTap={{ scale: 0.97 }}
-            type="submit"
+            whileTap={{ scale: 0.94 }}
             className="
-              fixed md:static bottom-4 left-1/2 -translate-x-1/2 z-50 
-              w-[90%] md:w-auto py-3 px-5 rounded-xl
-              bg-green-600 hover:bg-green-700 
-              text-white font-semibold shadow-xl 
+              fixed md:static bottom-4 left-1/2 -translate-x-1/2
+              w-[88%] md:w-auto py-3 px-7 rounded-xl
+              bg-gradient-to-r from-green-500 to-green-600
+              text-white font-semibold shadow-xl shadow-green-400/30
               flex items-center justify-center gap-2
+              z-[999]
             "
+            type="submit"
           >
-            <FiSave /> Lưu thay đổi
+            <FiSave />
+            Lưu thay đổi
           </motion.button>
         )}
       </form>
 
-      {/* Variants */}
-      <div className="pt-2">
-        <h4 className="flex items-center gap-2 text-gray-800 dark:text-gray-100 font-semibold text-base mb-1">
-          🔻 Biến thể (Size & Màu)
+      {/* VARIANTS SECTION */}
+      <div>
+        <h4 className="flex items-center gap-2 text-gray-900 dark:text-gray-100 font-semibold text-base mb-2">
+          🎨 Biến thể sản phẩm
         </h4>
 
-        <ProductVariants productId={selected.id} />
+        <div
+          className="
+            rounded-2xl bg-white/80 dark:bg-gray-800/70
+            border border-gray-200 dark:border-gray-700
+            shadow p-4
+          "
+        >
+          <ProductVariants productId={selected.id} />
+        </div>
       </div>
     </motion.div>
   );
