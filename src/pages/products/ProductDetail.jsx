@@ -219,19 +219,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
             </motion.button>
           )}
         </form>
-
-        {/* BUTTON MỞ BIẾN THỂ – AMAZON STYLE */}
-        <button
-          onClick={() => setShowVariantsScreen(true)}
-          className="
-            w-full py-3 rounded-xl mt-2
-            bg-indigo-600 text-white 
-            font-semibold shadow-md
-            hover:bg-indigo-700 transition
-          "
-        >
-          Quản lý biến thể sản phẩm
-        </button>
       </motion.div>
 
       {/* --------------------------- */}
