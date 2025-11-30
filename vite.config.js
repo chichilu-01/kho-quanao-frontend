@@ -2,8 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-// ✅ Cấu hình PWA hoàn chỉnh cho RC Studio
 export default defineConfig({
+  // ❗ Sửa lỗi 404 khi vào trang /products, /orders, /customers
+  base: "./",
+
   plugins: [
     react(),
     VitePWA({
@@ -23,7 +25,7 @@ export default defineConfig({
         theme_color: "#000000",
         background_color: "#000000",
         display: "standalone",
-        start_url: "/",
+        start_url: "/", // OK
         orientation: "portrait",
         icons: [
           {
@@ -41,7 +43,6 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            // Cache API backend Railway
             urlPattern:
               /^https:\/\/kho-quanao-backend-production\.up\.railway\.app\/api\/.*$/,
             handler: "NetworkFirst",
@@ -49,19 +50,18 @@ export default defineConfig({
               cacheName: "api-cache",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 1 ngày
+                maxAgeSeconds: 60 * 60 * 24,
               },
             },
           },
           {
-            // Cache hình ảnh (Cloudinary, sản phẩm, logo,…)
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 tuần
+                maxAgeSeconds: 60 * 60 * 24 * 7,
               },
             },
           },
