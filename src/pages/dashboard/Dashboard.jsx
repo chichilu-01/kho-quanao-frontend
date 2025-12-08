@@ -120,13 +120,36 @@ export default function Dashboard() {
     );
   }
 
+  /* ---------- KEYFRAME CSS ---------- */
+  if (typeof window !== "undefined") {
+    if (!document.getElementById("welcome-anim")) {
+      const style = document.createElement("style");
+      style.id = "welcome-anim";
+      style.innerHTML = `
+        @keyframes textWave {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes textGradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes shimmerBorder {
+          0% { background-position: -150% 0; }
+          100% { background-position: 150% 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  const welcomeText = "Welcome, RinChan ✨";
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="relative min-h-screen overflow-hidden"
-    >
-      {/* Background Animation */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative min-h-screen overflow-hidden">
+      {/* BG */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
         animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
@@ -135,32 +158,69 @@ export default function Dashboard() {
       />
 
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 relative z-10">
-        {/* ⭐⭐⭐ WELCOME + LOGO ⭐⭐⭐ */}
-        <div className="flex flex-col items-center text-center mt-2 mb-6">
-          <motion.img
-            src="/icons/icon-192x192.png"
-            alt="App Logo"
-            className="w-20 h-20 object-contain drop-shadow-xl rounded-full"
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
+
+        {/* ⭐⭐⭐ WELCOME BOX + SHIMMER ⭐⭐⭐ */}
+        <div className="relative flex flex-col items-center text-center mt-2 mb-6">
+
+          {/* Viền sáng shimmer */}
+          <div
+            className="absolute -inset-1 rounded-2xl opacity-80"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)",
+              backgroundSize: "200% 100%",
+              animation: "shimmerBorder 2.2s linear infinite",
+              filter: "blur(6px)",
+            }}
           />
 
-          <motion.h2
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-          >
-            Welcome, RinChan ✨
-          </motion.h2>
+          <div className="relative bg-white/40 dark:bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/30">
+            {/* LOGO */}
+            <motion.img
+              src="/icons/icon-192x192.png"
+              alt="App Logo"
+              className="w-20 h-20 object-contain drop-shadow-xl rounded-full mx-auto"
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6 }}
+            />
 
-          <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
-            Chúc bạn một ngày làm việc tràn đầy năng lượng!
-          </p>
+            {/* WELCOME TEXT - ANIMATION WAVE + GRADIENT MOVING */}
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mt-3 text-2xl font-extrabold"
+              style={{
+                background:
+                  "linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #f97316)",
+                backgroundSize: "200% 200%",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+                animation: "textGradientMove 6s ease infinite",
+              }}
+            >
+              {Array.from(welcomeText).map((ch, i) => (
+                <span
+                  key={i}
+                  style={{
+                    display: "inline-block",
+                    animation: "textWave 1.6s ease-in-out infinite",
+                    animationDelay: `${i * 0.07}s`,
+                  }}
+                >
+                  {ch}
+                </span>
+              ))}
+            </motion.h2>
+
+            <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+              Chúc bạn một ngày làm việc tràn đầy năng lượng!
+            </p>
+          </div>
         </div>
 
-        {/* Title */}
+        {/* TITLE */}
         <motion.h1
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -170,11 +230,7 @@ export default function Dashboard() {
         </motion.h1>
 
         <StatCards stats={stats} topProducts={topProducts} />
-        <DashboardCharts
-          chartData={chartData}
-          yearlyData={yearlyData}
-          topProducts={topProducts}
-        />
+        <DashboardCharts chartData={chartData} yearlyData={yearlyData} topProducts={topProducts} />
       </div>
     </motion.div>
   );
