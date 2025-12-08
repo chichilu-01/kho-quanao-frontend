@@ -1,7 +1,7 @@
-// src/pages/orders/OrderProductSelector.jsx
 import { FiPackage, FiSearch, FiRefreshCw } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { notify } from "../../hooks/useToastNotify";
+import { useState } from "react";
 
 export default function OrderProductSelector({
   products,
@@ -12,6 +12,8 @@ export default function OrderProductSelector({
   items,
   setItems,
 }) {
+  const [search, setSearch] = useState("");
+
   const addItem = (product, v) => {
     if (v.stock <= 0) {
       notify.error(`Biến thể ${v.size || "-"} / ${v.color || "-"} hết hàng`);
@@ -49,38 +51,77 @@ export default function OrderProductSelector({
     });
   };
 
+  // Lọc theo search
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <div className="mt-6">
       <h3 className="font-bold text-xl mb-3 flex items-center gap-2 text-gray-700">
         <FiPackage className="text-orange-500" /> Sản phẩm
       </h3>
 
-      <div className="relative">
+      {/* 🔍 Thanh Search sản phẩm */}
+      <div className="relative mb-4">
         <FiSearch className="absolute left-3 top-3 text-gray-400" />
-        <select
-          className="input pl-9"
-          value={selectedProductId}
-          onChange={(e) => setSelectedProductId(e.target.value)}
-        >
-          <option value=""> -- Chọn sản phẩm -- </option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} {p.brand ? `(${p.brand})` : ""}
-            </option>
-          ))}
-        </select>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Tìm theo tên sản phẩm..."
+          className="input pl-10 pr-3"
+        />
       </div>
 
+      {/* 👉 GRID SẢN PHẨM */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
+        {filteredProducts.map((p) => {
+          const isActive = Number(selectedProductId) === p.id;
+
+          return (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.02 }}
+              onClick={() => {
+                setSelectedProductId(p.id);
+                loadVariants(p.id);
+              }}
+              className={`cursor-pointer border rounded-xl p-3 bg-white shadow-sm hover:shadow-md transition relative ${
+                isActive ? "border-blue-500 ring-2 ring-blue-300" : ""
+              }`}
+            >
+              <img
+                src={p.cover_image}
+                alt={p.name}
+                className="w-full h-28 object-cover rounded-lg mb-2"
+              />
+              <div className="font-medium text-sm">{p.name}</div>
+              {p.brand && (
+                <div className="text-xs text-gray-500">{p.brand}</div>
+              )}
+              <div className="text-blue-600 font-bold mt-1">
+                {p.sale_price?.toLocaleString()} đ
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* ------------------------------------------------- */}
+      {/* BIẾN THỂ (SIZE – MÀU – TỒN) */}
+      {/* ------------------------------------------------- */}
       {selectedProductId && (
         <button
           onClick={() => loadVariants(selectedProductId)}
-          className="btn-outline flex items-center gap-1 mt-2 text-sm"
+          className="btn-outline flex items-center gap-1 mt-1 text-sm mb-3"
         >
           <FiRefreshCw /> Làm mới biến thể
         </button>
       )}
 
-      <div className="mt-3 grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
         <AnimatePresence>
           {variants.map((v) => (
             <motion.div
@@ -95,7 +136,7 @@ export default function OrderProductSelector({
                   {v.size || "-"} / {v.color || "-"}
                 </div>
                 <div className="text-xs text-gray-500">
-                  Tồn: <b>{v.stock}</b>
+                  Tồn kho: <b>{v.stock}</b>
                 </div>
               </div>
               <button
@@ -106,7 +147,7 @@ export default function OrderProductSelector({
                 className={`px-3 py-1 rounded-lg text-white text-sm ${
                   v.stock <= 0
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:opacity-90"
                 }`}
               >
                 {v.stock <= 0 ? "Hết hàng" : "Thêm"}

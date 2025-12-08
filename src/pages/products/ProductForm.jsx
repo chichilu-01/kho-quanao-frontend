@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { FiPlusCircle, FiCheckCircle, FiImage } from "react-icons/fi";
+import { FiPlusCircle, FiCheckCircle, FiImage, FiX } from "react-icons/fi";
 
 export default function ProductForm({ load }) {
   const [form, setForm] = useState({
@@ -14,14 +14,25 @@ export default function ProductForm({ load }) {
     stock: "",
   });
 
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
+  // ⭐ NEW: nhiều ảnh
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    setImage(file || null);
-    setPreview(file ? URL.createObjectURL(file) : null);
+  // ---- Chọn nhiều ảnh ----
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+
+    setImages((prev) => [...prev, ...files]);
+    setPreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  // ---- Xóa 1 ảnh ----
+  const removeImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const submit = async (e) => {
@@ -30,8 +41,11 @@ export default function ProductForm({ load }) {
     try {
       setLoading(true);
       const fd = new FormData();
+
       Object.entries(form).forEach(([k, v]) => fd.append(k, v || ""));
-      if (image) fd.append("image", image);
+
+      // ⭐ Gửi tất cả ảnh
+      images.forEach((img) => fd.append("images", img));
 
       const res = await fetch(`${import.meta.env.VITE_API_BASE}/products`, {
         method: "POST",
@@ -47,6 +61,7 @@ export default function ProductForm({ load }) {
         </span>,
       );
 
+      // Reset form
       setForm({
         sku: "",
         name: "",
@@ -56,8 +71,8 @@ export default function ProductForm({ load }) {
         sale_price: "",
         stock: "",
       });
-      setImage(null);
-      setPreview(null);
+      setImages([]);
+      setPreviews([]);
 
       await load(json.id);
     } catch (err) {
@@ -68,13 +83,11 @@ export default function ProductForm({ load }) {
   };
 
   return (
-    // không cần relative + pb-24 nữa, chỉ để padding nhẹ
     <div className="pb-4">
       <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-gray-800 dark:text-gray-100">
         <FiPlusCircle className="text-blue-500" /> Thêm sản phẩm mới
       </h3>
 
-      {/* CARD FORM */}
       <form
         onSubmit={submit}
         className="
@@ -89,10 +102,7 @@ export default function ProductForm({ load }) {
           {["sku", "name", "category", "brand"].map((key) => (
             <input
               key={key}
-              className="
-                input dark:bg-gray-900 
-                py-3 rounded-lg text-sm
-              "
+              className="input dark:bg-gray-900 py-3 rounded-lg text-sm"
               placeholder={
                 key === "sku"
                   ? "Mã sản phẩm (SKU)"
@@ -115,10 +125,7 @@ export default function ProductForm({ load }) {
             <input
               key={key}
               type="number"
-              className="
-                input dark:bg-gray-900 
-                py-3 rounded-lg text-sm
-              "
+              className="input dark:bg-gray-900 py-3 rounded-lg text-sm"
               placeholder={
                 key === "cost_price"
                   ? "Giá nhập"
@@ -132,48 +139,65 @@ export default function ProductForm({ load }) {
           ))}
         </div>
 
-        {/* ---- Upload ảnh ---- */}
+        {/* ---- Upload nhiều ảnh ---- */}
         <div className="space-y-2">
           <label className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
             <FiImage /> Ảnh sản phẩm
           </label>
 
+          {/* Grid preview */}
           <div
             className="
-              flex items-center justify-center 
-              h-40 border border-dashed rounded-xl shadow-sm 
+              grid grid-cols-3 gap-3 
+              border border-dashed rounded-xl p-3 
               bg-gray-50 dark:bg-gray-900
             "
           >
-            {preview ? (
-              <img
-                src={preview}
-                alt="preview"
-                className="w-full h-full object-cover rounded-xl"
-              />
-            ) : (
-              <span className="text-gray-400 text-sm">Chưa chọn ảnh</span>
+            {previews.length === 0 && (
+              <span className="text-gray-400 text-sm col-span-3 text-center">
+                Chưa chọn ảnh
+              </span>
             )}
+
+            {previews.map((src, index) => (
+              <div key={index} className="relative group">
+                <img
+                  src={src}
+                  alt=""
+                  className="w-full h-24 object-cover rounded-lg shadow"
+                />
+                {/* Nút xoá */}
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="
+                    absolute top-1 right-1 
+                    bg-black/60 text-white p-1 rounded-full opacity-0 
+                    group-hover:opacity-100 transition
+                  "
+                >
+                  <FiX size={14} />
+                </button>
+              </div>
+            ))}
           </div>
 
+          {/* Input multiple */}
           <input
             type="file"
             accept="image/*"
-            onChange={handleImageChange}
-            className="
-              input dark:bg-gray-900 mt-1 
-              py-2 rounded-lg text-sm
-            "
+            multiple
+            onChange={handleImagesChange}
+            className="input dark:bg-gray-900 mt-1 py-2 rounded-lg text-sm"
           />
         </div>
 
-        {/* ---- Nút Lưu ngay dưới chọn ảnh ---- */}
+        {/* ---- Nút Lưu ---- */}
         <div className="pt-2">
           <motion.button
             whileTap={{ scale: 0.97 }}
             disabled={loading}
             type="submit"
-            onClick={submit}
             className="
               w-full mt-4 py-3 rounded-xl 
               bg-gradient-to-r from-blue-500 to-blue-600 

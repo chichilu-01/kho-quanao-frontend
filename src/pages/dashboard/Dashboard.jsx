@@ -126,6 +126,7 @@ export default function Dashboard() {
       animate={{ opacity: 1 }}
       className="relative min-h-screen overflow-hidden"
     >
+      {/* Background Animation */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
         animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
@@ -134,6 +135,32 @@ export default function Dashboard() {
       />
 
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 relative z-10">
+        {/* ⭐⭐⭐ WELCOME + LOGO ⭐⭐⭐ */}
+        <div className="flex flex-col items-center text-center mt-2 mb-6">
+          <motion.img
+            src="/logo.png"
+            alt="App Logo"
+            className="w-20 h-20 object-contain drop-shadow-xl rounded-full"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.6 }}
+          />
+
+          <motion.h2
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          >
+            Welcome, RinChan ✨
+          </motion.h2>
+
+          <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+            Chúc bạn một ngày làm việc tràn đầy năng lượng!
+          </p>
+        </div>
+
+        {/* Title */}
         <motion.h1
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
