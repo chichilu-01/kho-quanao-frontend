@@ -11,7 +11,6 @@ export default function Dashboard() {
   const [yearlyData, setYearlyData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const welcomeText = "Welcome, RinChan ✨";
 
   const load = async (silent = false) => {
     try {
@@ -109,37 +108,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // inject keyframes once on client
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (document.getElementById("dashboard-welcome-styles")) return;
-
-    const css = `
-      @keyframes textWave {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
-        100% { transform: translateY(0); }
-      }
-      @keyframes textGradientMove {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-      @keyframes shimmerBorder {
-        0% { background-position: -150% 0; }
-        100% { background-position: 150% 0; }
-      }
-    `;
-    const style = document.createElement("style");
-    style.id = "dashboard-welcome-styles";
-    style.innerHTML = css;
-    document.head.appendChild(style);
-
-    return () => {
-      // keep it — no need to remove on unmount
-    };
-  }, []);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
@@ -167,74 +135,81 @@ export default function Dashboard() {
       />
 
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 relative z-10">
+        {/* ⭐⭐⭐ WELCOME + LOGO ⭐⭐⭐ */}
         {/* WELCOME BOX */}
         <div className="relative flex flex-col items-center text-center mt-2 mb-6">
-          {/* shimmer border (behind) */}
+          {/* SHIMMER BORDER */}
           <div
             className="absolute -inset-1 rounded-2xl opacity-80 pointer-events-none"
             style={{
               background:
-                "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)",
+                "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)",
               backgroundSize: "200% 100%",
               animation: "shimmerBorder 2.2s linear infinite",
               filter: "blur(6px)",
             }}
           />
 
-          <div className="relative bg-white/40 dark:bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/30">
-            {/* logo */}
-            {/* If this does not load, try importing instead:
-                import logo from '../../icons/icon-192x192.png' and use src={logo} */}
+          {/* MAIN BOX */}
+          <div className="relative bg-white/40 dark:bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/30 flex flex-col items-center">
+            {/* LOGO */}
             <motion.img
               src="/icons/icon-192x192.png"
               alt="App Logo"
-              className="w-20 h-20 object-contain drop-shadow-xl rounded-full mx-auto"
+              className="w-20 h-20 object-contain drop-shadow-xl rounded-full"
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6 }}
-              onError={(e) => {
-                console.warn("Logo not found at /icons/icon-192x192.png");
-                // hide image if error
-                e.currentTarget.style.display = "none";
-              }}
             />
 
-            {/* animated gradient text with per-letter wave */}
+            {/* ANIMATED TEXT */}
             <motion.h2
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mt-3 text-2xl font-extrabold"
+              className="mt-3 text-3xl font-extrabold tracking-wide"
               style={{
                 background:
-                  "linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #f97316)",
-                backgroundSize: "200% 200%",
+                  "linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #f59e0b, #2563eb)",
+                backgroundSize: "300% 300%",
                 WebkitBackgroundClip: "text",
-                backgroundClip: "text",
                 color: "transparent",
-                animation: "textGradientMove 6s ease infinite",
+                animation:
+                  "textGradientMove 5s ease infinite, textWave 2s ease-in-out infinite",
                 display: "inline-block",
               }}
             >
-              {Array.from(welcomeText).map((ch, i) => (
-                <span
-                  key={i}
-                  style={{
-                    display: "inline-block",
-                    animation: "textWave 1.6s ease-in-out infinite",
-                    animationDelay: `${i * 0.07}s`,
-                  }}
-                >
-                  {ch}
-                </span>
-              ))}
+              Welcome, RinChan ✨
             </motion.h2>
 
+            {/* SUBTEXT */}
             <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
-              Chúc bạn một ngày làm việc tràn đầy năng lượng!
+              Chúc bạn một ngày làm việc tràn đầy năng lượng! ⚡
             </p>
           </div>
         </div>
+
+        {/* KEYFRAMES (bắt buộc để animation hoạt động) */}
+        <style>
+          {`
+        @keyframes textWave {
+          0%   { transform: translateY(0); }
+          50%  { transform: translateY(-6px); }
+          100% { transform: translateY(0); }
+        }
+
+        @keyframes textGradientMove {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        @keyframes shimmerBorder {
+          0%   { background-position: -150% 0; }
+          100% { background-position: 150% 0; }
+        }
+        `}
+        </style>
 
         {/* Title */}
         <motion.h1
