@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [yearlyData, setYearlyData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const welcomeText = "Welcome, RinChan ✨";
 
   const load = async (silent = false) => {
     try {
@@ -108,6 +109,37 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // inject keyframes once on client
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (document.getElementById("dashboard-welcome-styles")) return;
+
+    const css = `
+      @keyframes textWave {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0); }
+      }
+      @keyframes textGradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      @keyframes shimmerBorder {
+        0% { background-position: -150% 0; }
+        100% { background-position: 150% 0; }
+      }
+    `;
+    const style = document.createElement("style");
+    style.id = "dashboard-welcome-styles";
+    style.innerHTML = css;
+    document.head.appendChild(style);
+
+    return () => {
+      // keep it — no need to remove on unmount
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
@@ -120,36 +152,13 @@ export default function Dashboard() {
     );
   }
 
-  /* ---------- KEYFRAME CSS ---------- */
-  if (typeof window !== "undefined") {
-    if (!document.getElementById("welcome-anim")) {
-      const style = document.createElement("style");
-      style.id = "welcome-anim";
-      style.innerHTML = `
-        @keyframes textWave {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-          100% { transform: translateY(0); }
-        }
-        @keyframes textGradientMove {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes shimmerBorder {
-          0% { background-position: -150% 0; }
-          100% { background-position: 150% 0; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
-  const welcomeText = "Welcome, RinChan ✨";
-
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative min-h-screen overflow-hidden">
-      {/* BG */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="relative min-h-screen overflow-hidden"
+    >
+      {/* Background Animation */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
         animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
@@ -158,13 +167,11 @@ export default function Dashboard() {
       />
 
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 relative z-10">
-
-        {/* ⭐⭐⭐ WELCOME BOX + SHIMMER ⭐⭐⭐ */}
+        {/* WELCOME BOX */}
         <div className="relative flex flex-col items-center text-center mt-2 mb-6">
-
-          {/* Viền sáng shimmer */}
+          {/* shimmer border (behind) */}
           <div
-            className="absolute -inset-1 rounded-2xl opacity-80"
+            className="absolute -inset-1 rounded-2xl opacity-80 pointer-events-none"
             style={{
               background:
                 "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)",
@@ -175,7 +182,9 @@ export default function Dashboard() {
           />
 
           <div className="relative bg-white/40 dark:bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/30">
-            {/* LOGO */}
+            {/* logo */}
+            {/* If this does not load, try importing instead:
+                import logo from '../../icons/icon-192x192.png' and use src={logo} */}
             <motion.img
               src="/icons/icon-192x192.png"
               alt="App Logo"
@@ -183,9 +192,14 @@ export default function Dashboard() {
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6 }}
+              onError={(e) => {
+                console.warn("Logo not found at /icons/icon-192x192.png");
+                // hide image if error
+                e.currentTarget.style.display = "none";
+              }}
             />
 
-            {/* WELCOME TEXT - ANIMATION WAVE + GRADIENT MOVING */}
+            {/* animated gradient text with per-letter wave */}
             <motion.h2
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -196,8 +210,10 @@ export default function Dashboard() {
                   "linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #f97316)",
                 backgroundSize: "200% 200%",
                 WebkitBackgroundClip: "text",
+                backgroundClip: "text",
                 color: "transparent",
                 animation: "textGradientMove 6s ease infinite",
+                display: "inline-block",
               }}
             >
               {Array.from(welcomeText).map((ch, i) => (
@@ -220,7 +236,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* TITLE */}
+        {/* Title */}
         <motion.h1
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -230,7 +246,11 @@ export default function Dashboard() {
         </motion.h1>
 
         <StatCards stats={stats} topProducts={topProducts} />
-        <DashboardCharts chartData={chartData} yearlyData={yearlyData} topProducts={topProducts} />
+        <DashboardCharts
+          chartData={chartData}
+          yearlyData={yearlyData}
+          topProducts={topProducts}
+        />
       </div>
     </motion.div>
   );
