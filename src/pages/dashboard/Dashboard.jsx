@@ -138,7 +138,7 @@ export default function Dashboard() {
         {/* ⭐⭐⭐ WELCOME + LOGO ⭐⭐⭐ */}
         <div className="flex flex-col items-center text-center mt-2 mb-6">
           <motion.img
-            src="/logo.png"
+            src="/public/icons/icon-192x192.png"
             alt="App Logo"
             className="w-20 h-20 object-contain drop-shadow-xl rounded-full"
             initial={{ scale: 0.6, opacity: 0 }}
