@@ -112,6 +112,7 @@ export default function CreateOrder() {
             variants={variants}
             selectedProductId={selectedProductId}
             setSelectedProductId={setSelectedProductId}
+            loadVariants={loadVariants}
             items={items}
             setItems={setItems}
           />
@@ -168,6 +169,7 @@ export default function CreateOrder() {
               variants={variants}
               selectedProductId={selectedProductId}
               setSelectedProductId={setSelectedProductId}
+              loadVariants={loadVariants}
               items={items}
               setItems={setItems}
             />
