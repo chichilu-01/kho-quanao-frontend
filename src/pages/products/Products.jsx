@@ -34,10 +34,10 @@ export default function Products() {
 
   const [listLoading, setListLoading] = useState(false);
 
-  // View States
-  const [viewMode, setViewMode] = useState("list");
+  // --- VIEW STATES ---
+  const [viewMode, setViewMode] = useState("list"); // Mobile Tabs state
   const [listViewMode, setListViewMode] = useState("list"); // 'list' | 'grid'
-  const [gridColumns, setGridColumns] = useState(3);
+  const [gridColumns, setGridColumns] = useState(3); // PC Grid Columns
 
   // Load Data
   const load = async (selectId, q = "") => {
@@ -66,7 +66,7 @@ export default function Products() {
     load();
   }, []);
 
-  // Filter
+  // Filter Logic
   const brands = useMemo(
     () => [...new Set(list.map((p) => p.brand).filter(Boolean))],
     [list],
@@ -94,17 +94,19 @@ export default function Products() {
     <div className="h-[calc(100vh-60px)] md:h-[calc(100vh-80px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex flex-col">
       <Toaster position="top-center" toastOptions={{ duration: 2000 }} />
 
-      {/* ================= PC LAYOUT ================= */}
+      {/* ======================= PC LAYOUT ======================= */}
+      {/* 2 Cột: Trái (List/Grid) - Phải (Detail/Form) */}
       <div className="hidden md:flex flex-1 gap-6 p-6 overflow-hidden">
-        {/* CỘT TRÁI: LIST */}
+        {/* CỘT TRÁI - DANH SÁCH SẢN PHẨM */}
         <motion.div
           layout
           className="flex flex-col w-5/12 lg:w-4/12 gap-4 h-full"
         >
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col gap-3 flex-shrink-0">
+          {/* Header Toolbar - Đảm bảo không bị che */}
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col gap-3 flex-shrink-0 z-10 relative">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                📦 Kho{" "}
+                📦 Kho hàng{" "}
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                   {list.length}
                 </span>
@@ -116,6 +118,8 @@ export default function Products() {
                 <FiPlus /> Mới
               </button>
             </div>
+
+            {/* Search & View Switcher */}
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
@@ -126,16 +130,20 @@ export default function Products() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+
+              {/* Nút chuyển đổi Grid/List - Sửa lại class để đảm bảo hiển thị */}
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 gap-1 flex-shrink-0">
                 <button
                   onClick={() => setListViewMode("list")}
-                  className={`p-1.5 rounded-md transition-all ${listViewMode === "list" ? "bg-white shadow text-blue-600" : "text-gray-400"}`}
+                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${listViewMode === "list" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                  title="Danh sách"
                 >
                   <FiList size={18} />
                 </button>
                 <button
                   onClick={() => setListViewMode("grid")}
-                  className={`p-1.5 rounded-md transition-all ${listViewMode === "grid" ? "bg-white shadow text-blue-600" : "text-gray-400"}`}
+                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${listViewMode === "grid" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                  title="Lưới"
                 >
                   <FiGrid size={18} />
                 </button>
@@ -143,9 +151,11 @@ export default function Products() {
             </div>
           </div>
 
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+          {/* List Container - Scroll độc lập */}
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative z-0">
             <div className="absolute inset-0 overflow-y-auto pr-1 custom-scrollbar p-3">
               <ProductList
+                // Data props
                 filtered={filtered}
                 selected={selected}
                 setSelected={setSelected}
@@ -155,6 +165,7 @@ export default function Products() {
                   setRestockQty("");
                   setRestockModal(true);
                 }}
+                // View props
                 viewType={listViewMode}
                 gridCols={listViewMode === "grid" ? 2 : 1}
               />
@@ -162,7 +173,7 @@ export default function Products() {
           </div>
         </motion.div>
 
-        {/* CỘT PHẢI: DETAIL */}
+        {/* CỘT PHẢI - CHI TIẾT */}
         <motion.div
           layout
           className="flex-1 h-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 dark:border-gray-700 overflow-hidden relative"
@@ -181,24 +192,25 @@ export default function Products() {
         </motion.div>
       </div>
 
-      {/* ================= MOBILE LAYOUT ================= */}
-      <div className="md:hidden flex flex-col h-full overflow-hidden relative bg-gray-50 dark:bg-gray-900">
+      {/* ======================= MOBILE LAYOUT ======================= */}
+      <div className="md:hidden flex flex-col h-full overflow-hidden relative bg-gray-50 dark:bg-gray-900 pb-[80px]">
+        {" "}
+        {/* Thêm padding-bottom để tránh bị che bởi thanh điều hướng dưới nếu có */}
         {viewMode === "list" && (
           <>
-            {/* 1. HEADER (Static - Cuộn đi mất) */}
-            {/* Phần này chứa Tiêu đề + Nút View. Nó sẽ KHÔNG dính lại để tiết kiệm chỗ */}
-            <div className="px-4 pt-4 pb-2 bg-white dark:bg-gray-900">
+            {/* 1. HEADER (Static) */}
+            <div className="px-4 pt-4 pb-2 bg-white dark:bg-gray-900 z-30 relative">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
                   Kho hàng
                 </h2>
                 <div className="flex gap-2">
-                  {/* Toggle Grid/List */}
+                  {/* Toggle Grid/List Mobile - Button to rõ ràng */}
                   <button
                     onClick={() =>
                       setListViewMode((m) => (m === "grid" ? "list" : "grid"))
                     }
-                    className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full text-blue-600 dark:text-blue-400 active:scale-90 transition-transform"
+                    className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full text-blue-600 dark:text-blue-400 active:scale-90 transition-transform shadow-sm"
                   >
                     {listViewMode === "grid" ? (
                       <FiList size={20} />
@@ -220,8 +232,7 @@ export default function Products() {
               </div>
             </div>
 
-            {/* 2. SEARCH BAR (Sticky - Dính lại khi cuộn) */}
-            {/* ✅ FIX LỖI ĐÈ: Thêm z-40 và background đặc để che nội dung trôi dưới */}
+            {/* 2. SEARCH BAR (Sticky) - Fix lỗi đè */}
             <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 px-4 py-3 shadow-sm border-b border-gray-100 dark:border-gray-800">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -249,7 +260,7 @@ export default function Products() {
             </div>
 
             {/* 3. CONTENT AREA */}
-            <div className="flex-1 overflow-y-auto px-3 py-3 pb-24">
+            <div className="flex-1 overflow-y-auto px-3 py-3 pb-24 z-0">
               <ProductList
                 filtered={filtered}
                 selected={selected}
@@ -269,7 +280,6 @@ export default function Products() {
             </div>
           </>
         )}
-
         {/* FULLSCREEN OVERLAYS (Create/Edit) */}
         <AnimatePresence>
           {viewMode === "create" && (
@@ -333,7 +343,6 @@ export default function Products() {
             </motion.div>
           )}
         </AnimatePresence>
-
         <div className="md:hidden">
           <MobileTabs
             options={productTabs}
@@ -343,6 +352,7 @@ export default function Products() {
         </div>
       </div>
 
+      {/* MODALS Global */}
       <RestockModal
         open={restockModal}
         setOpen={setRestockModal}
