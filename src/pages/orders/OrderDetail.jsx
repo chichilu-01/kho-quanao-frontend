@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useParams } from "react-router-dom"; // ✅ Thêm useParams
+import { useParams } from "react-router-dom";
 import {
   FiCalendar,
   FiLayers,
   FiPackage,
   FiTruck,
   FiSave,
+  FiUser,
+  FiPhone,
+  FiMapPin,
+  FiDollarSign,
 } from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
 import StatusIcon from "./StatusIcon";
@@ -16,20 +20,19 @@ function money(v) {
   return Number(v || 0).toLocaleString("vi-VN") + "đ";
 }
 
-// Đổi tên prop selected -> propSelected để tránh trùng
 export default function OrderDetail({
   selected: propSelected,
   updateStatus: propUpdateStatus,
   updating,
   onUpdateTracking,
 }) {
-  const { id } = useParams(); // ✅ Lấy ID từ URL (nếu chạy độc lập)
-  const [order, setOrder] = useState(null); // State lưu đơn hàng hiển thị
+  const { id } = useParams();
+  const [order, setOrder] = useState(null);
   const [trackingCode, setTrackingCode] = useState("");
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 1️⃣ Ưu tiên dùng data từ Props, nếu không có thì set null để fetch sau
+  // 1️⃣ Ưu tiên dùng data từ Props (nếu mở từ danh sách)
   useEffect(() => {
     if (propSelected) {
       setOrder(propSelected);
@@ -39,12 +42,13 @@ export default function OrderDetail({
     }
   }, [propSelected]);
 
-  // 2️⃣ Nếu không có Props nhưng có ID trên URL -> Tự gọi API
+  // 2️⃣ Nếu F5 hoặc vào trực tiếp link -> Tự gọi API để lấy FULL thông tin (SĐT, Cọc...)
   useEffect(() => {
     if (!propSelected && id) {
       const fetchOrder = async () => {
         setLoading(true);
         try {
+          // Gọi API Backend mà bạn vừa sửa xong
           const data = await api(`/orders/${id}`);
           setOrder(data);
           setTrackingCode(data.china_tracking_code || "");
@@ -58,15 +62,12 @@ export default function OrderDetail({
     }
   }, [id, propSelected]);
 
-  // 3️⃣ Hàm xử lý cập nhật trạng thái (Hỗ trợ cả 2 chế độ)
+  // 3️⃣ Cập nhật trạng thái
   const handleStatusChange = async (newStatus) => {
-    // Nếu có prop update từ cha thì dùng luôn
     if (propUpdateStatus) {
       propUpdateStatus(newStatus);
       return;
     }
-
-    // Nếu chạy độc lập thì tự gọi API update status
     if (!order) return;
     try {
       await api(`/orders/${order.id}/status`, {
@@ -75,13 +76,13 @@ export default function OrderDetail({
         body: JSON.stringify({ status: newStatus }),
       });
       notify.success("Cập nhật trạng thái thành công");
-      setOrder({ ...order, status: newStatus }); // Update UI local
+      setOrder({ ...order, status: newStatus });
     } catch (err) {
       notify.error("Lỗi cập nhật trạng thái");
     }
   };
 
-  // 4️⃣ Hàm lưu mã vận đơn
+  // 4️⃣ Lưu mã vận đơn
   const handleSaveTracking = async () => {
     if (!order) return;
     if (trackingCode === (order.china_tracking_code || "")) return;
@@ -95,8 +96,6 @@ export default function OrderDetail({
       });
 
       notify.success("✅ Đã lưu mã vận đơn!");
-
-      // Update UI local
       setOrder({ ...order, china_tracking_code: trackingCode });
 
       if (onUpdateTracking) {
@@ -110,12 +109,12 @@ export default function OrderDetail({
     }
   };
 
-  // --- GIAO DIỆN ---
+  // --- RENDER ---
 
   if (loading)
     return (
       <div className="p-10 text-center text-gray-500">
-        ⏳ Đang tải dữ liệu đơn hàng...
+        ⏳ Đang tải dữ liệu...
       </div>
     );
 
@@ -128,10 +127,10 @@ export default function OrderDetail({
       </div>
     );
 
-  const orderCover =
-    order?.items?.[0]?.cover_image ||
-    order?.items?.[0]?.product?.cover_image ||
-    "/no-image.png";
+  // 🧮 TÍNH TOÁN TIỀN (Hiển thị phần Tiền cọc & Còn lại)
+  const deposit = Number(order.deposit || 0); // Lấy từ Backend
+  const total = Number(order.total || 0);
+  const remaining = total - deposit; // Tiền Shipper cần thu
 
   return (
     <motion.div
@@ -139,58 +138,80 @@ export default function OrderDetail({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-5"
+      className="space-y-4"
     >
-      {/* HEADER + ẢNH */}
-      <motion.div className="rounded-2xl p-4 flex gap-4 bg-gradient-to-br from-gray-100 to-white dark:from-gray-800 dark:to-gray-700 shadow-lg">
-        <div className="relative">
-          <img
-            src={orderCover}
-            className="w-20 h-20 rounded-xl object-cover shadow-md"
-          />
+      {/* 🟢 HEADER */}
+      <div className="flex justify-between items-start bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+            Đơn hàng #{order.id}
+          </h2>
+          <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+            <FiCalendar /> {new Date(order.created_at).toLocaleString("vi-VN")}
+          </div>
         </div>
+        <StatusIcon status={order.status} />
+      </div>
 
-        <div className="flex-1">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
-                #{order.id}
-              </div>
-              <div className="text-sm text-gray-500">{order.customer_name}</div>
+      {/* 🟠 THÔNG TIN KHÁCH HÀNG (SĐT, Địa chỉ) */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+        <h3 className="font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b pb-2">
+          <FiUser className="text-blue-500" /> Thông tin khách hàng
+        </h3>
+
+        <div className="grid gap-3 text-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-5 text-gray-400 mt-0.5">
+              <FiUser />
             </div>
-            <StatusIcon status={order.status} />
+            <div className="font-semibold text-gray-800 dark:text-gray-100 text-base">
+              {order.customer_name}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-300">
-            <FiCalendar />
-            {new Date(order.created_at).toLocaleString("vi-VN")}
+          <div className="flex items-start gap-3">
+            <div className="w-5 text-gray-400 mt-0.5">
+              <FiPhone />
+            </div>
+            <div className="text-blue-600 font-mono font-bold text-base">
+              {order.customer_phone || "—"}
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-5 text-gray-400 mt-0.5">
+              <FiMapPin />
+            </div>
+            <div className="text-gray-600 dark:text-gray-300 leading-relaxed">
+              {order.customer_address || "Chưa cập nhật địa chỉ"}
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* MÃ VẬN ĐƠN */}
-      <motion.div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-4 shadow-sm border border-blue-100 dark:border-blue-800">
+      {/* 🟡 MÃ VẬN ĐƠN */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
         <div className="flex items-center gap-2 mb-2">
-          <FiTruck className="text-blue-600 dark:text-blue-400" />
-          <span className="font-semibold text-blue-800 dark:text-blue-200 text-sm uppercase">
+          <FiTruck className="text-blue-600" />
+          <span className="font-bold text-blue-800 dark:text-blue-200 text-sm uppercase">
             Mã Vận Đơn (Trung Quốc)
           </span>
         </div>
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Paste mã tracking..."
+            placeholder="Nhập mã tracking..."
             value={trackingCode}
             onChange={(e) => setTrackingCode(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 font-mono"
+            className="flex-1 px-3 py-2 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase bg-white"
           />
           <button
             onClick={handleSaveTracking}
             disabled={isSavingTracking}
-            className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm disabled:opacity-50 transition-colors"
+            className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-1 text-sm whitespace-nowrap"
           >
             {isSavingTracking ? (
-              "Lưu..."
+              "..."
             ) : (
               <>
                 <FiSave /> Lưu
@@ -198,70 +219,89 @@ export default function OrderDetail({
             )}
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* TRẠNG THÁI */}
-      <motion.div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md border border-gray-200 dark:border-gray-700">
-        <div className="text-sm text-gray-500 mb-1">Trạng thái đơn hàng</div>
-        <div className="flex items-center gap-2">
-          <FiLayers className="text-gray-400" />
-          <select
-            value={order.status}
-            disabled={updating}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            className="flex-1 px-3 py-2 rounded-xl border dark:bg-gray-800 dark:border-gray-700 outline-none"
-          >
-            <option value="pending">Chờ xử lý</option>
-            <option value="confirmed">Đã xác nhận</option>
-            <option value="shipping">Đang giao</option>
-            <option value="completed">Hoàn tất</option>
-            <option value="cancelled">Đã huỷ</option>
-          </select>
-        </div>
-      </motion.div>
+      {/* 🟣 TRẠNG THÁI */}
+      <div className="bg-gray-50 dark:bg-gray-700/30 p-3 rounded-xl flex items-center gap-3 border border-gray-200">
+        <FiLayers className="text-gray-500" />
+        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+          Trạng thái:
+        </span>
+        <select
+          value={order.status}
+          disabled={updating}
+          onChange={(e) => handleStatusChange(e.target.value)}
+          className="flex-1 px-2 py-1.5 rounded-lg border text-sm outline-none bg-white dark:bg-gray-800 dark:border-gray-600"
+        >
+          <option value="pending">Chờ xử lý</option>
+          <option value="confirmed">Đã xác nhận</option>
+          <option value="shipping">Đang giao</option>
+          <option value="completed">Hoàn tất</option>
+          <option value="cancelled">Đã huỷ</option>
+        </select>
+      </div>
 
-      {/* SẢN PHẨM */}
-      <div>
-        <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-          <FiPackage /> Sản phẩm trong đơn
+      {/* ⚪ SẢN PHẨM */}
+      <div className="space-y-2">
+        <h4 className="font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+          <FiPackage /> Sản phẩm
         </h4>
         {order.items?.map((it, i) => (
-          <motion.div
+          <div
             key={i}
-            className="flex items-center gap-3 p-3 mb-2 rounded-xl border bg-white dark:bg-gray-800 shadow-sm dark:border-gray-700"
+            className="flex gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border shadow-sm"
           >
-            <div className="relative">
-              {it.cover_image ? (
-                <img
-                  src={it.cover_image}
-                  className="w-14 h-14 rounded-lg object-cover shadow"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-lg bg-gray-200 dark:bg-gray-700" />
-              )}
+            <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+              <img
+                src={it.cover_image || "/no-image.png"}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = "/no-image.png";
+                }}
+              />
             </div>
-            <div className="flex-1">
-              <div className="font-semibold text-gray-800 dark:text-gray-100">
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm truncate">
                 {it.product_name}
               </div>
-              <div className="text-gray-500 dark:text-gray-400 text-xs">
-                SL: {it.quantity} × {money(it.price)} <br />
-                <span className="text-gray-400">
-                  {it.size} - {it.color}
-                </span>
+              <div className="text-xs text-gray-500 mt-0.5">
+                {it.size} - {it.color}
+              </div>
+              <div className="text-xs mt-1 flex justify-between">
+                <span>x{it.quantity}</span>
+                <span className="font-semibold">{money(it.price)}</span>
               </div>
             </div>
-            <div className="font-bold text-green-600 dark:text-green-400">
-              {money(it.quantity * it.price)}
-            </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      {/* TỔNG TIỀN */}
-      <div className="text-right text-xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-transparent bg-clip-text">
-        Tổng cộng: {money(order.total)}
+      {/* 🔴 TỔNG KẾT TIỀN (Hiển thị Cọc & COD) */}
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-dashed border-gray-300 space-y-2">
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Tổng tiền hàng:</span>
+          <span className="font-medium text-lg">{money(total)}</span>
+        </div>
+
+        <div className="flex justify-between text-sm text-green-600">
+          <span>Đã đặt cọc:</span>
+          <span className="font-medium">- {money(deposit)}</span>
+        </div>
+
+        <div className="border-t border-gray-300 my-2"></div>
+
+        <div className="flex justify-between items-center">
+          <span className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1">
+            <FiDollarSign className="text-red-500" /> CÒN LẠI (THU COD):
+          </span>
+          <span className="text-xl font-bold text-red-600">
+            {money(remaining)}
+          </span>
+        </div>
       </div>
+
+      {/* Spacer */}
+      <div className="h-4"></div>
     </motion.div>
   );
 }
