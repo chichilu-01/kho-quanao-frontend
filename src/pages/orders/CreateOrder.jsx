@@ -16,6 +16,9 @@ export default function CreateOrder() {
   const [products, setProducts] = useState([]);
   const [variants, setVariants] = useState([]);
 
+  // State loading riêng cho biến thể
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
   const [customerId, setCustomerId] = useState("");
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
@@ -68,11 +71,15 @@ export default function CreateOrder() {
   // 🔹 Load variants for selected product
   const loadVariants = useCallback(async (pid) => {
     if (!pid) return setVariants([]);
+
+    setLoadingVariants(true); // Bắt đầu load
     try {
       const data = await api(`/variants/by-product/${pid}`);
       setVariants(data);
     } catch {
       notify.error("⚠️ Không thể tải biến thể");
+    } finally {
+      setLoadingVariants(false); // Kết thúc load
     }
   }, []);
 
@@ -90,12 +97,13 @@ export default function CreateOrder() {
         className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md"
       />
 
-      {/* PC: giữ nguyên 2 cột */}
-      <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 pb-20 md:pb-10">
+      {/* PC: 2 cột */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 pb-20 md:pb-10 h-[calc(100vh-60px)] overflow-hidden">
+        {/* CỘT TRÁI: KHÁCH + SẢN PHẨM (Scrollable) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl border shadow-md"
+          className="bg-white p-6 rounded-2xl border shadow-sm overflow-y-auto h-full space-y-6"
         >
           <OrderCustomerForm
             customers={customers}
@@ -107,17 +115,21 @@ export default function CreateOrder() {
             setCustomerId={setCustomerId}
           />
 
-          <OrderProductSelector
-            products={products}
-            variants={variants}
-            selectedProductId={selectedProductId}
-            setSelectedProductId={setSelectedProductId}
-            loadVariants={loadVariants}
-            items={items}
-            setItems={setItems}
-          />
+          <div className="border-t pt-4">
+            <OrderProductSelector
+              products={products}
+              variants={variants}
+              selectedProductId={selectedProductId}
+              setSelectedProductId={setSelectedProductId}
+              loadVariants={loadVariants}
+              items={items}
+              setItems={setItems}
+              loadingVariants={loadingVariants} // Truyền state loading xuống
+            />
+          </div>
         </motion.div>
 
+        {/* CỘT PHẢI: GIỎ HÀNG (Fixed height) */}
         <OrderCart
           items={items}
           setItems={setItems}
@@ -131,6 +143,8 @@ export default function CreateOrder() {
           setCreatedOrder={setCreatedOrder}
           loading={loading}
           setLoading={setLoading}
+          loadVariants={loadVariants} // Để refresh kho sau khi đặt
+          selectedProductId={selectedProductId}
         />
       </div>
 
@@ -141,9 +155,8 @@ export default function CreateOrder() {
         {viewMode === "customer" && (
           <motion.div
             key="customer"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
             <OrderCustomerForm
               customers={customers}
@@ -154,15 +167,21 @@ export default function CreateOrder() {
               customerId={customerId}
               setCustomerId={setCustomerId}
             />
+            {/* Nút Next sang Product */}
+            <button
+              onClick={() => setViewMode("products")}
+              className="w-full mt-4 bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg"
+            >
+              Tiếp tục chọn sản phẩm →
+            </button>
           </motion.div>
         )}
 
         {viewMode === "products" && (
           <motion.div
             key="products"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
             <OrderProductSelector
               products={products}
@@ -172,16 +191,25 @@ export default function CreateOrder() {
               loadVariants={loadVariants}
               items={items}
               setItems={setItems}
+              loadingVariants={loadingVariants}
             />
+            {/* Floating button tới giỏ hàng nếu đã chọn đồ */}
+            {items.length > 0 && (
+              <button
+                onClick={() => setViewMode("cart")}
+                className="fixed bottom-20 right-4 bg-green-600 text-white px-6 py-3 rounded-full shadow-xl font-bold flex items-center gap-2 animate-bounce"
+              >
+                <FiShoppingCart /> Giỏ hàng ({items.length})
+              </button>
+            )}
           </motion.div>
         )}
 
         {viewMode === "cart" && (
           <motion.div
             key="cart"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
             <OrderCart
               items={items}
@@ -196,6 +224,8 @@ export default function CreateOrder() {
               setCreatedOrder={setCreatedOrder}
               loading={loading}
               setLoading={setLoading}
+              loadVariants={loadVariants}
+              selectedProductId={selectedProductId}
             />
           </motion.div>
         )}

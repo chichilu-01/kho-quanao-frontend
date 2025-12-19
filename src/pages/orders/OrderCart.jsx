@@ -1,9 +1,16 @@
 // src/pages/orders/OrderCart.jsx
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { FiShoppingCart, FiTrash2, FiCheckCircle } from "react-icons/fi";
+import {
+  FiShoppingCart,
+  FiTrash2,
+  FiCheckCircle,
+  FiTruck,
+} from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
+import { api } from "../../api/client"; // ✅ Đã sửa: Import API client
 
 const money = (v) =>
   Number(v || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "đ";
@@ -24,6 +31,9 @@ export default function OrderCart({
   loadVariants,
   selectedProductId,
 }) {
+  // ✅ Mới: State lưu mã vận đơn Trung Quốc
+  const [trackingCode, setTrackingCode] = useState("");
+
   // ===========================
   // UPDATE QTY
   // ===========================
@@ -32,7 +42,7 @@ export default function OrderCart({
       const clone = [...prev];
       qty = Math.max(1, Number(qty || 1));
 
-      // check tồn kho
+      // Check tồn kho
       if (qty > clone[idx].stock) {
         notify.info(`⚠️ Chỉ còn ${clone[idx].stock} sản phẩm tồn kho`);
         return prev;
@@ -64,17 +74,17 @@ export default function OrderCart({
     let finalCustomerId = customerId;
 
     try {
+      // 1. Tạo khách hàng mới nếu cần
       if (isNewCustomer) {
-        const created = await api("/customers", {
-          method: "POST",
-          body: JSON.stringify(newCustomer),
-        });
+        const created = await api("/customers", "POST", newCustomer);
         finalCustomerId = created.id;
       }
 
+      // 2. Chuẩn bị payload gửi lên Server
       const payload = {
         customer_id: Number(finalCustomerId),
         note,
+        china_tracking_code: trackingCode, // ✅ Gửi mã vận đơn lên server
         items: items.map((it) => ({
           variant_id: it.variant_id,
           quantity: it.quantity,
@@ -82,13 +92,13 @@ export default function OrderCart({
         })),
       };
 
-      const res = await api("/orders", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      // 3. Gọi API tạo đơn
+      const res = await api("/orders", "POST", payload);
 
+      // 4. Update lại variants nếu đang chọn sản phẩm đó
       if (selectedProductId) await loadVariants(selectedProductId);
 
+      // 5. Hiển thị thông báo thành công
       setCreatedOrder({
         id: res.id,
         customer:
@@ -98,13 +108,17 @@ export default function OrderCart({
         total,
         note,
         items,
+        china_tracking_code: trackingCode,
       });
 
+      // 6. Reset form
       setItems([]);
       setNote("");
+      setTrackingCode(""); // Reset mã vận đơn
 
       notify.success(`✅ Đơn hàng #${res.id} đã được tạo thành công!`);
-    } catch {
+    } catch (err) {
+      console.error(err);
       notify.error("❌ Lỗi khi tạo đơn hàng");
     } finally {
       setLoading(false);
@@ -118,28 +132,42 @@ export default function OrderCart({
     if (!createdOrder) return;
 
     const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(18);
     doc.text("HÓA ĐƠN BÁN HÀNG", 105, 20, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.text(`Mã đơn: #${createdOrder.id}`, 14, 30);
+    doc.text(`Khách hàng: ${createdOrder.customer?.name}`, 14, 36);
+    if (createdOrder.china_tracking_code) {
+      doc.text(`Mã vận đơn TQ: ${createdOrder.china_tracking_code}`, 14, 42);
+    }
 
     const rows = createdOrder.items.map((it, i) => [
       i + 1,
       it.product_name,
-      `${it.size}/${it.color}`,
+      `${it.size || "-"}/${it.color || "-"}`,
       it.quantity,
       money(it.price),
       money(it.price * it.quantity),
     ]);
 
     doc.autoTable({
-      startY: 30,
+      startY: 50,
       head: [["#", "Sản phẩm", "Phân loại", "SL", "Giá", "Thành tiền"]],
       body: rows,
+      theme: "grid",
+      styles: { font: "helvetica", fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
     });
 
     doc.text(
       `Tổng cộng: ${money(createdOrder.total)}`,
-      150,
+      140,
       doc.lastAutoTable.finalY + 10,
     );
+
     doc.save(`HoaDon_${createdOrder.id}.pdf`);
   };
 
@@ -152,13 +180,13 @@ export default function OrderCart({
     <motion.div
       initial={{ opacity: 0, y: isMobile ? 40 : 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white rounded-2xl border shadow-md
+      className={`bg-white rounded-2xl border shadow-md flex flex-col
         ${
           isMobile
             ? "fixed left-0 right-0 bottom-0 top-[70px] z-40 p-4 overflow-hidden"
             : "p-6"
         }
-`}
+      `}
       style={{
         height: isMobile ? "100vh" : "auto",
         WebkitOverflowScrolling: "touch",
@@ -166,203 +194,229 @@ export default function OrderCart({
     >
       {/* MOBILE DRAG HANDLE */}
       {isMobile && (
-        <div className="w-12 h-1.5 bg-gray-400/50 rounded-full mx-auto mb-3"></div>
+        <div className="w-12 h-1.5 bg-gray-400/50 rounded-full mx-auto mb-3 flex-shrink-0"></div>
       )}
 
       {/* STICKY HEADER */}
-      <div className="sticky top-0 bg-white pb-3 z-20">
+      <div className="flex-shrink-0 pb-3 border-b mb-2">
         <h3 className="font-bold text-xl flex items-center gap-2 text-gray-700">
           <FiShoppingCart className="text-green-600" /> Giỏ hàng
         </h3>
       </div>
 
       {/* =================== */}
-      {/* LIST ITEMS */}
+      {/* SCROLLABLE CONTENT */}
       {/* =================== */}
-      {items.length === 0 ? (
-        <div className="text-gray-500 italic text-center py-16 text-lg">
-          🛒 Chưa có sản phẩm nào
-        </div>
-      ) : (
-        <div
-          className="overflow-auto border rounded-xl"
-          style={{
-            maxHeight: isMobile ? "55vh" : "380px",
-          }}
-        >
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 sticky top-0 text-gray-700">
-              <tr>
-                <th className="p-2">Sản phẩm</th>
-                <th className="p-2 w-15 text-center">SL</th>
-                <th className="p-2 w-28">Giá</th>
-                <th className="p-2 w-28 text-right">Thành tiền</th>
-                <th className="p-2 w-10"></th>
-              </tr>
-            </thead>
+      <div className="flex-1 overflow-y-auto pr-1">
+        {/* LIST ITEMS */}
+        {items.length === 0 ? (
+          <div className="text-gray-500 italic text-center py-10 text-lg border-2 border-dashed rounded-xl">
+            🛒 Chưa có sản phẩm nào
+          </div>
+        ) : (
+          <div className="border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100 text-gray-700">
+                <tr>
+                  <th className="p-2 text-left">SP</th>
+                  <th className="p-2 w-16 text-center">SL</th>
+                  <th className="p-2 w-24 text-right hidden sm:table-cell">
+                    Giá
+                  </th>
+                  <th className="p-2 w-24 text-right">Tổng</th>
+                  <th className="p-2 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((it, idx) => (
+                  <tr key={idx} className="border-t hover:bg-gray-50">
+                    <td className="p-2">
+                      <div className="font-medium">{it.product_name}</div>
+                      <div className="text-xs text-gray-500">
+                        {it.size} / {it.color}
+                      </div>
+                      {/* Mobile hiện giá ở đây */}
+                      <div className="sm:hidden text-xs text-blue-600">
+                        {money(it.price)}
+                      </div>
+                    </td>
 
-            <tbody>
-              {items.map((it, idx) => (
-                <tr key={idx} className="border-t hover:bg-gray-50">
-                  <td className="p-2">{it.product_name}</td>
+                    {/* SL Control */}
+                    <td className="p-2">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => updateQty(idx, it.quantity - 1)}
+                          className="w-6 h-6 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          value={it.quantity}
+                          onChange={(e) => updateQty(idx, e.target.value)}
+                          className="w-8 text-center border rounded text-xs p-1"
+                        />
+                        <button
+                          onClick={() => {
+                            if (it.quantity >= it.stock)
+                              return notify.info("Hết hàng tồn");
+                            updateQty(idx, it.quantity + 1);
+                          }}
+                          className="w-6 h-6 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
 
-                  {/* ================================================== */}
-                  {/* 🔥 SL BLOCK — PRO ANIMATION + NO-ZOOM INPUT MOBILE */}
-                  {/* ================================================== */}
-                  <td className="p-2">
-                    <div className="flex items-center gap-2 justify-center">
-                      {/* – BUTTON */}
-                      <motion.button
-                        whileTap={{ scale: 0.75 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateQty(idx, it.quantity - 1);
-                        }}
-                        className="qty-btn w-7 h-7 flex items-center justify-center"
-                      >
-                        –
-                      </motion.button>
-
-                      {/* INPUT */}
-                      <motion.input
-                        whileFocus={{ scale: 1.05 }}
+                    {/* Giá (PC) */}
+                    <td className="p-2 text-right hidden sm:table-cell">
+                      <input
                         type="number"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        min={1}
-                        value={it.quantity}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => updateQty(idx, Number(e.target.value))}
-                        className="qty-input qty-bounce"
-                        style={{
-                          width: "36px", // nhỏ lại nhưng vẫn bấm được
-                          padding: "0px",
-                          textAlign: "center",
-                          WebkitAppearance: "none",
-                          MozAppearance: "textfield",
+                        className="w-20 text-right border rounded p-1 text-xs"
+                        value={it.price}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setItems((prev) => {
+                            const clone = [...prev];
+                            clone[idx].price = val;
+                            return clone;
+                          });
                         }}
                       />
+                    </td>
 
-                      {/* + BUTTON */}
-                      <motion.button
-                        whileTap={{ scale: 0.75 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (it.quantity + 1 > it.stock) {
-                            notify.info(
-                              `⚠️ Chỉ còn ${it.stock} sản phẩm tồn kho`,
-                            );
-                            return;
-                          }
-                          updateQty(idx, it.quantity + 1);
-                        }}
-                        disabled={it.quantity >= it.stock}
-                        className={`qty-btn ${
-                          it.quantity >= it.stock ? "qty-btn-disabled" : ""
-                        }`}
+                    {/* Thành tiền */}
+                    <td className="p-2 text-right font-semibold text-green-700">
+                      {money(it.price * it.quantity)}
+                    </td>
+
+                    {/* Xóa */}
+                    <td className="p-2 text-right">
+                      <button
+                        onClick={() => removeItem(idx)}
+                        className="text-red-500 hover:text-red-700 p-1"
                       >
-                        +
-                      </motion.button>
-                    </div>
-                  </td>
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-                  {/* GIÁ */}
-                  <td className="p-2">
-                    <input
-                      type="number"
-                      value={it.price}
-                      onChange={(e) => {
-                        const val = Math.max(0, Number(e.target.value || 0));
-                        setItems((prev) => {
-                          const clone = [...prev];
-                          clone[idx].price = val;
-                          return clone;
-                        });
-                      }}
-                      className="input w-20"
-                    />
-                  </td>
-
-                  {/* THÀNH TIỀN */}
-                  <td className="p-2 text-right font-semibold text-green-700">
-                    {money(it.price * it.quantity)}
-                  </td>
-
-                  <td className="p-2 text-right">
-                    <button
-                      onClick={() => removeItem(idx)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* TOTAL */}
+        <div className="text-right font-bold text-lg mt-4 text-gray-800">
+          Tổng cộng: <span className="text-green-700">{money(total)}</span>
         </div>
-      )}
 
-      {/* ========================= */}
-      {/* TOTAL */}
-      {/* ========================= */}
-      <div className="text-right font-bold text-lg mt-4 text-gray-800">
-        Tổng cộng: <span className="text-green-700">{money(total)}</span>
+        {/* ========================= */}
+        {/* 🆕 NHẬP MÃ VẬN ĐƠN */}
+        {/* ========================= */}
+        <div className="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+          <label className="text-xs font-bold text-yellow-800 flex items-center gap-1 mb-1 uppercase tracking-wide">
+            <FiTruck /> Mã Vận Đơn Trung Quốc (Tùy chọn)
+          </label>
+          <input
+            className="w-full bg-white border border-yellow-300 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-500 placeholder-yellow-300 text-yellow-900"
+            placeholder="Paste mã tracking vào đây (VD: YT2025...)"
+            value={trackingCode}
+            onChange={(e) => setTrackingCode(e.target.value)}
+          />
+        </div>
+
+        {/* NOTE */}
+        <textarea
+          className="w-full border rounded-lg p-3 mt-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          rows={2}
+          placeholder="📝 Ghi chú đơn hàng..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+
+        {/* Spacer for mobile bottom */}
+        <div className="h-20 sm:h-0"></div>
       </div>
 
       {/* ========================= */}
-      {/* NOTE */}
+      {/* FOOTER ACTIONS */}
       {/* ========================= */}
-      <textarea
-        className="input w-full mt-3"
-        rows={2}
-        placeholder="📝 Ghi chú đơn hàng (nếu có)"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
+      <div className="mt-auto pt-3 border-t bg-white sticky bottom-0">
+        <button
+          className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 ${
+            canSubmit
+              ? "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
+          onClick={submit}
+          disabled={!canSubmit}
+        >
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Đang tạo đơn...
+            </>
+          ) : (
+            <>✅ Tạo đơn hàng</>
+          )}
+        </button>
+      </div>
 
-      {/* ========================= */}
-      {/* SUBMIT BUTTON */}
-      {/* ========================= */}
-      <button
-        className={`btn w-full mt-4 text-white font-semibold rounded-lg transition ${
-          canSubmit ? "" : "bg-gray-400"
-        }`}
-        onClick={submit}
-        disabled={!canSubmit}
-      >
-        {loading ? "⏳ Đang tạo đơn..." : "✅ Tạo đơn hàng"}
-      </button>
-
-      {/* ========================= */}
-      {/* SUCCESS BOX */}
-      {/* ========================= */}
+      {/* SUCCESS MODAL / BOX */}
       <AnimatePresence>
         {createdOrder && (
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            className="bg-green-50 border border-green-300 rounded-xl p-5 mt-6 shadow-inner"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center p-6 rounded-2xl"
           >
-            <h3 className="font-semibold text-lg mb-2 text-green-700 flex items-center gap-2">
-              <FiCheckCircle /> Đơn hàng đã tạo thành công!
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <FiCheckCircle className="text-green-600 text-4xl" />
+            </div>
+
+            <h3 className="font-bold text-2xl text-green-700 mb-2 text-center">
+              Tạo đơn thành công!
             </h3>
 
-            <p>
-              Mã đơn hàng: <b>#{createdOrder.id}</b>
-            </p>
-            <p>
-              Khách hàng: <b>{createdOrder.customer?.name}</b>
-            </p>
-            <p>Tổng tiền: {money(createdOrder.total)}</p>
+            <div className="bg-gray-50 p-4 rounded-xl w-full mb-6 border border-gray-100">
+              <p className="text-gray-600 text-sm">
+                Mã đơn: <b className="text-black">#{createdOrder.id}</b>
+              </p>
+              <p className="text-gray-600 text-sm">
+                Khách:{" "}
+                <b className="text-black">{createdOrder.customer?.name}</b>
+              </p>
+              {createdOrder.china_tracking_code && (
+                <p className="text-gray-600 text-sm">
+                  Mã vận đơn:{" "}
+                  <b className="text-yellow-700 bg-yellow-100 px-1 rounded">
+                    {createdOrder.china_tracking_code}
+                  </b>
+                </p>
+              )}
+              <div className="border-t border-dashed my-2"></div>
+              <p className="text-right font-bold text-lg text-green-700">
+                {money(createdOrder.total)}
+              </p>
+            </div>
 
-            <button
-              onClick={printInvoice}
-              className="btn mt-3 bg-blue-600 text-white hover:bg-blue-700 w-full rounded-lg"
-            >
-              🧾 In hóa đơn PDF
-            </button>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setCreatedOrder(null)} // Đóng modal để tạo đơn mới
+                className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200"
+              >
+                Tạo đơn mới
+              </button>
+              <button
+                onClick={printInvoice}
+                className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200"
+              >
+                In hóa đơn
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
