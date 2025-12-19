@@ -8,6 +8,9 @@ import Orders from "./pages/orders/Orders";
 import CreateOrder from "./pages/orders/CreateOrder";
 import StockHistory from "./pages/StockHistory";
 
+// 👇 1. Import thêm file Chi tiết đơn hàng
+import OrderDetail from "./pages/orders/OrderDetail";
+
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#faf9f7] via-[#f7f5f0] to-[#f4f1ea] text-[#2a2a2a] transition-colors duration-500">
@@ -23,8 +26,15 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/customers" element={<Customers />} />
+
+            {/* Các Route liên quan đến Đơn hàng */}
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/new" element={<CreateOrder />} />
+
+            {/* 👇 2. Thêm dòng này để xem chi tiết đơn theo ID */}
+            {/* Khi user bấm vào đơn hàng #7, nó sẽ mở trang OrderDetail */}
+            <Route path="/orders/:id" element={<OrderDetail />} />
+
             <Route path="/stock" element={<StockHistory />} />
           </Routes>
         </div>
