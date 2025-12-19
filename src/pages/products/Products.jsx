@@ -128,7 +128,7 @@ export default function Products() {
                 </h2>
                 <button
                   onClick={() => setSelected(null)}
-                  className="btn-primary text-sm px-3 py-1.5 rounded-lg flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700"
+                  className="btn-primary text-sm px-3 py-1.5 rounded-lg flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700 shadow-md transition-all"
                 >
                   <FiPlus /> Mới
                 </button>
@@ -227,14 +227,16 @@ export default function Products() {
                 <h2 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
                   📦 Kho ({list.length})
                 </h2>
+
+                {/* ⭐ NÚT CHUYỂN ĐỔI GRID/LIST Ở ĐÂY ⭐ */}
                 <div className="flex gap-2">
-                  {/* Nút chuyển Grid/List cho Mobile */}
                   <button
                     onClick={() =>
                       setListViewMode((m) => (m === "grid" ? "list" : "grid"))
                     }
-                    className="w-9 h-9 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg text-blue-600 dark:text-blue-400 active:scale-90 transition-transform border border-gray-200"
+                    className="w-9 h-9 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg text-blue-600 dark:text-blue-400 active:scale-90 transition-transform border border-gray-200 dark:border-gray-700"
                   >
+                    {/* Icon thay đổi tùy trạng thái */}
                     {listViewMode === "grid" ? (
                       <FiList size={18} />
                     ) : (
