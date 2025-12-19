@@ -7,12 +7,13 @@ import {
   FiTrash2,
   FiCheckCircle,
   FiTruck,
+  FiUser,
+  FiPhone,
+  FiMapPin,
 } from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
-// ❌ Bỏ import api client
-// import { api } from "../../api/client";
 
-// ✅ Cấu hình URL API
+// ✅ API Config
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 const money = (v) =>
@@ -21,12 +22,16 @@ const money = (v) =>
 export default function OrderCart({
   items,
   setItems,
+  // New props for deposit and customer editing
+  deposit,
+  setDeposit,
   note,
   setNote,
   customerId,
   customers,
   isNewCustomer,
   newCustomer,
+  setNewCustomer, // Need this to update new customer info from cart
   createdOrder,
   setCreatedOrder,
   loading,
@@ -43,10 +48,7 @@ export default function OrderCart({
     setItems((prev) => {
       const clone = [...prev];
       qty = Math.max(1, Number(qty || 1));
-      if (qty > clone[idx].stock) {
-        notify.info(`⚠️ Chỉ còn ${clone[idx].stock} sản phẩm tồn kho`);
-        return prev;
-      }
+      // Optional: Check stock logic here if needed
       clone[idx].quantity = qty;
       return clone;
     });
@@ -56,7 +58,9 @@ export default function OrderCart({
     setItems((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const total = items.reduce((s, it) => s + it.price * it.quantity, 0);
+  // Calculations
+  const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0);
+  const remaining = subtotal - (Number(deposit) || 0);
 
   const canSubmit =
     !loading &&
@@ -64,15 +68,19 @@ export default function OrderCart({
     (!!customerId || (isNewCustomer && newCustomer.name?.trim()));
 
   // ===========================
-  // ⭐ SUBMIT ORDER (DÙNG FETCH CHUẨN)
+  // ⭐ SUBMIT ORDER
   // ===========================
   const submit = async () => {
     if (!canSubmit) return;
+
+    // Basic validation
+    if (isNewCustomer && (!newCustomer.name || !newCustomer.phone)) {
+      return notify.error("Vui lòng nhập tên và SĐT khách hàng!");
+    }
+
     setLoading(true);
 
     let finalCustomerId = customerId;
-
-    // Lấy token nếu có (để xác thực)
     const token = localStorage.getItem("token");
     const headers = {
       "Content-Type": "application/json",
@@ -80,7 +88,7 @@ export default function OrderCart({
     };
 
     try {
-      // 1. Tạo khách hàng mới nếu cần
+      // 1. Create new customer if needed
       if (isNewCustomer) {
         const resCus = await fetch(`${API_BASE}/customers`, {
           method: "POST",
@@ -95,19 +103,20 @@ export default function OrderCart({
         finalCustomerId = jsonCus.id;
       }
 
-      // 2. Chuẩn bị payload
+      // 2. Prepare payload
       const payload = {
         customer_id: Number(finalCustomerId),
         note,
         china_tracking_code: trackingCode,
+        deposit: Number(deposit) || 0, // Include deposit
         items: items.map((it) => ({
-          variant_id: it.variant_id,
+          variant_id: it.variant_id || null, // Handle null variant_id
           quantity: it.quantity,
           price: it.price,
         })),
       };
 
-      // 3. Gọi API tạo đơn (Dùng fetch)
+      // 3. Create Order
       const resOrder = await fetch(`${API_BASE}/orders`, {
         method: "POST",
         headers: headers,
@@ -118,8 +127,9 @@ export default function OrderCart({
       if (!resOrder.ok)
         throw new Error(jsonOrder.message || "Lỗi tạo đơn hàng");
 
-      // 4. Update lại variants
-      if (selectedProductId) await loadVariants(selectedProductId);
+      // 4. Update variants
+      if (selectedProductId && loadVariants)
+        await loadVariants(selectedProductId);
 
       // 5. Success
       setCreatedOrder({
@@ -128,7 +138,8 @@ export default function OrderCart({
           isNewCustomer || !customerId
             ? newCustomer
             : customers.find((c) => String(c.id) === String(customerId)),
-        total,
+        total: subtotal,
+        deposit: Number(deposit) || 0,
         note,
         items,
         china_tracking_code: trackingCode,
@@ -137,6 +148,7 @@ export default function OrderCart({
       setItems([]);
       setNote("");
       setTrackingCode("");
+      setDeposit(0);
 
       notify.success(`✅ Đơn hàng #${jsonOrder.id} đã được tạo thành công!`);
     } catch (err) {
@@ -160,9 +172,8 @@ export default function OrderCart({
     doc.setFontSize(12);
     doc.text(`Mã đơn: #${createdOrder.id}`, 14, 30);
     doc.text(`Khách hàng: ${createdOrder.customer?.name}`, 14, 36);
-    if (createdOrder.china_tracking_code) {
-      doc.text(`Mã vận đơn TQ: ${createdOrder.china_tracking_code}`, 14, 42);
-    }
+    doc.text(`SĐT: ${createdOrder.customer?.phone || ""}`, 14, 42);
+    doc.text(`Địa chỉ: ${createdOrder.customer?.address || ""}`, 14, 48);
 
     const rows = createdOrder.items.map((it, i) => [
       i + 1,
@@ -174,7 +185,7 @@ export default function OrderCart({
     ]);
 
     doc.autoTable({
-      startY: 50,
+      startY: 55,
       head: [["#", "Sản phẩm", "Phân loại", "SL", "Giá", "Thành tiền"]],
       body: rows,
       theme: "grid",
@@ -182,19 +193,27 @@ export default function OrderCart({
       headStyles: { fillColor: [41, 128, 185] },
     });
 
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    doc.text(`Tổng tiền: ${money(createdOrder.total)}`, 140, finalY);
+    doc.text(`Đã cọc: ${money(createdOrder.deposit)}`, 140, finalY + 6);
+    doc.setFont(undefined, "bold");
     doc.text(
-      `Tổng cộng: ${money(createdOrder.total)}`,
+      `CÒN LẠI: ${money(createdOrder.total - (createdOrder.deposit || 0))}`,
       140,
-      doc.lastAutoTable.finalY + 10,
+      finalY + 14,
     );
 
     doc.save(`HoaDon_${createdOrder.id}.pdf`);
   };
 
   // ===========================================================
-  // MOBILE FULLSCREEN
+  // MOBILE FULLSCREEN CHECK
   // ===========================================================
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  // Selected customer for display if not new
+  const existingCustomer = customers.find((c) => c.id === Number(customerId));
 
   return (
     <motion.div
@@ -218,132 +237,194 @@ export default function OrderCart({
 
       <div className="flex-shrink-0 pb-3 border-b mb-2">
         <h3 className="font-bold text-xl flex items-center gap-2 text-gray-700">
-          <FiShoppingCart className="text-green-600" /> Giỏ hàng
+          <FiShoppingCart className="text-green-600" /> Giỏ hàng ({items.length}
+          )
         </h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-1">
+      <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+        {/* 1. CUSTOMER INFO SECTION */}
+        <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+          <div className="flex items-center gap-2 text-blue-800 font-bold text-xs uppercase mb-2">
+            <FiUser /> Thông tin nhận hàng
+          </div>
+
+          {isNewCustomer ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-2">
+                  <input
+                    placeholder="Tên khách hàng"
+                    className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 text-sm focus:outline-blue-500"
+                    value={newCustomer.name}
+                    onChange={(e) =>
+                      setNewCustomer({ ...newCustomer, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <input
+                    placeholder="SĐT"
+                    className="w-full bg-white border border-blue-200 rounded px-2 py-1.5 text-sm focus:outline-blue-500"
+                    value={newCustomer.phone}
+                    onChange={(e) =>
+                      setNewCustomer({ ...newCustomer, phone: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="relative">
+                <FiMapPin
+                  className="absolute top-2 left-2 text-gray-400"
+                  size={14}
+                />
+                <input
+                  placeholder="Địa chỉ giao hàng"
+                  className="w-full bg-white border border-blue-200 rounded pl-7 pr-2 py-1.5 text-sm focus:outline-blue-500"
+                  value={newCustomer.address}
+                  onChange={(e) =>
+                    setNewCustomer({ ...newCustomer, address: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          ) : existingCustomer ? (
+            <div className="text-sm">
+              <div className="font-bold text-gray-800">
+                {existingCustomer.name}{" "}
+                <span className="font-normal text-gray-500">
+                  - {existingCustomer.phone}
+                </span>
+              </div>
+              <div className="text-gray-500 truncate">
+                {existingCustomer.address || "Chưa có địa chỉ"}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-red-500 italic">
+              Chưa chọn khách hàng
+            </div>
+          )}
+        </div>
+
+        {/* 2. CART ITEMS */}
         {items.length === 0 ? (
-          <div className="text-gray-500 italic text-center py-10 text-lg border-2 border-dashed rounded-xl">
-            🛒 Chưa có sản phẩm nào
+          <div className="text-gray-500 italic text-center py-8 text-sm border-2 border-dashed rounded-xl">
+            🛒 Giỏ hàng trống
           </div>
         ) : (
-          <div className="border rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100 text-gray-700">
-                <tr>
-                  <th className="p-2 text-left">SP</th>
-                  <th className="p-2 w-16 text-center">SL</th>
-                  <th className="p-2 w-24 text-right hidden sm:table-cell">
-                    Giá
-                  </th>
-                  <th className="p-2 w-24 text-right">Tổng</th>
-                  <th className="p-2 w-8"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it, idx) => (
-                  <tr key={idx} className="border-t hover:bg-gray-50">
-                    <td className="p-2">
-                      <div className="font-medium">{it.product_name}</div>
-                      <div className="text-xs text-gray-500">
-                        {it.size} / {it.color}
-                      </div>
-                      <div className="sm:hidden text-xs text-blue-600">
-                        {money(it.price)}
-                      </div>
-                    </td>
+          <div className="space-y-2">
+            {items.map((it, idx) => (
+              <div
+                key={idx}
+                className="flex gap-3 bg-white border rounded-xl p-2 relative"
+              >
+                <button
+                  onClick={() => removeItem(idx)}
+                  className="absolute top-1 right-1 text-gray-300 hover:text-red-500 p-1"
+                >
+                  <FiTrash2 size={16} />
+                </button>
 
-                    <td className="p-2">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => updateQty(idx, it.quantity - 1)}
-                          className="w-6 h-6 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          value={it.quantity}
-                          onChange={(e) => updateQty(idx, e.target.value)}
-                          className="w-8 text-center border rounded text-xs p-1"
-                        />
-                        <button
-                          onClick={() => {
-                            if (it.quantity >= it.stock)
-                              return notify.info("Hết hàng tồn");
-                            updateQty(idx, it.quantity + 1);
-                          }}
-                          className="w-6 h-6 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
+                {/* Image Placeholder */}
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-gray-400">
+                  IMG
+                </div>
 
-                    <td className="p-2 text-right hidden sm:table-cell">
-                      <input
-                        type="number"
-                        className="w-20 text-right border rounded p-1 text-xs"
-                        value={it.price}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setItems((prev) => {
-                            const clone = [...prev];
-                            clone[idx].price = val;
-                            return clone;
-                          });
-                        }}
-                      />
-                    </td>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm truncate pr-6">
+                    {it.product_name}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {it.size || "-"} / {it.color || "-"}
+                  </div>
 
-                    <td className="p-2 text-right font-semibold text-green-700">
-                      {money(it.price * it.quantity)}
-                    </td>
-
-                    <td className="p-2 text-right">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center border rounded-lg bg-gray-50">
                       <button
-                        onClick={() => removeItem(idx)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        onClick={() => updateQty(idx, it.quantity - 1)}
+                        className="px-2 py-0.5 text-gray-600 hover:bg-gray-200 rounded-l-lg"
                       >
-                        <FiTrash2 />
+                        -
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <span className="px-2 text-xs font-bold w-8 text-center">
+                        {it.quantity}
+                      </span>
+                      <button
+                        onClick={() => updateQty(idx, it.quantity + 1)}
+                        className="px-2 py-0.5 text-gray-600 hover:bg-gray-200 rounded-r-lg"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="font-bold text-sm text-blue-600">
+                      {money(it.price * it.quantity)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        <div className="text-right font-bold text-lg mt-4 text-gray-800">
-          Tổng cộng: <span className="text-green-700">{money(total)}</span>
-        </div>
+        {/* 3. ADDITIONAL INPUTS */}
+        <div className="space-y-3">
+          <div className="bg-yellow-50 p-2 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-2">
+              <FiTruck className="text-yellow-700" />
+              <input
+                className="flex-1 bg-transparent text-sm outline-none placeholder-yellow-700/50 text-yellow-900"
+                placeholder="Mã vận đơn TQ (Tùy chọn)"
+                value={trackingCode}
+                onChange={(e) => setTrackingCode(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <div className="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-          <label className="text-xs font-bold text-yellow-800 flex items-center gap-1 mb-1 uppercase tracking-wide">
-            <FiTruck /> Mã Vận Đơn Trung Quốc (Tùy chọn)
-          </label>
-          <input
-            className="w-full bg-white border border-yellow-300 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-500 placeholder-yellow-300 text-yellow-900"
-            placeholder="Paste mã tracking vào đây (VD: YT2025...)"
-            value={trackingCode}
-            onChange={(e) => setTrackingCode(e.target.value)}
+          <textarea
+            className="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none bg-gray-50"
+            rows={2}
+            placeholder="Ghi chú đơn hàng..."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </div>
 
-        <textarea
-          className="w-full border rounded-lg p-3 mt-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          rows={2}
-          placeholder="📝 Ghi chú đơn hàng..."
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-
-        <div className="h-20 sm:h-0"></div>
+        <div className="h-24 sm:h-0"></div>
       </div>
 
-      <div className="mt-auto pt-3 border-t bg-white sticky bottom-0">
+      {/* 4. FOOTER TOTALS */}
+      <div className="mt-auto pt-3 border-t bg-white sticky bottom-0 space-y-2">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-500">Tổng tiền hàng:</span>
+          <span className="font-medium">{money(subtotal)}</span>
+        </div>
+
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-500 flex items-center gap-1">
+            Đã đặt cọc:
+          </span>
+          <div className="w-32 relative">
+            <input
+              type="number"
+              value={deposit}
+              onChange={(e) => setDeposit(Number(e.target.value))}
+              className="w-full text-right font-bold text-green-600 border-b border-gray-200 focus:border-green-500 outline-none py-0.5 bg-transparent pr-4"
+              placeholder="0"
+            />
+            <span className="absolute right-0 top-0.5 text-xs text-gray-400 pointer-events-none">
+              đ
+            </span>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+          <span className="font-bold text-gray-700">CÒN PHẢI THU:</span>
+          <span className="font-black text-lg text-red-600">
+            {money(remaining)}
+          </span>
+        </div>
+
         <button
           className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 ${
             canSubmit
@@ -356,7 +437,7 @@ export default function OrderCart({
           {loading ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              Đang tạo đơn...
+              Đang xử lý...
             </>
           ) : (
             <>✅ Tạo đơn hàng</>
@@ -380,26 +461,30 @@ export default function OrderCart({
               Tạo đơn thành công!
             </h3>
 
-            <div className="bg-gray-50 p-4 rounded-xl w-full mb-6 border border-gray-100">
-              <p className="text-gray-600 text-sm">
-                Mã đơn: <b className="text-black">#{createdOrder.id}</b>
-              </p>
-              <p className="text-gray-600 text-sm">
-                Khách:{" "}
-                <b className="text-black">{createdOrder.customer?.name}</b>
-              </p>
-              {createdOrder.china_tracking_code && (
-                <p className="text-gray-600 text-sm">
-                  Mã vận đơn:{" "}
-                  <b className="text-yellow-700 bg-yellow-100 px-1 rounded">
-                    {createdOrder.china_tracking_code}
-                  </b>
-                </p>
-              )}
+            <div className="bg-gray-50 p-4 rounded-xl w-full mb-6 border border-gray-100 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Mã đơn:</span>{" "}
+                <b>#{createdOrder.id}</b>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Khách:</span>{" "}
+                <b>{createdOrder.customer?.name}</b>
+              </div>
               <div className="border-t border-dashed my-2"></div>
-              <p className="text-right font-bold text-lg text-green-700">
-                {money(createdOrder.total)}
-              </p>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Tổng tiền:</span>{" "}
+                <span>{money(createdOrder.total)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Đã cọc:</span>{" "}
+                <span>{money(createdOrder.deposit)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold text-red-600 pt-2 border-t">
+                <span>Còn lại:</span>
+                <span>
+                  {money(createdOrder.total - (createdOrder.deposit || 0))}
+                </span>
+              </div>
             </div>
 
             <div className="flex gap-3 w-full">
