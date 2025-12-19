@@ -1,4 +1,3 @@
-// src/pages/orders/OrderCart.jsx
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
@@ -10,7 +9,11 @@ import {
   FiTruck,
 } from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
-import { api } from "../../api/client"; // ✅ Đã sửa: Import API client
+// ❌ Bỏ import api client
+// import { api } from "../../api/client";
+
+// ✅ Cấu hình URL API
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 const money = (v) =>
   Number(v || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "đ";
@@ -31,7 +34,6 @@ export default function OrderCart({
   loadVariants,
   selectedProductId,
 }) {
-  // ✅ Mới: State lưu mã vận đơn Trung Quốc
   const [trackingCode, setTrackingCode] = useState("");
 
   // ===========================
@@ -41,13 +43,10 @@ export default function OrderCart({
     setItems((prev) => {
       const clone = [...prev];
       qty = Math.max(1, Number(qty || 1));
-
-      // Check tồn kho
       if (qty > clone[idx].stock) {
         notify.info(`⚠️ Chỉ còn ${clone[idx].stock} sản phẩm tồn kho`);
         return prev;
       }
-
       clone[idx].quantity = qty;
       return clone;
     });
@@ -65,7 +64,7 @@ export default function OrderCart({
     (!!customerId || (isNewCustomer && newCustomer.name?.trim()));
 
   // ===========================
-  // SUBMIT ORDER
+  // ⭐ SUBMIT ORDER (DÙNG FETCH CHUẨN)
   // ===========================
   const submit = async () => {
     if (!canSubmit) return;
@@ -73,23 +72,34 @@ export default function OrderCart({
 
     let finalCustomerId = customerId;
 
+    // Lấy token nếu có (để xác thực)
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+
     try {
       // 1. Tạo khách hàng mới nếu cần
       if (isNewCustomer) {
-        // ✅ SỬA LẠI CÚ PHÁP ĐÚNG
-        const created = await api("/customers", {
+        const resCus = await fetch(`${API_BASE}/customers`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: headers,
           body: JSON.stringify(newCustomer),
         });
-        finalCustomerId = created.id;
+
+        const jsonCus = await resCus.json();
+        if (!resCus.ok)
+          throw new Error(jsonCus.message || "Lỗi tạo khách hàng");
+
+        finalCustomerId = jsonCus.id;
       }
 
-      // 2. Chuẩn bị payload gửi lên Server
+      // 2. Chuẩn bị payload
       const payload = {
         customer_id: Number(finalCustomerId),
         note,
-        china_tracking_code: trackingCode, // ✅ Gửi mã vận đơn lên server
+        china_tracking_code: trackingCode,
         items: items.map((it) => ({
           variant_id: it.variant_id,
           quantity: it.quantity,
@@ -97,20 +107,23 @@ export default function OrderCart({
         })),
       };
 
-      // 3. Gọi API tạo đơn
-      // ✅ SỬA LẠI CÚ PHÁP ĐÚNG
-      const res = await api("/orders", {
+      // 3. Gọi API tạo đơn (Dùng fetch)
+      const resOrder = await fetch(`${API_BASE}/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify(payload),
       });
 
-      // 4. Update lại variants nếu đang chọn sản phẩm đó
+      const jsonOrder = await resOrder.json();
+      if (!resOrder.ok)
+        throw new Error(jsonOrder.message || "Lỗi tạo đơn hàng");
+
+      // 4. Update lại variants
       if (selectedProductId) await loadVariants(selectedProductId);
 
-      // 5. Hiển thị thông báo thành công
+      // 5. Success
       setCreatedOrder({
-        id: res.id,
+        id: jsonOrder.id,
         customer:
           isNewCustomer || !customerId
             ? newCustomer
@@ -121,15 +134,14 @@ export default function OrderCart({
         china_tracking_code: trackingCode,
       });
 
-      // 6. Reset form
       setItems([]);
       setNote("");
-      setTrackingCode(""); // Reset mã vận đơn
+      setTrackingCode("");
 
-      notify.success(`✅ Đơn hàng #${res.id} đã được tạo thành công!`);
+      notify.success(`✅ Đơn hàng #${jsonOrder.id} đã được tạo thành công!`);
     } catch (err) {
       console.error(err);
-      notify.error("❌ Lỗi khi tạo đơn hàng");
+      notify.error("❌ " + (err.message || "Lỗi khi tạo đơn hàng"));
     } finally {
       setLoading(false);
     }
@@ -142,8 +154,6 @@ export default function OrderCart({
     if (!createdOrder) return;
 
     const doc = new jsPDF();
-
-    // Header
     doc.setFontSize(18);
     doc.text("HÓA ĐƠN BÁN HÀNG", 105, 20, { align: "center" });
 
@@ -182,7 +192,7 @@ export default function OrderCart({
   };
 
   // ===========================================================
-  // ⭐ MOBILE FULLSCREEN BOTTOM SHEET CONTAINER
+  // MOBILE FULLSCREEN
   // ===========================================================
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
@@ -202,23 +212,17 @@ export default function OrderCart({
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {/* MOBILE DRAG HANDLE */}
       {isMobile && (
         <div className="w-12 h-1.5 bg-gray-400/50 rounded-full mx-auto mb-3 flex-shrink-0"></div>
       )}
 
-      {/* STICKY HEADER */}
       <div className="flex-shrink-0 pb-3 border-b mb-2">
         <h3 className="font-bold text-xl flex items-center gap-2 text-gray-700">
           <FiShoppingCart className="text-green-600" /> Giỏ hàng
         </h3>
       </div>
 
-      {/* =================== */}
-      {/* SCROLLABLE CONTENT */}
-      {/* =================== */}
       <div className="flex-1 overflow-y-auto pr-1">
-        {/* LIST ITEMS */}
         {items.length === 0 ? (
           <div className="text-gray-500 italic text-center py-10 text-lg border-2 border-dashed rounded-xl">
             🛒 Chưa có sản phẩm nào
@@ -245,13 +249,11 @@ export default function OrderCart({
                       <div className="text-xs text-gray-500">
                         {it.size} / {it.color}
                       </div>
-                      {/* Mobile hiện giá ở đây */}
                       <div className="sm:hidden text-xs text-blue-600">
                         {money(it.price)}
                       </div>
                     </td>
 
-                    {/* SL Control */}
                     <td className="p-2">
                       <div className="flex items-center justify-center gap-1">
                         <button
@@ -279,7 +281,6 @@ export default function OrderCart({
                       </div>
                     </td>
 
-                    {/* Giá (PC) */}
                     <td className="p-2 text-right hidden sm:table-cell">
                       <input
                         type="number"
@@ -296,12 +297,10 @@ export default function OrderCart({
                       />
                     </td>
 
-                    {/* Thành tiền */}
                     <td className="p-2 text-right font-semibold text-green-700">
                       {money(it.price * it.quantity)}
                     </td>
 
-                    {/* Xóa */}
                     <td className="p-2 text-right">
                       <button
                         onClick={() => removeItem(idx)}
@@ -317,14 +316,10 @@ export default function OrderCart({
           </div>
         )}
 
-        {/* TOTAL */}
         <div className="text-right font-bold text-lg mt-4 text-gray-800">
           Tổng cộng: <span className="text-green-700">{money(total)}</span>
         </div>
 
-        {/* ========================= */}
-        {/* 🆕 NHẬP MÃ VẬN ĐƠN */}
-        {/* ========================= */}
         <div className="mt-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
           <label className="text-xs font-bold text-yellow-800 flex items-center gap-1 mb-1 uppercase tracking-wide">
             <FiTruck /> Mã Vận Đơn Trung Quốc (Tùy chọn)
@@ -337,7 +332,6 @@ export default function OrderCart({
           />
         </div>
 
-        {/* NOTE */}
         <textarea
           className="w-full border rounded-lg p-3 mt-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           rows={2}
@@ -346,13 +340,9 @@ export default function OrderCart({
           onChange={(e) => setNote(e.target.value)}
         />
 
-        {/* Spacer for mobile bottom */}
         <div className="h-20 sm:h-0"></div>
       </div>
 
-      {/* ========================= */}
-      {/* FOOTER ACTIONS */}
-      {/* ========================= */}
       <div className="mt-auto pt-3 border-t bg-white sticky bottom-0">
         <button
           className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 ${
@@ -374,7 +364,6 @@ export default function OrderCart({
         </button>
       </div>
 
-      {/* SUCCESS MODAL / BOX */}
       <AnimatePresence>
         {createdOrder && (
           <motion.div
@@ -415,7 +404,7 @@ export default function OrderCart({
 
             <div className="flex gap-3 w-full">
               <button
-                onClick={() => setCreatedOrder(null)} // Đóng modal để tạo đơn mới
+                onClick={() => setCreatedOrder(null)}
                 className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200"
               >
                 Tạo đơn mới
