@@ -76,7 +76,12 @@ export default function OrderCart({
     try {
       // 1. Tạo khách hàng mới nếu cần
       if (isNewCustomer) {
-        const created = await api("/customers", "POST", newCustomer);
+        // ✅ SỬA LẠI CÚ PHÁP ĐÚNG
+        const created = await api("/customers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newCustomer),
+        });
         finalCustomerId = created.id;
       }
 
@@ -93,7 +98,12 @@ export default function OrderCart({
       };
 
       // 3. Gọi API tạo đơn
-      const res = await api("/orders", "POST", payload);
+      // ✅ SỬA LẠI CÚ PHÁP ĐÚNG
+      const res = await api("/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       // 4. Update lại variants nếu đang chọn sản phẩm đó
       if (selectedProductId) await loadVariants(selectedProductId);

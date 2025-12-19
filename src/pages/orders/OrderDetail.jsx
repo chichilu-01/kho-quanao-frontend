@@ -9,7 +9,7 @@ import {
 } from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
 import StatusIcon from "./StatusIcon";
-import { api } from "../../api/client";
+import { api } from "../../api/client"; // ✅ Đảm bảo import đúng
 
 function money(v) {
   return Number(v || 0).toLocaleString("vi-VN") + "đ";
@@ -30,15 +30,16 @@ export default function OrderDetail({
     }
   }, [selected]);
 
+  // 🔹 HÀM LƯU MÃ VẬN ĐƠN (ĐÃ SỬA LỖI)
   const handleSaveTracking = async () => {
     if (!selected) return;
+    // Nếu mã không đổi thì không gọi API
     if (trackingCode === (selected.china_tracking_code || "")) return;
 
     try {
       setIsSavingTracking(true);
 
-      // ✅ SỬA LẠI CÚ PHÁP CHUẨN (Giống fetch)
-      // Phải gói method và body vào trong một object
+      // ✅ FIX LỖI 404: Sử dụng cú pháp object chuẩn { method, body }
       await api(`/orders/${selected.id}/tracking`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -47,6 +48,7 @@ export default function OrderDetail({
 
       notify.success("✅ Đã lưu mã vận đơn thành công!");
 
+      // Cập nhật giao diện cha
       if (onUpdateTracking) {
         onUpdateTracking(selected.id, trackingCode);
       }
@@ -117,7 +119,7 @@ export default function OrderDetail({
         </div>
       </motion.div>
 
-      {/* MÃ VẬN ĐƠN */}
+      {/* 🚚 QUẢN LÝ MÃ VẬN ĐƠN (KHU VỰC BẠN THẤY LỖI TRƯỚC ĐÓ) */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -133,7 +135,7 @@ export default function OrderDetail({
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Paste mã tracking..."
+            placeholder="Paste mã tracking vào đây..."
             value={trackingCode}
             onChange={(e) => setTrackingCode(e.target.value)}
             className="flex-1 px-3 py-2 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 font-mono"
@@ -152,6 +154,9 @@ export default function OrderDetail({
             )}
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-2 italic ml-1">
+          * Nhập mã để khớp hàng khi về kho.
+        </p>
       </motion.div>
 
       {/* TRẠNG THÁI */}
@@ -222,6 +227,7 @@ export default function OrderDetail({
         ))}
       </div>
 
+      {/* TỔNG TIỀN */}
       <motion.div
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
