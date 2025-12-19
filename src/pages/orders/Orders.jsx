@@ -9,7 +9,7 @@ import {
   FiShoppingBag,
   FiList,
 } from "react-icons/fi";
-import { api } from "../../api/client"; // ✅ Dùng api của dự án
+import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
 import OrderList from "./OrderList";
 import OrderDetail from "./OrderDetail";
@@ -31,7 +31,6 @@ export default function Orders() {
   const load = async (query = "") => {
     setLoading(true);
     try {
-      // ✅ SỬA: Dùng api() trực tiếp, api này trả về data luôn
       const endpoint = query
         ? `/orders?q=${encodeURIComponent(query)}`
         : "/orders";
@@ -77,8 +76,13 @@ export default function Orders() {
 
     try {
       setUpdating(true);
-      // ✅ SỬA: Dùng api() thay vì fetch/axios
-      await api(`/orders/${targetId}/status`, "PUT", { status: newStatus });
+
+      // ✅ SỬA LẠI CÚ PHÁP ĐÚNG
+      await api(`/orders/${targetId}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
       notify.success(`Cập nhật đơn #${targetId} thành công`);
 

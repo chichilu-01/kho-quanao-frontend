@@ -7,9 +7,9 @@ import {
   FiTruck,
   FiSave,
 } from "react-icons/fi";
-import { notify } from "../../hooks/useToastNotify"; // Dùng notify thay vì toast
+import { notify } from "../../hooks/useToastNotify";
 import StatusIcon from "./StatusIcon";
-import { api } from "../../api/client"; // ✅ Dùng api của dự án
+import { api } from "../../api/client";
 
 function money(v) {
   return Number(v || 0).toLocaleString("vi-VN") + "đ";
@@ -37,9 +37,12 @@ export default function OrderDetail({
     try {
       setIsSavingTracking(true);
 
-      // ✅ SỬA: Dùng api() thay vì axios.put()
-      await api(`/orders/${selected.id}/tracking`, "PUT", {
-        china_tracking_code: trackingCode,
+      // ✅ SỬA LẠI CÚ PHÁP CHUẨN (Giống fetch)
+      // Phải gói method và body vào trong một object
+      await api(`/orders/${selected.id}/tracking`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ china_tracking_code: trackingCode }),
       });
 
       notify.success("✅ Đã lưu mã vận đơn thành công!");
