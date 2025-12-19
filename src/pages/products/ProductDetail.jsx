@@ -1,22 +1,121 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { FiEdit, FiTrash2, FiSave, FiChevronLeft } from "react-icons/fi";
-import { useState } from "react";
+import {
+  FiEdit,
+  FiTrash2,
+  FiSave,
+  FiChevronLeft,
+  FiImage,
+  FiX,
+  FiUploadCloud,
+} from "react-icons/fi";
 import ProductVariants from "../../components/products/ProductVariants";
 
-export default function ProductDetail({ selected, setSelected, load }) {
-  const [isDirty, setIsDirty] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [image, setImage] = useState(null);
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
+export default function ProductDetail({ selected, setSelected, load }) {
+  // State quản lý form
+  const [form, setForm] = useState({
+    sku: "",
+    name: "",
+    category: "",
+    brand: "",
+    cost_price: "",
+    sale_price: "",
+  });
+
+  // State quản lý ảnh mới (Upload thêm)
+  const [newImages, setNewImages] = useState([]);
+  const [newPreviews, setNewPreviews] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showVariantsScreen, setShowVariantsScreen] = useState(false);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    setImage(file || null);
-    setPreview(file ? URL.createObjectURL(file) : null);
-    setIsDirty(true);
+  // Sync dữ liệu từ props selected vào form khi mở
+  useEffect(() => {
+    if (selected) {
+      setForm({
+        sku: selected.sku || "",
+        name: selected.name || "",
+        category: selected.category || "",
+        brand: selected.brand || "",
+        cost_price: selected.cost_price || 0,
+        sale_price: selected.sale_price || 0,
+      });
+      // Reset ảnh mới khi chuyển sản phẩm
+      setNewImages([]);
+      setNewPreviews([]);
+    }
+  }, [selected]);
+
+  // --- Xử lý chọn nhiều ảnh ---
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+
+    setNewImages((prev) => [...prev, ...files]);
+    setNewPreviews((prev) => [...prev, ...previewUrls]);
   };
+
+  // --- Xóa 1 ảnh trong danh sách chờ upload ---
+  const removeNewImage = (index) => {
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
+    setNewPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // --- Gửi dữ liệu (Dùng fetch chuẩn) ---
+  const submit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const fd = new FormData();
+
+      // 1. Append thông tin chữ
+      Object.entries(form).forEach(([key, value]) => {
+        fd.append(key, value);
+      });
+
+      // 2. Append file ảnh (nếu có)
+      newImages.forEach((img) => {
+        fd.append("images", img);
+        // Lưu ý: Backend phải xử lý key "images" (array) hoặc "image" (single) tùy code của bạn
+        // Nếu backend cũ chỉ nhận 1 ảnh key "image", bạn chỉ nên gửi newImages[0]
+      });
+
+      // 3. Lấy token
+      const token = localStorage.getItem("token");
+
+      // 4. Gọi API
+      const res = await fetch(`${API_BASE}/products/${selected.id}`, {
+        method: "PUT",
+        headers: {
+          // Không set Content-Type để browser tự xử lý Boundary của FormData
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: fd,
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Lỗi khi cập nhật");
+
+      toast.success("🎉 Đã cập nhật sản phẩm!");
+
+      // Load lại dữ liệu mới nhất
+      await load(selected.id);
+
+      // Reset ảnh chờ
+      setNewImages([]);
+      setNewPreviews([]);
+    } catch (err) {
+      console.error(err);
+      toast.error("❌ " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!selected) return null;
 
   return (
     <>
@@ -41,195 +140,171 @@ export default function ProductDetail({ selected, setSelected, load }) {
           <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
             <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
           </h4>
-
-          <button
-            onClick={() => toast("⚠️ Mở modal xoá ở component cha")}
-            className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1"
-          >
-            <FiTrash2 /> Xoá
-          </button>
+          <div className="text-xs text-gray-400">ID: #{selected.id}</div>
         </div>
 
-        {/* IMAGE + FIELDS */}
-        <div
-          className="
-          grid grid-cols-1 md:grid-cols-[160px_1fr]
-          items-start gap-6
-          w-full px-0 md:px-0
-        "
+        <form
+          onSubmit={submit}
+          className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8"
         >
-          {/* LEFT — IMAGE */}
-          <div className="flex flex-col items-center">
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="
-                w-40 h-40 md:w-44 md:h-44
-                rounded-2xl overflow-hidden
-                shadow-lg shadow-black/10
-                border border-gray-300 dark:border-gray-700
-                bg-white dark:bg-gray-800
-              "
-            >
-              <img
-                src={preview || selected.cover_image}
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
+          {/* CỘT TRÁI: ẢNH */}
+          <div className="space-y-4">
+            {/* Ảnh hiện tại (Cover) */}
+            <div>
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
+                Ảnh đại diện hiện tại
+              </label>
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-gray-200 shadow-sm group">
+                <img
+                  src={selected.cover_image || "/no-image.png"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => (e.target.src = "/no-image.png")}
+                  alt="Cover"
+                />
+                {/* Overlay thông báo */}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-white text-xs font-medium px-2 py-1 rounded bg-black/50">
+                    Ảnh gốc
+                  </span>
+                </div>
+              </div>
+            </div>
 
-            <label className="cursor-pointer mt-3">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-              <span
+            {/* Upload ảnh mới */}
+            <div>
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <FiUploadCloud /> Thêm ảnh mới / Thay thế
+              </label>
+
+              {/* Grid Preview Ảnh Mới */}
+              {newPreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {newPreviews.map((src, idx) => (
+                    <div
+                      key={idx}
+                      className="relative aspect-square rounded-lg overflow-hidden border border-blue-200"
+                    >
+                      <img
+                        src={src}
+                        className="w-full h-full object-cover"
+                        alt="new"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(idx)}
+                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600"
+                      >
+                        <FiX size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Input Button */}
+              <label
                 className="
-                px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700
-                text-gray-800 dark:text-gray-200 text-sm
-                shadow border border-gray-300 dark:border-gray-600
-                hover:bg-gray-300 dark:hover:bg-gray-600 transition
+                flex flex-col items-center justify-center w-full h-24
+                border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl
+                cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700
+                transition
               "
               >
-                Chọn ảnh mới
-              </span>
-            </label>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500">
+                  <FiImage className="w-6 h-6 mb-1" />
+                  <p className="text-xs">Chọn nhiều ảnh</p>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImagesChange}
+                />
+              </label>
+            </div>
           </div>
 
-          {/* RIGHT — INFO */}
-          <div className="flex-1 space-y-3 px-4 md:px-0">
-            <Field
-              label="SKU"
-              value={selected.sku}
-              onChange={(v) => {
-                setSelected({ ...selected, sku: v });
-                setIsDirty(true);
-              }}
-            />
+          {/* CỘT PHẢI: THÔNG TIN */}
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field
+                label="Tên sản phẩm"
+                value={form.name}
+                onChange={(v) => setForm({ ...form, name: v })}
+              />
+              <Field
+                label="Mã SKU"
+                value={form.sku}
+                onChange={(v) => setForm({ ...form, sku: v })}
+              />
+            </div>
 
-            <Field
-              label="Tên SP"
-              value={selected.name}
-              onChange={(v) => {
-                setSelected({ ...selected, name: v });
-                setIsDirty(true);
-              }}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field
+                label="Danh mục"
+                value={form.category}
+                onChange={(v) => setForm({ ...form, category: v })}
+              />
+              <Field
+                label="Thương hiệu"
+                value={form.brand}
+                onChange={(v) => setForm({ ...form, brand: v })}
+              />
+            </div>
 
-            <Field
-              label="Danh mục"
-              value={selected.category}
-              onChange={(v) => {
-                setSelected({ ...selected, category: v });
-                setIsDirty(true);
-              }}
-            />
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 gap-6">
+              <Field
+                label="Giá nhập (Vốn)"
+                type="number"
+                value={form.cost_price}
+                onChange={(v) => setForm({ ...form, cost_price: v })}
+              />
+              <Field
+                label="Giá bán (Lẻ)"
+                type="number"
+                value={form.sale_price}
+                onChange={(v) => setForm({ ...form, sale_price: v })}
+              />
+            </div>
 
-            <Field
-              label="Thương hiệu"
-              value={selected.brand}
-              onChange={(v) => {
-                setSelected({ ...selected, brand: v });
-                setIsDirty(true);
-              }}
-            />
+            {/* Action Buttons */}
+            <div className="pt-4 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => setShowVariantsScreen(true)}
+                className="w-full py-3 rounded-xl border-2 border-indigo-100 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition flex items-center justify-center gap-2"
+              >
+                🎨 Quản lý Biến thể (Size/Màu)
+              </button>
 
-            {/* VARIANT BUTTON */}
-            <button
-              onClick={() => setShowVariantsScreen(true)}
-              className="
-                w-full py-2 rounded-xl
-                bg-indigo-600 text-white font-semibold
-                shadow-md hover:bg-indigo-700 transition
-                text-sm md:text-base
-              "
-            >
-              🎨 Biến thể sản phẩm
-            </button>
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                disabled={loading}
+                type="submit"
+                className="
+                  w-full py-3 rounded-xl
+                  bg-gradient-to-r from-blue-600 to-blue-700
+                  text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none
+                  hover:shadow-xl hover:from-blue-700 hover:to-blue-800
+                  transition disabled:opacity-50 disabled:cursor-not-allowed
+                  flex items-center justify-center gap-2
+                "
+              >
+                {loading ? (
+                  "⏳ Đang lưu..."
+                ) : (
+                  <>
+                    <FiSave /> Lưu thay đổi
+                  </>
+                )}
+              </motion.button>
+            </div>
           </div>
-        </div>
-
-        {/* PRICE FIELDS */}
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            try {
-              const fd = new FormData();
-              [
-                "sku",
-                "name",
-                "category",
-                "brand",
-                "cost_price",
-                "sale_price",
-              ].forEach((k) => fd.append(k, selected[k] || ""));
-
-              if (image) fd.append("image", image);
-
-              const res = await fetch(
-                `${import.meta.env.VITE_API_BASE}/products/${selected.id}`,
-                { method: "PUT", body: fd },
-              );
-
-              const json = await res.json();
-              if (!res.ok) throw new Error(json?.message);
-
-              toast.success("🎉 Đã lưu thay đổi!");
-              await load(selected.id);
-              setIsDirty(false);
-              setPreview(null);
-              setImage(null);
-            } catch (err) {
-              toast.error("❌ " + err.message);
-            }
-          }}
-          className="grid gap-6 px-4 md:px-0"
-        >
-          <div
-            className="
-            p-3 rounded-2xl bg-white/80 dark:bg-gray-800/70
-            border shadow-md grid grid-cols-1 sm:grid-cols-2 gap-5
-          "
-          >
-            <Field
-              label="Giá nhập"
-              type="number"
-              value={selected.cost_price}
-              onChange={(v) => {
-                setSelected({ ...selected, cost_price: v });
-                setIsDirty(true);
-              }}
-            />
-
-            <Field
-              label="Giá bán"
-              type="number"
-              value={selected.sale_price}
-              onChange={(v) => {
-                setSelected({ ...selected, sale_price: v });
-                setIsDirty(true);
-              }}
-            />
-          </div>
-
-          {isDirty && (
-            <motion.button
-              whileTap={{ scale: 0.94 }}
-              type="submit"
-              className="
-                fixed md:static bottom-[80px] left-1/2 -translate-x-1/2
-                w-[88%] md:w-auto py-3 px-7 rounded-xl
-                bg-gradient-to-r from-green-500 to-green-600
-                text-white font-semibold shadow-xl
-              "
-            >
-              <FiSave /> Lưu thay đổi
-            </motion.button>
-          )}
         </form>
       </motion.div>
 
-      {/* VARIANTS SLIDE-IN */}
+      {/* VARIANTS SCREEN (Slide-in) */}
       {showVariantsScreen && (
         <motion.div
           initial={{ x: "100%" }}
@@ -238,21 +313,19 @@ export default function ProductDetail({ selected, setSelected, load }) {
           transition={{ duration: 0.25 }}
           className="fixed inset-0 z-[99999] bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"
         >
-          <div
-            className="
-            sticky top-0 z-50 p-4
-            bg-white dark:bg-gray-900 border-b
-          "
-          >
+          <div className="sticky top-0 z-50 p-4 bg-white dark:bg-gray-900 border-b flex items-center gap-2">
             <button
               onClick={() => setShowVariantsScreen(false)}
-              className="text-gray-700 dark:text-gray-200"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             >
-              <FiChevronLeft size={22} />
+              <FiChevronLeft size={24} />
             </button>
+            <h3 className="font-bold text-lg">
+              Quản lý biến thể: {selected.name}
+            </h3>
           </div>
 
-          <div className="p-4 pb-24">
+          <div className="p-4 pb-24 max-w-5xl mx-auto">
             <ProductVariants productId={selected.id} />
           </div>
         </motion.div>
@@ -261,22 +334,23 @@ export default function ProductDetail({ selected, setSelected, load }) {
   );
 }
 
+// Component input nhỏ gọn
 function Field({ label, value, onChange, type = "text" }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         {label}
       </label>
       <input
         type={type}
         className="
-          bg-gray-50 dark:bg-gray-900
-          rounded-xl px-3 py-2
-          border border-gray-300 dark:border-gray-700
-          focus:ring-2 ring-blue-400 dark:ring-blue-500
-          shadow-sm outline-none
+          w-full px-4 py-2.5 rounded-lg
+          bg-gray-50 dark:bg-gray-800
+          border border-gray-200 dark:border-gray-700
+          focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-900
+          outline-none transition font-medium text-gray-800 dark:text-gray-100
         "
-        value={value || ""}
+        value={value}
         placeholder={label}
         onChange={(e) => onChange(e.target.value)}
       />

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
-import { FiList, FiPlus, FiEdit3 } from "react-icons/fi";
+import { FiList, FiPlus, FiEdit3, FiGrid } from "react-icons/fi";
 import { api } from "../../api/client";
 
 import ProductForm from "./ProductForm";
@@ -9,9 +9,6 @@ import ProductList from "./ProductList";
 import ProductDetail from "./ProductDetail";
 import { RestockModal, DeleteModal } from "./ProductModals";
 import MobileTabs from "../../components/common/MobileTabs";
-
-// ❗️ THÊM ICON GRID
-import { FiGrid } from "react-icons/fi";
 
 export default function Products() {
   const [list, setList] = useState([]);
@@ -33,7 +30,7 @@ export default function Products() {
   // Dạng xem: list hoặc grid
   const [listViewMode, setListViewMode] = useState("grid");
 
-  // ❗️ THÊM: số cột của dạng lưới
+  // Số cột của dạng lưới
   const [gridColumns, setGridColumns] = useState(2);
 
   // ------------------------------------------------------------------
@@ -54,7 +51,10 @@ export default function Products() {
         const found = arr.find((x) => x.id === selectId);
         setSelected(found || null);
       } else if (!selected && arr?.length) {
-        setSelected(arr[0]);
+        // Auto select first item on desktop if nothing selected
+        if (window.innerWidth >= 768) {
+          setSelected(arr[0]);
+        }
       }
     } catch (err) {
       toast.error("❌ Lỗi tải danh sách sản phẩm");
@@ -98,7 +98,7 @@ export default function Products() {
     { value: "create", label: "Thêm mới", icon: FiPlus },
     {
       value: "edit",
-      label: "Sửa",
+      label: "Chi tiết",
       icon: FiEdit3,
       disabled: !selected,
     },
@@ -109,65 +109,124 @@ export default function Products() {
   // ------------------------------------------------------------------
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-3 md:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-3 md:p-6 transition-colors duration-300">
         <Toaster position="top-right" toastOptions={{ duration: 2200 }} />
 
         {/* TABS MOBILE */}
-        <MobileTabs
-          options={productTabs}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-        />
+        <div className="md:hidden">
+          <MobileTabs
+            options={productTabs}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+          />
+        </div>
 
-        {/* PC layout giữ nguyên */}
-        <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn">
+        {/* --- PC LAYOUT (2 Columns) --- */}
+        <div className="hidden md:grid md:grid-cols-12 gap-6 p-4 animate-fadeIn h-[calc(100vh-100px)]">
+          {/* LEFT COLUMN: LIST & FILTER */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="md:col-span-5 lg:col-span-4 flex flex-col h-full space-y-4"
           >
-            <ProductForm load={load} />
+            {/* List Container */}
+            <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col p-4">
+              {/* Controls Row */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-2">
+                  {/* Grid/List Toggle */}
+                  <button
+                    onClick={() =>
+                      setListViewMode((m) => (m === "grid" ? "list" : "grid"))
+                    }
+                    className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    title={
+                      listViewMode === "grid"
+                        ? "Chuyển sang danh sách"
+                        : "Chuyển sang lưới"
+                    }
+                  >
+                    {listViewMode === "grid" ? <FiList /> : <FiGrid />}
+                  </button>
+
+                  {/* Column Toggle (Only for Grid) */}
+                  {listViewMode === "grid" && (
+                    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                      {[1, 2, 3].map((cols) => (
+                        <button
+                          key={cols}
+                          onClick={() => setGridColumns(cols)}
+                          className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
+                            gridColumns === cols
+                              ? "bg-white dark:bg-gray-600 shadow-sm text-blue-600 dark:text-blue-400"
+                              : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          }`}
+                        >
+                          {cols}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setSelected(null)}
+                  className="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  <FiPlus /> Tạo mới
+                </button>
+              </div>
+
+              {/* Product List Content */}
+              <div className="flex-1 overflow-y-auto pr-1">
+                {/* Reuse ProductList Logic inside here or pass props */}
+                <ProductList
+                  list={list}
+                  filtered={filtered}
+                  brands={brands}
+                  selected={selected}
+                  setSelected={(p) => setSelected(p)}
+                  listLoading={listLoading}
+                  setSearch={setSearch}
+                  search={search}
+                  selectedBrand={selectedBrand}
+                  setSelectedBrand={setSelectedBrand}
+                  onRestock={(p) => {
+                    setRestockProduct(p);
+                    setRestockQty("");
+                    setRestockModal(true);
+                  }}
+                  reload={load}
+                  // Pass view mode props
+                  listViewMode={listViewMode}
+                  gridColumns={gridColumns}
+                />
+              </div>
+            </div>
           </motion.div>
 
+          {/* RIGHT COLUMN: DETAIL / FORM */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card overflow-hidden"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="md:col-span-7 lg:col-span-8 h-full overflow-y-auto pr-1"
           >
-            <ProductList
-              list={list}
-              filtered={filtered}
-              brands={brands}
-              selected={selected}
-              setSelected={(p) => {
-                setSelected(p);
-                setViewMode("edit");
-              }}
-              listLoading={listLoading}
-              setSearch={setSearch}
-              search={search}
-              selectedBrand={selectedBrand}
-              setSelectedBrand={setSelectedBrand}
-              onRestock={(p) => {
-                setRestockProduct(p);
-                setRestockQty("");
-                setRestockModal(true);
-              }}
-              reload={load}
-            />
-
-            {selected && (
-              <ProductDetail
-                selected={selected}
-                setSelected={setSelected}
-                load={load}
-              />
-            )}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 min-h-full p-6">
+              {selected ? (
+                <ProductDetail
+                  selected={selected}
+                  setSelected={setSelected}
+                  load={load}
+                />
+              ) : (
+                <ProductForm load={load} />
+              )}
+            </div>
           </motion.div>
         </div>
 
-        {/* MOBILE */}
-        <div className="md:hidden pt-[75px] pb-[90px] space-y-4">
+        {/* --- MOBILE LAYOUT --- */}
+        <div className="md:hidden pt-[10px] pb-[90px] px-3 space-y-4">
           <motion.div
             key={viewMode}
             initial={{ opacity: 0, y: 10 }}
@@ -175,213 +234,91 @@ export default function Products() {
           >
             {viewMode === "list" && (
               <>
-                {/* ⭐ 4 NÚT: Toggle list/grid + 1/2/3 cột */}
-                {/* 🔥 HÀNG NÚT PRO MAX */}
-                <div className="flex justify-end gap-2 mb-4">
-                  {/* Toggle List / Grid */}
+                {/* Mobile Controls */}
+                <div className="flex justify-end gap-2 mb-4 sticky top-[60px] z-10 py-2 bg-gradient-to-b from-gray-50 via-gray-50 to-transparent dark:from-gray-900 dark:via-gray-900">
                   <motion.button
-                    whileTap={{ scale: 0.88 }}
-                    whileHover={{ scale: 1.06 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() =>
                       setListViewMode((m) => (m === "grid" ? "list" : "grid"))
                     }
-                    className="
-                    relative w-10 h-10 flex items-center justify-center
-                    rounded-xl bg-white dark:bg-gray-800
-                    shadow-sm border border-gray-200 dark:border-gray-700
-                    transition-all overflow-hidden
-                  "
+                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700"
                   >
-                    {/* Ripple */}
-                    <span className="absolute inset-0 bg-blue-200/20 dark:bg-blue-400/10 opacity-0 hover:opacity-100 transition-all"></span>
-
                     {listViewMode === "grid" ? (
-                      <FiGrid className="text-xl text-blue-600 dark:text-blue-400" />
+                      <FiGrid className="text-blue-500" />
                     ) : (
-                      <FiList className="text-xl text-blue-600 dark:text-blue-400" />
+                      <FiList className="text-blue-500" />
                     )}
                   </motion.button>
 
-                  {/* BUTTON TEMPLATE */}
-                  {((num) => (
-                    <motion.button
-                      key={num}
-                      whileTap={{ scale: 0.9 }}
-                      whileHover={{ scale: 1.05 }}
-                      onClick={() => setGridColumns(num)}
-                      className={`
-                      relative px-4 h-10 flex items-center justify-center gap-1 rounded-xl text-sm font-semibold
-                      overflow-hidden border transition-all
-                      ${
-                        gridColumns === num
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg"
-                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 shadow-sm"
-                      }
-                    `}
-                    >
-                      {/* Ripple overlay */}
-                      <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-all"></span>
-
-                      {/* ICONS đẹp hơn */}
-                      {num === 1 && (
-                        <div className="grid grid-cols-1 gap-[2px] w-3 h-4">
-                          <span className="block w-full h-full bg-current rounded"></span>
-                        </div>
-                      )}
-
-                      {num === 2 && (
-                        <div className="grid grid-cols-2 gap-[2px] w-3 h-4">
-                          <span className="block bg-current rounded"></span>
-                          <span className="block bg-current rounded"></span>
-                        </div>
-                      )}
-
-                      {num === 3 && (
-                        <div className="grid grid-cols-3 gap-[2px] w-3 h-4">
-                          <span className="block bg-current rounded"></span>
-                          <span className="block bg-current rounded"></span>
-                          <span className="block bg-current rounded"></span>
-                        </div>
-                      )}
-
-                      {num}
-                    </motion.button>
-                  ))(1)}
-
-                  {((num) => (
-                    <motion.button
-                      key={num}
-                      whileTap={{ scale: 0.9 }}
-                      whileHover={{ scale: 1.05 }}
-                      onClick={() => setGridColumns(num)}
-                      className={`
-                      relative px-4 h-10 flex items-center justify-center gap-1 rounded-xl text-sm font-semibold
-                      overflow-hidden border transition-all
-                      ${
-                        gridColumns === num
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg"
-                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 shadow-sm"
-                      }
-                    `}
-                    >
-                      <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-all"></span>
-
-                      <div className="grid grid-cols-2 gap-[2px] w-3 h-4">
-                        <span className="block bg-current rounded"></span>
-                        <span className="block bg-current rounded"></span>
-                      </div>
-
-                      {num}
-                    </motion.button>
-                  ))(2)}
-
-                  {((num) => (
-                    <motion.button
-                      key={num}
-                      whileTap={{ scale: 0.9 }}
-                      whileHover={{ scale: 1.05 }}
-                      onClick={() => setGridColumns(num)}
-                      className={`
-                      relative px-4 h-10 flex items-center justify-center gap-1 rounded-xl text-sm font-semibold
-                      overflow-hidden border transition-all
-                      ${
-                        gridColumns === num
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white border-blue-500 shadow-lg"
-                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 shadow-sm"
-                      }
-                    `}
-                    >
-                      <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-all"></span>
-
-                      <div className="grid grid-cols-3 gap-[2px] w-3 h-4">
-                        <span className="block bg-current rounded"></span>
-                        <span className="block bg-current rounded"></span>
-                        <span className="block bg-current rounded"></span>
-                      </div>
-
-                      {num}
-                    </motion.button>
-                  ))(3)}
-                </div>
-
-                {/* LIST MODE */}
-                {listViewMode === "list" && (
-                  <ProductList
-                    list={list}
-                    filtered={filtered}
-                    brands={brands}
-                    selected={selected}
-                    setSelected={(p) => {
-                      setSelected(p);
-                      setViewMode("edit");
-                    }}
-                    listLoading={listLoading}
-                    setSearch={setSearch}
-                    search={search}
-                    selectedBrand={selectedBrand}
-                    setSelectedBrand={setSelectedBrand}
-                    onRestock={(p) => {
-                      setRestockProduct(p);
-                      setRestockQty("");
-                      setRestockModal(true);
-                    }}
-                    reload={load}
-                  />
-                )}
-
-                {/* GRID MODE */}
-                {listViewMode === "grid" && (
-                  <div className={`grid gap-3 grid-cols-${gridColumns}`}>
-                    {filtered.map((p) => (
-                      <motion.div
-                        key={p.id}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => {
-                          setSelected(p);
-                          setViewMode("edit");
-                        }}
-                        className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow cursor-pointer"
+                  <div className="flex bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-1">
+                    {[1, 2].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => setGridColumns(num)}
+                        className={`w-10 h-8 rounded-lg text-sm font-bold transition-all ${
+                          gridColumns === num
+                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                            : "text-gray-400"
+                        }`}
                       >
-                        {p.cover_image ? (
-                          <img
-                            src={p.cover_image}
-                            alt=""
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-full h-32 bg-gray-200 dark:bg-gray-700 rounded-lg" />
-                        )}
-
-                        <p className="font-semibold text-sm mt-2 line-clamp-2 text-gray-900 dark:text-gray-100">
-                          {p.name}
-                        </p>
-
-                        <p className="text-xs text-gray-500 mt-1">
-                          {p.brand || "—"} • {p.sku}
-                        </p>
-
-                        <p className="text-blue-600 dark:text-green-400 font-bold mt-2">
-                          {Number(p.sale_price || 0).toLocaleString("vi-VN")}đ
-                        </p>
-                      </motion.div>
+                        {num}
+                      </button>
                     ))}
                   </div>
-                )}
+                </div>
+
+                {/* Mobile List Content */}
+                <ProductList
+                  list={list}
+                  filtered={filtered}
+                  brands={brands}
+                  selected={selected}
+                  setSelected={(p) => {
+                    setSelected(p);
+                    setViewMode("edit");
+                  }}
+                  listLoading={listLoading}
+                  setSearch={setSearch}
+                  search={search}
+                  selectedBrand={selectedBrand}
+                  setSelectedBrand={setSelectedBrand}
+                  onRestock={(p) => {
+                    setRestockProduct(p);
+                    setRestockQty("");
+                    setRestockModal(true);
+                  }}
+                  reload={load}
+                  listViewMode={listViewMode}
+                  gridColumns={gridColumns}
+                />
               </>
             )}
 
-            {viewMode === "create" && <ProductForm load={load} />}
+            {viewMode === "create" && (
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm">
+                <ProductForm load={load} />
+              </div>
+            )}
+
             {viewMode === "edit" && selected && (
-              <ProductDetail
-                selected={selected}
-                setSelected={setSelected}
-                load={load}
-              />
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className="mb-4 text-sm text-gray-500 flex items-center gap-1 hover:text-blue-600"
+                >
+                  ← Quay lại danh sách
+                </button>
+                <ProductDetail
+                  selected={selected}
+                  setSelected={setSelected}
+                  load={load}
+                />
+              </div>
             )}
           </motion.div>
         </div>
 
-        {/* MODALS giữ nguyên */}
+        {/* MODALS */}
         <RestockModal
           open={restockModal}
           setOpen={setRestockModal}
