@@ -31,6 +31,10 @@ export default function CreateOrder() {
 
   const [selectedProductId, setSelectedProductId] = useState("");
   const [items, setItems] = useState([]);
+
+  // 👇 THÊM STATE TIỀN CỌC Ở ĐÂY 👇
+  const [deposit, setDeposit] = useState(0);
+
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [createdOrder, setCreatedOrder] = useState(null);
@@ -133,6 +137,9 @@ export default function CreateOrder() {
         <OrderCart
           items={items}
           setItems={setItems}
+          // 👇 Truyền deposit xuống
+          deposit={deposit}
+          setDeposit={setDeposit}
           note={note}
           setNote={setNote}
           customerId={customerId}
@@ -214,6 +221,9 @@ export default function CreateOrder() {
             <OrderCart
               items={items}
               setItems={setItems}
+              // 👇 Truyền deposit xuống cho mobile
+              deposit={deposit}
+              setDeposit={setDeposit}
               note={note}
               setNote={setNote}
               customerId={customerId}
