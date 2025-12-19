@@ -34,7 +34,7 @@ export default function Products() {
 
   const [listLoading, setListLoading] = useState(false);
 
-  // --- VIEW STATES ---
+  // View States
   const [viewMode, setViewMode] = useState("list"); // Mobile Tabs state
   const [listViewMode, setListViewMode] = useState("list"); // 'list' | 'grid'
   const [gridColumns, setGridColumns] = useState(3); // PC Grid Columns
@@ -91,22 +91,24 @@ export default function Products() {
   ];
 
   return (
-    <div className="h-[calc(100vh-60px)] md:h-[calc(100vh-80px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex flex-col">
+    // CONTAINER CHÍNH: Dùng h-screen và overflow-hidden để khóa cuộn trang web, chỉ cuộn nội dung con
+    <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
       <Toaster position="top-center" toastOptions={{ duration: 2000 }} />
 
-      {/* ======================= PC LAYOUT ======================= */}
-      {/* 2 Cột: Trái (List/Grid) - Phải (Detail/Form) */}
-      <div className="hidden md:flex flex-1 gap-6 p-6 overflow-hidden">
-        {/* CỘT TRÁI - DANH SÁCH SẢN PHẨM */}
+      {/* ============================================================ */}
+      {/* PC LAYOUT (Giữ nguyên, chỉ ẩn trên mobile) */}
+      {/* ============================================================ */}
+      <div className="hidden md:flex flex-1 gap-6 p-6 overflow-hidden h-full">
+        {/* CỘT TRÁI */}
         <motion.div
           layout
           className="flex flex-col w-5/12 lg:w-4/12 gap-4 h-full"
         >
-          {/* Header Toolbar - Đảm bảo không bị che */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col gap-3 flex-shrink-0 z-10 relative">
+          {/* Header Toolbar */}
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col gap-3 flex-shrink-0">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                📦 Kho hàng{" "}
+                📦 Kho{" "}
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
                   {list.length}
                 </span>
@@ -118,8 +120,7 @@ export default function Products() {
                 <FiPlus /> Mới
               </button>
             </div>
-
-            {/* Search & View Switcher */}
+            {/* Search */}
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
@@ -130,32 +131,26 @@ export default function Products() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-
-              {/* Nút chuyển đổi Grid/List - Sửa lại class để đảm bảo hiển thị */}
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 gap-1 flex-shrink-0">
                 <button
                   onClick={() => setListViewMode("list")}
-                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${listViewMode === "list" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Danh sách"
+                  className={`p-1.5 rounded-md transition-all ${listViewMode === "list" ? "bg-white shadow text-blue-600" : "text-gray-400"}`}
                 >
                   <FiList size={18} />
                 </button>
                 <button
                   onClick={() => setListViewMode("grid")}
-                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${listViewMode === "grid" ? "bg-white shadow text-blue-600" : "text-gray-400 hover:text-gray-600"}`}
-                  title="Lưới"
+                  className={`p-1.5 rounded-md transition-all ${listViewMode === "grid" ? "bg-white shadow text-blue-600" : "text-gray-400"}`}
                 >
                   <FiGrid size={18} />
                 </button>
               </div>
             </div>
           </div>
-
-          {/* List Container - Scroll độc lập */}
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative z-0">
+          {/* List */}
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto pr-1 custom-scrollbar p-3">
               <ProductList
-                // Data props
                 filtered={filtered}
                 selected={selected}
                 setSelected={setSelected}
@@ -165,15 +160,13 @@ export default function Products() {
                   setRestockQty("");
                   setRestockModal(true);
                 }}
-                // View props
                 viewType={listViewMode}
                 gridCols={listViewMode === "grid" ? 2 : 1}
               />
             </div>
           </div>
         </motion.div>
-
-        {/* CỘT PHẢI - CHI TIẾT */}
+        {/* CỘT PHẢI */}
         <motion.div
           layout
           className="flex-1 h-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 dark:border-gray-700 overflow-hidden relative"
@@ -192,25 +185,26 @@ export default function Products() {
         </motion.div>
       </div>
 
-      {/* ======================= MOBILE LAYOUT ======================= */}
-      <div className="md:hidden flex flex-col h-full overflow-hidden relative bg-gray-50 dark:bg-gray-900 pb-[80px]">
-        {" "}
-        {/* Thêm padding-bottom để tránh bị che bởi thanh điều hướng dưới nếu có */}
+      {/* ============================================================ */}
+      {/* MOBILE LAYOUT (Cấu trúc Flexbox dọc - Fix lỗi đè tuyệt đối) */}
+      {/* ============================================================ */}
+      <div className="md:hidden flex flex-col h-full relative">
+        {/* 1. HEADER CỐ ĐỊNH (Flex Item - Không dùng sticky để tránh lỗi z-index) */}
         {viewMode === "list" && (
-          <>
-            {/* 1. HEADER (Static) */}
-            <div className="px-4 pt-4 pb-2 bg-white dark:bg-gray-900 z-30 relative">
+          <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-30 relative shadow-sm">
+            <div className="px-4 py-3 space-y-3">
+              {/* Row 1: Title & Buttons */}
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                  Kho hàng
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white truncate pr-2">
+                  📦 Kho ({list.length})
                 </h2>
-                <div className="flex gap-2">
-                  {/* Toggle Grid/List Mobile - Button to rõ ràng */}
+                <div className="flex gap-2 flex-shrink-0">
+                  {/* Nút chuyển Grid/List */}
                   <button
                     onClick={() =>
                       setListViewMode((m) => (m === "grid" ? "list" : "grid"))
                     }
-                    className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full text-blue-600 dark:text-blue-400 active:scale-90 transition-transform shadow-sm"
+                    className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg text-blue-600 dark:text-blue-400 active:scale-95 transition-transform border border-gray-200 dark:border-gray-700"
                   >
                     {listViewMode === "grid" ? (
                       <FiList size={20} />
@@ -218,28 +212,23 @@ export default function Products() {
                       <FiGrid size={20} />
                     )}
                   </button>
-                  {/* Add Button */}
+                  {/* Nút tạo mới */}
                   <button
                     onClick={() => setViewMode("create")}
-                    className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/30 active:scale-90 transition-transform"
+                    className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-lg shadow-md active:scale-95 transition-transform"
                   >
                     <FiPlus size={22} />
                   </button>
                 </div>
               </div>
-              <div className="text-sm text-gray-500 mt-1">
-                Tổng: {list.length} sản phẩm
-              </div>
-            </div>
 
-            {/* 2. SEARCH BAR (Sticky) - Fix lỗi đè */}
-            <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 px-4 py-3 shadow-sm border-b border-gray-100 dark:border-gray-800">
+              {/* Row 2: Search & Filter */}
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
                   <input
-                    className="w-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Tìm tên, mã SKU..."
+                    className="w-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 border border-transparent focus:border-blue-500 transition-all"
+                    placeholder="Tìm tên, SKU..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -247,7 +236,7 @@ export default function Products() {
                 <select
                   value={selectedBrand}
                   onChange={(e) => setSelectedBrand(e.target.value)}
-                  className="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-xl text-xs font-bold outline-none max-w-[100px] truncate"
+                  className="bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded-xl text-xs font-bold outline-none border border-transparent focus:border-blue-500 max-w-[90px] truncate"
                 >
                   <option value="">Hãng</option>
                   {brands.map((b) => (
@@ -258,9 +247,15 @@ export default function Products() {
                 </select>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* 3. CONTENT AREA */}
-            <div className="flex-1 overflow-y-auto px-3 py-3 pb-24 z-0">
+        {/* 2. BODY CUỘN ĐỘC LẬP (Flex Grow) */}
+        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 relative w-full">
+          <div className="p-3 pb-24">
+            {" "}
+            {/* Padding bottom để tránh bị Tab Bar che */}
+            {viewMode === "list" && (
               <ProductList
                 filtered={filtered}
                 selected={selected}
@@ -277,10 +272,11 @@ export default function Products() {
                 viewType={listViewMode}
                 gridCols={2}
               />
-            </div>
-          </>
-        )}
-        {/* FULLSCREEN OVERLAYS (Create/Edit) */}
+            )}
+          </div>
+        </div>
+
+        {/* 3. FULLSCREEN OVERLAYS (Create/Edit - Phủ kín màn hình với z-index cao nhất) */}
         <AnimatePresence>
           {viewMode === "create" && (
             <motion.div
@@ -288,9 +284,9 @@ export default function Products() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col"
+              className="absolute inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col"
             >
-              <div className="flex items-center gap-3 p-4 border-b bg-white dark:bg-gray-800 shadow-sm pt-safe">
+              <div className="flex-shrink-0 flex items-center gap-3 p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
                 <button
                   onClick={() => setViewMode("list")}
                   className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
@@ -311,9 +307,9 @@ export default function Products() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col"
+              className="absolute inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col"
             >
-              <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 shadow-sm pt-safe">
+              <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setViewMode("list")}
@@ -325,10 +321,9 @@ export default function Products() {
                     {selected.name}
                   </h3>
                 </div>
-                {/* Nút đóng */}
                 <button
                   onClick={() => setViewMode("list")}
-                  className="p-2 text-gray-400 hover:text-gray-600"
+                  className="p-2 text-gray-500"
                 >
                   <FiX size={24} />
                 </button>
@@ -343,7 +338,9 @@ export default function Products() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="md:hidden">
+
+        {/* 4. BOTTOM TABS (Fixed Bottom) */}
+        <div className="flex-shrink-0 z-40 bg-white border-t border-gray-200 dark:border-gray-800">
           <MobileTabs
             options={productTabs}
             viewMode={viewMode}
@@ -352,7 +349,7 @@ export default function Products() {
         </div>
       </div>
 
-      {/* MODALS Global */}
+      {/* MODALS */}
       <RestockModal
         open={restockModal}
         setOpen={setRestockModal}
