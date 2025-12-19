@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
 import StatCards from "./StatCards";
 import DashboardCharts from "./DashboardCharts";
+import { FiRefreshCw } from "react-icons/fi"; // Thêm icon refresh
 
 export default function Dashboard() {
   const [stats, setStats] = useState({});
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ... (Phần logic load dữ liệu giữ nguyên như cũ)
   const load = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
@@ -57,18 +59,8 @@ export default function Dashboard() {
         }
       });
       const months = [
-        "Th1",
-        "Th2",
-        "Th3",
-        "Th4",
-        "Th5",
-        "Th6",
-        "Th7",
-        "Th8",
-        "Th9",
-        "Th10",
-        "Th11",
-        "Th12",
+        "Th1", "Th2", "Th3", "Th4", "Th5", "Th6",
+        "Th7", "Th8", "Th9", "Th10", "Th11", "Th12",
       ];
       const yearlyData = months.map((m, i) => ({
         month: m,
@@ -92,11 +84,10 @@ export default function Dashboard() {
       setYearlyData(yearlyData);
       setTopProducts(topProducts);
 
-      if (!silent) notify.success("📊 Dashboard đã tải xong!");
-      else notify.info("🔄 Dashboard tự động làm mới");
+      if (!silent) notify.success("Dashboard cập nhật thành công!");
     } catch (err) {
-      console.error("❌ Dashboard error:", err);
-      notify.error("Không thể tải dữ liệu Dashboard!");
+      console.error("Dashboard error:", err);
+      notify.error("Lỗi tải dữ liệu Dashboard");
     } finally {
       if (!silent) setLoading(false);
     }
@@ -108,125 +99,72 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <motion.div
-          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full"
-        />
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="mt-4 text-gray-500 font-medium text-sm animate-pulse">Đang tải dữ liệu...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="relative min-h-screen overflow-hidden"
-    >
-      {/* Background Animation */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
-        animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
-        transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-        style={{ backgroundSize: "400% 400%", zIndex: -1 }}
-      />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 lg:p-10 relative overflow-hidden">
 
-      <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 relative z-10">
-        {/* ⭐⭐⭐ WELCOME + LOGO ⭐⭐⭐ */}
-        {/* WELCOME BOX */}
-        <div className="relative flex flex-col items-center text-center mt-2 mb-6">
-          {/* SHIMMER BORDER */}
-          <div
-            className="absolute -inset-1 rounded-2xl opacity-80 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)",
-              backgroundSize: "200% 100%",
-              animation: "shimmerBorder 2.2s linear infinite",
-              filter: "blur(6px)",
-            }}
-          />
+      {/* Background Blobs (Abstract shapes) */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-200/40 rounded-full blur-[120px] mix-blend-multiply filter dark:mix-blend-normal dark:bg-purple-900/20"></div>
+          <div className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] bg-blue-200/40 rounded-full blur-[100px] mix-blend-multiply filter dark:mix-blend-normal dark:bg-blue-900/20"></div>
+          <div className="absolute bottom-[-10%] left-[20%] w-[45%] h-[45%] bg-pink-200/40 rounded-full blur-[120px] mix-blend-multiply filter dark:mix-blend-normal dark:bg-pink-900/20"></div>
+      </div>
 
-          {/* MAIN BOX */}
-          <div className="relative bg-white/40 dark:bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/30 flex flex-col items-center">
-            {/* LOGO */}
-            <motion.img
-              src="/icons/icon-192x192.png"
-              alt="App Logo"
-              className="w-20 h-20 object-contain drop-shadow-xl rounded-full"
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6 }}
-            />
+      <div className="relative z-10 max-w-7xl mx-auto space-y-8">
 
-            {/* ANIMATED TEXT */}
-            <motion.h2
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mt-3 text-3xl font-extrabold tracking-wide"
-              style={{
-                background:
-                  "linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #f59e0b, #2563eb)",
-                backgroundSize: "300% 300%",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-                animation:
-                  "textGradientMove 5s ease infinite, textWave 2s ease-in-out infinite",
-                display: "inline-block",
-              }}
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              className="text-4xl font-black text-gray-800 dark:text-white tracking-tight"
             >
-              Welcome, RinChan ✨
-            </motion.h2>
-
-            {/* SUBTEXT */}
-            <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
-              Chúc bạn một ngày làm việc tràn đầy năng lượng! ⚡
-            </p>
+              Tổng quan <span className="text-blue-600">.</span>
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              transition={{ delay: 0.2 }}
+              className="text-gray-500 dark:text-gray-400 mt-2 font-medium"
+            >
+              Chào mừng trở lại, RinChan! Hôm nay bạn có tin tốt lành nào không? 🚀
+            </motion.p>
           </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => load(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-xl shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 transition-all"
+          >
+            <FiRefreshCw className={loading ? "animate-spin" : ""} />
+            <span>Làm mới</span>
+          </motion.button>
         </div>
 
-        {/* KEYFRAMES (bắt buộc để animation hoạt động) */}
-        <style>
-          {`
-        @keyframes textWave {
-          0%   { transform: translateY(0); }
-          50%  { transform: translateY(-6px); }
-          100% { transform: translateY(0); }
-        }
+        {/* STATS CARDS SECTION */}
+        <StatCards stats={stats} />
 
-        @keyframes textGradientMove {
-          0%   { background-position: 0% 50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        @keyframes shimmerBorder {
-          0%   { background-position: -150% 0; }
-          100% { background-position: 150% 0; }
-        }
-        `}
-        </style>
-
-        {/* Title */}
-        <motion.h1
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 drop-shadow"
-        >
-          🚀 Tổng quan hoạt động
-        </motion.h1>
-
-        <StatCards stats={stats} topProducts={topProducts} />
-        <DashboardCharts
-          chartData={chartData}
-          yearlyData={yearlyData}
-          topProducts={topProducts}
+        {/* CHARTS SECTION */}
+        <DashboardCharts 
+          chartData={chartData} 
+          yearlyData={yearlyData} 
+          topProducts={topProducts} 
         />
+
       </div>
-    </motion.div>
+    </div>
   );
 }
