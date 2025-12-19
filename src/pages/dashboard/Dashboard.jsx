@@ -4,7 +4,7 @@ import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
 import StatCards from "./StatCards";
 import DashboardCharts from "./DashboardCharts";
-import { FiRefreshCw } from "react-icons/fi"; // Thêm icon refresh
+import { FiRefreshCw, FiBell } from "react-icons/fi"; // Thêm icon chuông thông báo
 
 export default function Dashboard() {
   const [stats, setStats] = useState({});
@@ -13,7 +13,6 @@ export default function Dashboard() {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ... (Phần logic load dữ liệu giữ nguyên như cũ)
   const load = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
@@ -59,8 +58,18 @@ export default function Dashboard() {
         }
       });
       const months = [
-        "Th1", "Th2", "Th3", "Th4", "Th5", "Th6",
-        "Th7", "Th8", "Th9", "Th10", "Th11", "Th12",
+        "Th1",
+        "Th2",
+        "Th3",
+        "Th4",
+        "Th5",
+        "Th6",
+        "Th7",
+        "Th8",
+        "Th9",
+        "Th10",
+        "Th11",
+        "Th12",
       ];
       const yearlyData = months.map((m, i) => ({
         month: m,
@@ -84,10 +93,10 @@ export default function Dashboard() {
       setYearlyData(yearlyData);
       setTopProducts(topProducts);
 
-      if (!silent) notify.success("Dashboard cập nhật thành công!");
+      if (!silent) notify.success("📊 Dashboard đã cập nhật!");
     } catch (err) {
-      console.error("Dashboard error:", err);
-      notify.error("Lỗi tải dữ liệu Dashboard");
+      console.error("❌ Dashboard error:", err);
+      notify.error("Không thể tải dữ liệu Dashboard!");
     } finally {
       if (!silent) setLoading(false);
     }
@@ -99,72 +108,103 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <div className="mt-4 text-gray-500 font-medium text-sm animate-pulse">Đang tải dữ liệu...</div>
-        </div>
+      <div className="flex items-center justify-center h-[80vh]">
+        <motion.div
+          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+          className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full"
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 lg:p-10 relative overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="relative min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-900"
+    >
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-900/20 pointer-events-none" />
 
-      {/* Background Blobs (Abstract shapes) */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-200/40 rounded-full blur-[120px] mix-blend-multiply filter dark:mix-blend-normal dark:bg-purple-900/20"></div>
-          <div className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] bg-blue-200/40 rounded-full blur-[100px] mix-blend-multiply filter dark:mix-blend-normal dark:bg-blue-900/20"></div>
-          <div className="absolute bottom-[-10%] left-[20%] w-[45%] h-[45%] bg-pink-200/40 rounded-full blur-[120px] mix-blend-multiply filter dark:mix-blend-normal dark:bg-pink-900/20"></div>
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto space-y-8">
-
-        {/* HEADER SECTION */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <motion.h1 
-              initial={{ opacity: 0, x: -20 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              className="text-4xl font-black text-gray-800 dark:text-white tracking-tight"
-            >
-              Tổng quan <span className="text-blue-600">.</span>
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              transition={{ delay: 0.2 }}
-              className="text-gray-500 dark:text-gray-400 mt-2 font-medium"
-            >
-              Chào mừng trở lại, RinChan! Hôm nay bạn có tin tốt lành nào không? 🚀
-            </motion.p>
+      <div className="p-4 sm:p-6 space-y-6 relative z-10 max-w-7xl mx-auto">
+        {/* ⭐⭐⭐ HEADER BAR: LOGO & ACTIONS ⭐⭐⭐ */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+          {/* LOGO AREA */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-2 flex items-center justify-center">
+              <img
+                src="/icons/icon-192x192.png"
+                alt="Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-gray-800 dark:text-white tracking-tight leading-none">
+                ChiChiLu<span className="text-blue-500">.</span>
+              </h1>
+              <p className="text-xs text-gray-500 font-medium">
+                Kho Hàng & Đơn Vận
+              </p>
+            </div>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => load(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold rounded-xl shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 transition-all"
-          >
-            <FiRefreshCw className={loading ? "animate-spin" : ""} />
-            <span>Làm mới</span>
-          </motion.button>
+          {/* ACTIONS */}
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button className="p-2.5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 text-gray-500 hover:text-blue-600 transition-colors relative">
+              <FiBell size={20} />
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+            </button>
+
+            <button
+              onClick={() => load(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all font-semibold text-sm"
+            >
+              <FiRefreshCw className={loading ? "animate-spin" : ""} />
+              <span>Làm mới</span>
+            </button>
+          </div>
         </div>
 
-        {/* STATS CARDS SECTION */}
-        <StatCards stats={stats} />
+        {/* ⭐ WELCOME MESSAGE (Gọn gàng hơn) */}
+        {/* ⭐ WELCOME MESSAGE (Font uốn lượn) */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-white/10 skew-x-12 transform origin-bottom-left" />
+          <div className="relative z-10">
+            {/* Áp dụng font Dancing Script ở đây */}
+            <h2 className="text-3xl sm:text-5xl font-bold mb-2 font-['Dancing_Script'] tracking-wide">
+              Xin chào, RinChan! 👋
+            </h2>
+            <p className="text-blue-100 font-medium text-sm sm:text-base">
+              Hôm nay bạn có tin tốt lành nào không? Cùng kiểm tra chỉ số nhé.
+            </p>
+          </div>
+        </motion.div>
 
-        {/* CHARTS SECTION */}
-        <DashboardCharts 
-          chartData={chartData} 
-          yearlyData={yearlyData} 
-          topProducts={topProducts} 
+        {/* --- MAIN CONTENT --- */}
+
+        {/* Title Section */}
+        <div className="flex items-center gap-2 mt-4">
+          <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+            Tổng quan hoạt động
+          </h3>
+        </div>
+
+        <StatCards stats={stats} topProducts={topProducts} />
+
+        <DashboardCharts
+          chartData={chartData}
+          yearlyData={yearlyData}
+          topProducts={topProducts}
         />
-
       </div>
-    </div>
+    </motion.div>
   );
 }
