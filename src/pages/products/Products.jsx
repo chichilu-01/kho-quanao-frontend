@@ -35,9 +35,9 @@ export default function Products() {
   const [listLoading, setListLoading] = useState(false);
 
   // View States
-  const [viewMode, setViewMode] = useState("list"); // Mobile Tabs
+  const [viewMode, setViewMode] = useState("list");
   const [listViewMode, setListViewMode] = useState("list"); // 'list' | 'grid'
-  const [gridColumns, setGridColumns] = useState(3); // PC Grid Columns
+  const [gridColumns, setGridColumns] = useState(3);
 
   // Load Data
   const load = async (selectId, q = "") => {
@@ -66,7 +66,7 @@ export default function Products() {
     load();
   }, []);
 
-  // Filter Logic
+  // Filter
   const brands = useMemo(
     () => [...new Set(list.map((p) => p.brand).filter(Boolean))],
     [list],
@@ -94,14 +94,13 @@ export default function Products() {
     <div className="h-[calc(100vh-60px)] md:h-[calc(100vh-80px)] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex flex-col">
       <Toaster position="top-center" toastOptions={{ duration: 2000 }} />
 
-      {/* ======================= PC LAYOUT ======================= */}
+      {/* ================= PC LAYOUT ================= */}
       <div className="hidden md:flex flex-1 gap-6 p-6 overflow-hidden">
-        {/* CỘT TRÁI */}
+        {/* CỘT TRÁI: LIST */}
         <motion.div
           layout
           className="flex flex-col w-5/12 lg:w-4/12 gap-4 h-full"
         >
-          {/* Header Toolbar */}
           <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col gap-3 flex-shrink-0">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -117,8 +116,6 @@ export default function Products() {
                 <FiPlus /> Mới
               </button>
             </div>
-
-            {/* Search, Filter & View Switcher */}
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
@@ -129,20 +126,6 @@ export default function Products() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              {/* Brand Select (PC) */}
-              <select
-                value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value)}
-                className="bg-gray-100 dark:bg-gray-700 px-2 py-2 rounded-lg text-sm font-medium outline-none border-none max-w-[100px] truncate cursor-pointer"
-              >
-                <option value="">Hãng</option>
-                {brands.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-
               <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 gap-1 flex-shrink-0">
                 <button
                   onClick={() => setListViewMode("list")}
@@ -160,7 +143,6 @@ export default function Products() {
             </div>
           </div>
 
-          {/* List Container */}
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden relative">
             <div className="absolute inset-0 overflow-y-auto pr-1 custom-scrollbar p-3">
               <ProductList
@@ -180,7 +162,7 @@ export default function Products() {
           </div>
         </motion.div>
 
-        {/* CỘT PHẢI */}
+        {/* CỘT PHẢI: DETAIL */}
         <motion.div
           layout
           className="flex-1 h-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 dark:border-gray-700 overflow-hidden relative"
@@ -199,86 +181,96 @@ export default function Products() {
         </motion.div>
       </div>
 
-      {/* ======================= MOBILE LAYOUT ======================= */}
-      <div className="md:hidden flex flex-col h-full overflow-hidden relative">
-        {/* HEADER MOBILE (Fixed Top) */}
+      {/* ================= MOBILE LAYOUT ================= */}
+      <div className="md:hidden flex flex-col h-full overflow-hidden relative bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
-          <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 space-y-3 shadow-sm z-20">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-gray-800 dark:text-white">
-                📦 Kho ({list.length})
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    setListViewMode((m) => (m === "grid" ? "list" : "grid"))
-                  }
-                  className="w-9 h-9 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg text-blue-600 active:scale-90 transition-transform"
-                >
-                  {listViewMode === "grid" ? (
-                    <FiList size={20} />
-                  ) : (
-                    <FiGrid size={20} />
-                  )}
-                </button>
-                <button
-                  onClick={() => setViewMode("create")}
-                  className="w-9 h-9 flex items-center justify-center bg-blue-600 text-white rounded-lg shadow-lg active:scale-90 transition-transform"
-                >
-                  <FiPlus size={20} />
-                </button>
+          <>
+            {/* 1. HEADER (Static - Cuộn đi mất) */}
+            {/* Phần này chứa Tiêu đề + Nút View. Nó sẽ KHÔNG dính lại để tiết kiệm chỗ */}
+            <div className="px-4 pt-4 pb-2 bg-white dark:bg-gray-900">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  Kho hàng
+                </h2>
+                <div className="flex gap-2">
+                  {/* Toggle Grid/List */}
+                  <button
+                    onClick={() =>
+                      setListViewMode((m) => (m === "grid" ? "list" : "grid"))
+                    }
+                    className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full text-blue-600 dark:text-blue-400 active:scale-90 transition-transform"
+                  >
+                    {listViewMode === "grid" ? (
+                      <FiList size={20} />
+                    ) : (
+                      <FiGrid size={20} />
+                    )}
+                  </button>
+                  {/* Add Button */}
+                  <button
+                    onClick={() => setViewMode("create")}
+                    className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/30 active:scale-90 transition-transform"
+                  >
+                    <FiPlus size={22} />
+                  </button>
+                </div>
+              </div>
+              <div className="text-sm text-gray-500 mt-1">
+                Tổng: {list.length} sản phẩm
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
-                <input
-                  className="w-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Tìm sản phẩm..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+            {/* 2. SEARCH BAR (Sticky - Dính lại khi cuộn) */}
+            {/* ✅ FIX LỖI ĐÈ: Thêm z-40 và background đặc để che nội dung trôi dưới */}
+            <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 px-4 py-3 shadow-sm border-b border-gray-100 dark:border-gray-800">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
+                  <input
+                    className="w-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Tìm tên, mã SKU..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <select
+                  value={selectedBrand}
+                  onChange={(e) => setSelectedBrand(e.target.value)}
+                  className="bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-xl text-xs font-bold outline-none max-w-[100px] truncate"
+                >
+                  <option value="">Hãng</option>
+                  {brands.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <select
-                value={selectedBrand}
-                onChange={(e) => setSelectedBrand(e.target.value)}
-                className="bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded-xl text-xs font-bold outline-none max-w-[80px] truncate"
-              >
-                <option value="">Hãng</option>
-                {brands.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
             </div>
-          </div>
+
+            {/* 3. CONTENT AREA */}
+            <div className="flex-1 overflow-y-auto px-3 py-3 pb-24">
+              <ProductList
+                filtered={filtered}
+                selected={selected}
+                setSelected={(p) => {
+                  setSelected(p);
+                  setViewMode("edit");
+                }}
+                listLoading={listLoading}
+                onRestock={(p) => {
+                  setRestockProduct(p);
+                  setRestockQty("");
+                  setRestockModal(true);
+                }}
+                viewType={listViewMode}
+                gridCols={2}
+              />
+            </div>
+          </>
         )}
 
-        {/* CONTENT AREA */}
-        <div className="flex-1 overflow-y-auto p-3 pb-24 bg-gray-50 dark:bg-gray-900">
-          {viewMode === "list" && (
-            <ProductList
-              filtered={filtered}
-              selected={selected}
-              setSelected={(p) => {
-                setSelected(p);
-                setViewMode("edit");
-              }}
-              listLoading={listLoading}
-              onRestock={(p) => {
-                setRestockProduct(p);
-                setRestockQty("");
-                setRestockModal(true);
-              }}
-              viewType={listViewMode}
-              gridCols={2}
-            />
-          )}
-        </div>
-
-        {/* FULLSCREEN OVERLAYS (Mobile) */}
+        {/* FULLSCREEN OVERLAYS (Create/Edit) */}
         <AnimatePresence>
           {viewMode === "create" && (
             <motion.div
@@ -288,14 +280,14 @@ export default function Products() {
               transition={{ type: "spring", damping: 25 }}
               className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col"
             >
-              <div className="flex items-center gap-3 p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
+              <div className="flex items-center gap-3 p-4 border-b bg-white dark:bg-gray-800 shadow-sm pt-safe">
                 <button
                   onClick={() => setViewMode("list")}
-                  className="p-2 bg-gray-100 rounded-full"
+                  className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
                 >
                   <FiChevronLeft />
                 </button>
-                <h3 className="font-bold text-lg">Thêm sản phẩm mới</h3>
+                <h3 className="font-bold text-lg">Thêm sản phẩm</h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4">
                 <ProductForm load={load} />
@@ -311,11 +303,11 @@ export default function Products() {
               transition={{ type: "spring", damping: 25 }}
               className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col"
             >
-              <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
+              <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-800 shadow-sm pt-safe">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setViewMode("list")}
-                    className="p-2 bg-gray-100 rounded-full"
+                    className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"
                   >
                     <FiChevronLeft />
                   </button>
@@ -323,8 +315,12 @@ export default function Products() {
                     {selected.name}
                   </h3>
                 </div>
-                <button onClick={() => setViewMode("list")}>
-                  <FiX size={24} className="text-gray-400" />
+                {/* Nút đóng */}
+                <button
+                  onClick={() => setViewMode("list")}
+                  className="p-2 text-gray-400 hover:text-gray-600"
+                >
+                  <FiX size={24} />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4">
