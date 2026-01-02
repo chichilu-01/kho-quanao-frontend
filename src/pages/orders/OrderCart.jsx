@@ -148,7 +148,7 @@ export default function OrderCart({
       setItems([]);
       setNote("");
       setTrackingCode("");
-      setDeposit(0);
+      setDeposit("");
 
       notify.success(`✅ Đơn hàng #${jsonOrder.id} đã được tạo thành công!`);
     } catch (err) {
@@ -406,11 +406,17 @@ export default function OrderCart({
           </span>
           <div className="w-32 relative">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={deposit}
-              onChange={(e) => setDeposit(Number(e.target.value))}
-              className="w-full text-right font-bold text-green-600 border-b border-gray-200 focus:border-green-500 outline-none py-0.5 bg-transparent pr-4"
               placeholder="0"
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, "");
+                setDeposit(raw);
+              }}
+              className="w-full text-right font-bold text-green-600
+                         border-b border-gray-200 focus:border-green-500
+                         outline-none py-0.5 bg-transparent pr-4"
             />
             <span className="absolute right-0 top-0.5 text-xs text-gray-400 pointer-events-none">
               đ
