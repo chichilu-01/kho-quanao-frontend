@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../../api/client"; // Đảm bảo đường dẫn đúng
+import { api } from "../../api/client";
 import {
   FiTrendingUp,
   FiUsers,
@@ -36,23 +36,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Giả lập load API (Bạn hãy thay bằng call API thực tế của bạn)
     const fetchData = async () => {
       try {
-        // Gọi API lấy orders, customers, products...
-        // Ở đây mình ví dụ gọi API orders để tính toán
         const orders = await api("/orders");
         const customers = await api("/customers");
         const products = await api("/products");
 
-        // 1️⃣ SỬA LỖI CỘNG CHUỖI DOANH THU [QUAN TRỌNG]
-        // Phải ép kiểu Number() trước khi cộng
+        // 1️⃣ SỬA LỖI CỘNG CHUỖI DOANH THU
         const revenue = orders.reduce(
           (sum, o) => sum + Number(o.total || 0),
           0,
         );
 
-        // Giả lập dữ liệu biểu đồ (Thực tế bạn lấy từ API thống kê theo ngày)
+        // Giả lập dữ liệu biểu đồ
         const chartData = [
           { name: "T2", uv: 4000 },
           { name: "T3", uv: 3000 },
@@ -68,8 +64,8 @@ export default function Dashboard() {
           totalOrders: orders.length,
           totalCustomers: customers.length,
           totalProducts: products.length,
-          recentOrders: orders.slice(0, 5), // Lấy 5 đơn mới nhất
-          topProducts: products.slice(0, 4), // Lấy 4 sp đầu (Demo)
+          recentOrders: orders.slice(0, 5),
+          topProducts: products.slice(0, 4),
           chartData,
         });
       } catch (error) {
@@ -82,7 +78,7 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // Skeleton Loading khi đang tải
+  // Skeleton Loading
   if (loading) {
     return (
       <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
@@ -94,7 +90,7 @@ export default function Dashboard() {
     );
   }
 
-  // Component Thẻ Chỉ Số (Stat Card)
+  // Component Thẻ Chỉ Số
   const StatCard = ({ title, value, icon: Icon, color, trend }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -104,8 +100,6 @@ export default function Dashboard() {
       <div>
         <p className="text-gray-500 text-sm font-medium mb-1">{title}</p>
         <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
-
-        {/* Chỉ số tăng giảm giả lập */}
         <div
           className={`flex items-center gap-1 text-xs font-bold mt-2 ${trend > 0 ? "text-green-500" : "text-red-500"}`}
         >
@@ -113,14 +107,11 @@ export default function Dashboard() {
           <span>{Math.abs(trend)}% so với tháng trước</span>
         </div>
       </div>
-
       <div
         className={`p-3 rounded-xl ${color} text-white shadow-lg transform group-hover:scale-110 transition-transform`}
       >
         <Icon size={24} />
       </div>
-
-      {/* Trang trí nền mờ */}
       <div
         className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full opacity-10 ${color}`}
       ></div>
@@ -129,6 +120,22 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-6 space-y-6 pb-24 md:pb-10">
+      {/* 🆕 LOGO APP (CHỈ HIỆN TRÊN MOBILE) */}
+      {/* md:hidden nghĩa là ẩn khi màn hình từ ipad/laptop trở lên */}
+      <div className="md:hidden flex flex-col items-center justify-center mb-2 pt-2">
+        {/* 👇 BẠN THAY LINK LOGO CỦA BẠN VÀO DÒNG DƯỚI NHÉ 👇 */}
+        <img
+          src="/icons/icon-192x192.png"
+          alt="App Logo"
+          className="h-16 w-auto object-contain drop-shadow-sm"
+          onError={(e) => (e.target.style.display = "none")} // Ẩn nếu lỗi ảnh
+        />
+        {/* Tên shop dưới logo (nếu muốn) */}
+        <span className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">
+          Kho Quần Áo ChiChi
+        </span>
+      </div>
+
       {/* 1. HEADER: Lời chào */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -144,7 +151,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* 2. GRID THỐNG KÊ (Responsive: 1 cột mobile -> 4 cột PC) */}
+      {/* 2. GRID THỐNG KÊ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
           title="Tổng Doanh Thu"
@@ -176,9 +183,9 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* 3. BIỂU ĐỒ & TOP SẢN PHẨM (Responsive: Xếp chồng mobile -> Chia cột PC) */}
+      {/* 3. BIỂU ĐỒ & TOP SẢN PHẨM */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Biểu đồ doanh thu (Chiếm 2/3 PC) */}
+        {/* Biểu đồ doanh thu */}
         <div className="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold text-gray-800 flex items-center gap-2">
@@ -237,7 +244,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Top Sản Phẩm (Chiếm 1/3 PC) */}
+        {/* Top Sản Phẩm */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
           <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
             🏆 Top Sản Phẩm
@@ -248,7 +255,6 @@ export default function Dashboard() {
                 key={p.id}
                 className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
               >
-                {/* Huy chương cho Top 3 */}
                 <div
                   className={`
                   w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-bold text-white
@@ -262,6 +268,7 @@ export default function Dashboard() {
                   src={p.cover_image || p.image || "/no-image.png"}
                   className="w-10 h-10 rounded-lg object-cover bg-gray-100"
                   alt=""
+                  onError={(e) => (e.target.src = "/no-image.png")}
                 />
 
                 <div className="flex-1 min-w-0">
