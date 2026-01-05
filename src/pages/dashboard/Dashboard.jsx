@@ -120,34 +120,41 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-6 space-y-6 pb-24 md:pb-10">
-      {/* 🆕 LOGO APP (CHỈ HIỆN TRÊN MOBILE) */}
-      {/* md:hidden nghĩa là ẩn khi màn hình từ ipad/laptop trở lên */}
-      <div className="md:hidden flex flex-col items-center justify-center mb-2 pt-2">
-        {/* 👇 BẠN THAY LINK LOGO CỦA BẠN VÀO DÒNG DƯỚI NHÉ 👇 */}
-        <img
-          src="/icons/icon-192x192.png"
-          alt="App Logo"
-          className="h-16 w-auto object-contain drop-shadow-sm"
-          onError={(e) => (e.target.style.display = "none")} // Ẩn nếu lỗi ảnh
-        />
-        {/* Tên shop dưới logo (nếu muốn) */}
-        <span className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">
-          Kho Quần Áo ChiChi
+      {/* 🆕 LOGO APP & TÊN SHOP (Gradient Gold - Hiện đại) */}
+      <div className="md:hidden flex flex-col items-center justify-center mb-6 pt-4">
+        <div className="relative">
+          {/* Hiệu ứng hào quang (Glow) phía sau logo */}
+          <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30 animate-pulse"></div>
+
+          <img
+            src="/icons/icon-192x192.png"
+            alt="App Logo"
+            className="relative h-20 w-auto object-contain drop-shadow-xl transform transition-transform duration-300"
+            onError={(e) => (e.target.style.display = "none")}
+          />
+        </div>
+
+        {/* Tên Shop: Chữ màu loang (Gradient Text) */}
+        <span className="mt-4 text-sm font-extrabold uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-orange-600 drop-shadow-sm">
+          Kho Quần Áo Rinchan
         </span>
       </div>
 
-      {/* 1. HEADER: Lời chào */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* 1. HEADER: Lời chào (Đã nâng cấp UI) */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Xin chào, Admin! 👋
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+            Xin chào, Admin!
+            <span className="animate-bounce">👋</span>
           </h1>
-          <p className="text-gray-500 text-sm">
-            Đây là tình hình kinh doanh hôm nay của bạn.
+          <p className="text-gray-500 text-sm mt-1 font-medium">
+            Hôm nay là một ngày tuyệt vời để chốt đơn! 🚀
           </p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2">
-          <FiActivity /> Báo cáo chi tiết
+
+        {/* Nút màu tối (Dark theme) cho sang trọng */}
+        <button className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-gray-500/20 transition-all flex items-center gap-2">
+          <FiActivity /> Xem báo cáo
         </button>
       </div>
 
