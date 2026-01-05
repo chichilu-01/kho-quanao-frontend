@@ -237,12 +237,17 @@ export default function OrderCart({
       className={`bg-white rounded-2xl border shadow-md flex flex-col
         ${
           isMobile
-            ? "fixed left-0 right-0 bottom-0 top-[70px] z-40 p-4 overflow-hidden"
+            ? // 👇 THAY ĐỔI Ở ĐÂY:
+              // 1. Đổi bottom-0 thành bottom-[60px] (hoặc 70px/80px tùy chiều cao menu)
+              // 2. Thêm z-40 để đè lên content nền nhưng không che menu (nếu menu là z-50)
+              "fixed left-0 right-0 bottom-[60px] top-[70px] z-40 p-4 overflow-hidden"
             : "p-6"
         }
       `}
       style={{
-        height: isMobile ? "calc(100vh - 70px)" : "auto", // Fix chiều cao mobile
+        // 👇 THAY ĐỔI Ở ĐÂY:
+        // Cập nhật lại chiều cao: 100vh - (top 70px + bottom 60px) = 130px
+        height: isMobile ? "calc(100vh - 130px)" : "auto",
         WebkitOverflowScrolling: "touch",
       }}
     >
