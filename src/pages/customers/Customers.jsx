@@ -90,6 +90,7 @@ export default function Customers() {
         total_customers: customers.length,
         total_orders,
         total_revenue,
+        total_revenue,
       });
     } catch {
       notify.error("Không thể tải thống kê khách hàng");
@@ -146,61 +147,89 @@ export default function Customers() {
 
   return (
     <div className="relative z-0 space-y-6 pb-20 md:pb-10">
-      {/* TAB MOBILE */}
-      {/* 🔥 MOBILE TABS FIXED – PRO STYLE */}
+      {/* TAB MOBILE (Header Fixed) */}
       <div
         className="
           md:hidden fixed top-0 left-0 right-0 z-40
           px-3 py-2
-          bg-white/90 dark:bg-gray-900/90 backdrop-blur-md
-          shadow-[0_2px_8px_rgba(0,0,0,0.08)]
+          bg-white/95 dark:bg-gray-900/95 backdrop-blur-md
+          shadow-sm border-b border-gray-100 dark:border-gray-800
         "
       >
-        <div className="flex gap-2">
-          {/* TAB: LIST */}
-          <button
-            onClick={() => setViewMode("list")}
-            className={`
-              flex-1 py-2 rounded-xl text-sm font-medium transition-all
-              ${
-                viewMode === "list"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-              }
-            `}
-          >
-            Danh sách
-          </button>
+        <div className="flex items-center gap-2">
+          {/* GROUP TABS: Bên trái (chiếm phần lớn) */}
+          <div className="flex flex-1 gap-1.5">
+            {/* TAB: LIST */}
+            <button
+              onClick={() => setViewMode("list")}
+              className={`
+                flex-1 py-2 rounded-lg text-xs font-bold transition-all truncate
+                ${
+                  viewMode === "list"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }
+              `}
+            >
+              Danh sách
+            </button>
 
-          {/* TAB: CREATE */}
-          <button
-            onClick={() => setViewMode("create")}
-            className={`
-              flex-1 py-2 rounded-xl text-sm font-medium transition-all
-              ${
-                viewMode === "create"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-              }
-            `}
-          >
-            Thêm khách
-          </button>
+            {/* TAB: CREATE */}
+            <button
+              onClick={() => setViewMode("create")}
+              className={`
+                flex-1 py-2 rounded-lg text-xs font-bold transition-all truncate
+                ${
+                  viewMode === "create"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }
+              `}
+            >
+              Thêm
+            </button>
 
-          {/* TAB: STATS */}
-          <button
-            onClick={() => setViewMode("stats")}
-            className={`
-              flex-1 py-2 rounded-xl text-sm font-medium transition-all
-              ${
-                viewMode === "stats"
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                  : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-              }
-            `}
-          >
-            Thống kê
-          </button>
+            {/* TAB: STATS */}
+            <button
+              onClick={() => setViewMode("stats")}
+              className={`
+                flex-1 py-2 rounded-lg text-xs font-bold transition-all truncate
+                ${
+                  viewMode === "stats"
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }
+              `}
+            >
+              TK
+            </button>
+          </div>
+
+          {/* GROUP TOGGLE VIEW: Bên phải (Chỉ hiện khi ở tab Danh sách) */}
+          {viewMode === "list" && (
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 shrink-0 border border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setListViewMode("list")}
+                className={`p-1.5 rounded-md transition-all ${
+                  listViewMode === "list"
+                    ? "bg-white dark:bg-gray-700 shadow text-blue-600"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                <FiListIcon size={16} />
+              </button>
+              <button
+                onClick={() => setListViewMode("grid")}
+                className={`p-1.5 rounded-md transition-all ${
+                  listViewMode === "grid"
+                    ? "bg-white dark:bg-gray-700 shadow text-blue-600"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                <FiGrid size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -244,15 +273,15 @@ export default function Customers() {
         </div>
       </div>
 
-      {/* MOBILE */}
-      <div className="md:hidden pt-[70px] pb-[80px]">
+      {/* MOBILE CONTENT BODY */}
+      <div className="md:hidden pt-[60px] pb-[80px]">
         {/* FULL DETAIL */}
         {viewMode === "detail" && detail && (
           <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
             <div className="p-4">
               <button
                 onClick={() => setViewMode("list")}
-                className="text-blue-600 text-sm"
+                className="text-blue-600 text-sm font-bold flex items-center gap-1"
               >
                 ← Quay lại
               </button>
@@ -277,50 +306,30 @@ export default function Customers() {
 
         {/* LIST */}
         {viewMode === "list" && (
-          <div className="px-4">
-            {/* 🔥 NÚT ĐỔI GRID / LIST */}
-            <div className="flex justify-end mb-3">
-              <button
-                onClick={() =>
-                  setListViewMode((m) => (m === "grid" ? "list" : "grid"))
-                }
-                className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 shadow hover:shadow-md 
-                           transition-all active:scale-95 border border-gray-300/40 dark:border-gray-700/40"
-              >
-                {listViewMode === "grid" ? (
-                  <FiGrid className="text-xl text-blue-600" />
-                ) : (
-                  <FiListIcon className="text-xl text-blue-600" />
-                )}
-              </button>
-            </div>
-
-            {/* ⭐ GRID VIEW CÓ AVATAR PRO */}
+          <div className="px-4 mt-4">
+            {/* GRID VIEW CÓ AVATAR PRO */}
             {listViewMode === "grid" && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {filtered.map((c) => (
                   <div
                     key={c.id}
                     onClick={() => viewDetail(c)}
-                    className="relative overflow-hidden p-4 rounded-2xl bg-white dark:bg-gray-900 
+                    className="relative overflow-hidden p-3 rounded-2xl bg-white dark:bg-gray-900 
                                border border-gray-200 dark:border-gray-700 cursor-pointer 
                                transition-all duration-300 shadow-sm
-                               hover:shadow-xl hover:-translate-y-[4px] hover:border-blue-400/50
                                active:scale-95"
                   >
                     {/* VIP badge */}
                     {c.total_orders > 3 && (
-                      <span className="absolute top-1 right-1 bg-yellow-400 text-[10px] px-2 py-[2px] rounded-full font-bold shadow">
+                      <span className="absolute top-1 right-1 bg-yellow-400 text-[9px] px-1.5 py-[1px] rounded-full font-bold shadow">
                         VIP
                       </span>
                     )}
 
-                    <div className="flex gap-3 items-center">
-                      {/* Avatar Gradient PRO */}
+                    <div className="flex flex-col gap-2 items-center text-center">
+                      {/* Avatar Gradient */}
                       <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-white text-lg
-                                   shadow-[4px_4px_10px_rgba(0,0,0,0.2),-3px_-3px_8px_rgba(255,255,255,0.3)]
-                                   border border-white/20"
+                        className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shadow-sm"
                         style={{
                           background: getAvatarGradient(c.name),
                         }}
@@ -328,48 +337,34 @@ export default function Customers() {
                         {getInitial(c.name)}
                       </div>
 
-                      {/* Thông tin khách — HIGHLIGHT TÊN */}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-900 dark:text-gray-100 text-[15px] leading-tight">
+                      {/* Thông tin khách */}
+                      <div className="w-full min-w-0">
+                        <p className="font-bold text-gray-900 dark:text-gray-100 text-sm truncate">
                           {c.name}
                         </p>
-
-                        <p className="text-xs text-gray-500">{c.phone}</p>
-
-                        <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
-                          {c.address || "—"}
+                        <p className="text-[11px] text-gray-500 truncate">
+                          {c.phone}
                         </p>
                       </div>
                     </div>
 
-                    {/* Nút Gọi + FB (icon) */}
-                    <div className="flex gap-3 mt-3 text-xs opacity-95">
-                      {/* CALL */}
+                    {/* Nút Gọi + FB */}
+                    <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100 dark:border-gray-800">
                       <a
                         href={`tel:${c.phone}`}
-                        className="flex-1 py-2 rounded-lg flex items-center justify-center gap-1
-                                   bg-blue-50 dark:bg-blue-900/30 
-                                   text-blue-600 dark:text-blue-300 font-medium 
-                                   hover:bg-blue-100 transition"
+                        className="flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1 bg-blue-50 text-blue-600"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <FiPhoneCall className="text-sm" />
-                        <span className="text-[11px]">Gọi</span>
+                        <FiPhoneCall size={12} />
                       </a>
-
-                      {/* FB */}
                       {c.facebook_url && (
                         <a
                           href={c.facebook_url}
                           target="_blank"
-                          className="flex-1 py-2 rounded-lg flex items-center justify-center gap-1
-                                     bg-indigo-50 dark:bg-indigo-900/30 
-                                     text-indigo-600 dark:text-indigo-300 font-medium 
-                                     hover:bg-indigo-100 transition"
+                          className="flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1 bg-indigo-50 text-indigo-600"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <FaFacebookF className="text-sm" />
-                          <span className="text-[11px]">FB</span>
+                          <FaFacebookF size={12} />
                         </a>
                       )}
                     </div>
