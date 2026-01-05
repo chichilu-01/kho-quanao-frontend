@@ -32,34 +32,41 @@ export default function OrderDetail({
   const [isSavingTracking, setIsSavingTracking] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 1️⃣ Ưu tiên dùng data từ Props (nếu mở từ danh sách)
+  // ✅ FIX: Logic load dữ liệu thông minh hơn
   useEffect(() => {
-    if (propSelected) {
-      setOrder(propSelected);
-      setTrackingCode(propSelected.china_tracking_code || "");
-    } else {
-      setOrder(null);
-    }
-  }, [propSelected]);
-
-  // 2️⃣ Nếu F5 hoặc vào trực tiếp link -> Tự gọi API để lấy FULL thông tin (SĐT, Cọc...)
-  useEffect(() => {
-    if (!propSelected && id) {
-      const fetchOrder = async () => {
+    const loadData = async () => {
+      // 1. Ưu tiên hiển thị dữ liệu từ Props trước (để giao diện hiện ngay lập tức)
+      if (propSelected) {
+        setOrder(propSelected);
+        setTrackingCode(propSelected.china_tracking_code || "");
+      } else {
+        // Nếu không có prop, hiển thị loading
         setLoading(true);
+      }
+
+      // 2. LUÔN LUÔN gọi API lấy chi tiết đầy đủ (để lấy Deposit, History, v.v...)
+      // Ngay cả khi đã có propSelected, ta vẫn fetch đè lên để đảm bảo dữ liệu mới nhất
+      const targetId = id || propSelected?.id;
+
+      if (targetId) {
         try {
-          // Gọi API Backend mà bạn vừa sửa xong
-          const data = await api(`/orders/${id}`);
-          setOrder(data);
-          setTrackingCode(data.china_tracking_code || "");
+          const fullData = await api(`/orders/${targetId}`);
+
+          // Cập nhật state với dữ liệu đầy đủ từ server
+          setOrder(fullData);
+          setTrackingCode(fullData.china_tracking_code || "");
         } catch (err) {
-          notify.error("❌ Không tìm thấy đơn hàng");
+          console.error(err);
+          // Chỉ báo lỗi nếu chưa có dữ liệu nào được hiển thị
+          if (!propSelected)
+            notify.error("❌ Không tìm thấy thông tin chi tiết đơn hàng");
         } finally {
           setLoading(false);
         }
-      };
-      fetchOrder();
-    }
+      }
+    };
+
+    loadData();
   }, [id, propSelected]);
 
   // 3️⃣ Cập nhật trạng thái
@@ -85,6 +92,7 @@ export default function OrderDetail({
   // 4️⃣ Lưu mã vận đơn
   const handleSaveTracking = async () => {
     if (!order) return;
+    // Kiểm tra nếu mã không đổi thì không gọi API
     if (trackingCode === (order.china_tracking_code || "")) return;
 
     try {
@@ -111,9 +119,10 @@ export default function OrderDetail({
 
   // --- RENDER ---
 
-  if (loading)
+  if (loading && !order)
     return (
       <div className="p-10 text-center text-gray-500">
+        <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
         ⏳ Đang tải dữ liệu...
       </div>
     );
@@ -127,10 +136,10 @@ export default function OrderDetail({
       </div>
     );
 
-  // 🧮 TÍNH TOÁN TIỀN (Hiển thị phần Tiền cọc & Còn lại)
-  const deposit = Number(order.deposit || 0); // Lấy từ Backend
-  const total = Number(order.total || 0);
-  const remaining = total - deposit; // Tiền Shipper cần thu
+  // 🧮 TÍNH TOÁN TIỀN (An toàn hơn với Number())
+  const deposit = Number(order.deposit) || 0;
+  const total = Number(order.total) || 0;
+  const remaining = total - deposit;
 
   return (
     <motion.div
@@ -283,9 +292,9 @@ export default function OrderDetail({
           <span className="font-medium text-lg">{money(total)}</span>
         </div>
 
-        <div className="flex justify-between text-sm text-green-600">
+        <div className="flex justify-between text-sm text-green-600 font-bold bg-green-50 p-1 rounded">
           <span>Đã đặt cọc:</span>
-          <span className="font-medium">- {money(deposit)}</span>
+          <span>- {money(deposit)}</span>
         </div>
 
         <div className="border-t border-gray-300 my-2"></div>

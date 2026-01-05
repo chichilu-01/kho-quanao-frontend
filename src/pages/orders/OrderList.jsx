@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { FiTruck, FiBox } from "react-icons/fi"; // Nhớ cài: npm i react-icons
+import { FiTruck, FiBox, FiCheckCircle } from "react-icons/fi"; // Đã thêm icon Check
 
 function money(v) {
   return Number(v || 0).toLocaleString("vi-VN") + "đ";
@@ -39,6 +39,9 @@ export default function OrderList({
           const firstItem = order.items && order.items[0];
           const imageSrc = firstItem?.cover_image || firstItem?.product_image;
 
+          // ✅ Lấy tiền cọc an toàn
+          const depositAmount = Number(order.deposit || 0);
+
           return (
             <motion.div
               key={order.id}
@@ -56,7 +59,7 @@ export default function OrderList({
                 }
               `}
             >
-              {/* --- ẢNH THUMBNAIL (QUAN TRỌNG ĐỂ NHẬN DIỆN) --- */}
+              {/* --- ẢNH THUMBNAIL --- */}
               <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 relative">
                 {imageSrc ? (
                   <img
@@ -79,8 +82,8 @@ export default function OrderList({
                     <span className="font-bold text-gray-800 dark:text-gray-100 text-sm">
                       #{order.id} - {order.customer_name}
                     </span>
-                    {/* Tên sản phẩm (cắt ngắn) */}
-                    <span className="text-xs text-gray-500 truncate max-w-[180px]">
+                    {/* Tên sản phẩm */}
+                    <span className="text-xs text-gray-500 truncate max-w-[140px]">
                       {firstItem
                         ? `${firstItem.product_name} (${firstItem.size || ""})`
                         : "Chưa có sản phẩm"}
@@ -89,34 +92,42 @@ export default function OrderList({
                     </span>
                   </div>
 
-                  {/* Giá tiền (Badge) */}
-                  <span
-                    className={`text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap ml-2
-                    ${
-                      order.status === "completed"
-                        ? "bg-green-100 text-green-700"
-                        : order.status === "cancelled"
-                          ? "bg-red-100 text-red-700"
+                  {/* Giá tiền & Cọc (Căn phải) */}
+                  <div className="flex flex-col items-end">
+                    <span
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap mb-1
+                      ${
+                        order.status === "completed"
+                          ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-600"
-                    }
-                  `}
-                  >
-                    {money(order.total)}
-                  </span>
+                      }
+                    `}
+                    >
+                      {money(order.total)}
+                    </span>
+
+                    {/* ✅ HIỂN THỊ TIỀN CỌC NẾU CÓ */}
+                    {depositAmount > 0 && (
+                      <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                        <FiCheckCircle size={10} /> Đã cọc:{" "}
+                        {money(depositAmount)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* --- Dòng 2: MÃ VẬN ĐƠN (CHÌA KHÓA CHO CTV) --- */}
-                <div className="mt-2 flex items-center justify-between">
+                {/* --- Dòng 2: MÃ VẬN ĐƠN --- */}
+                <div className="mt-1 flex items-center justify-between">
                   {order.china_tracking_code ? (
-                    <div className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-800 text-[11px] font-bold px-2 py-1 rounded border border-yellow-200 shadow-sm">
-                      <FiTruck className="text-yellow-700" />
+                    <div className="inline-flex items-center gap-1.5 bg-yellow-50 text-yellow-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-200">
+                      <FiTruck className="text-yellow-700" size={10} />
                       <span className="font-mono tracking-wide">
                         ...{order.china_tracking_code.slice(-5)}
                       </span>
                     </div>
                   ) : (
                     <span className="text-[10px] text-gray-300 italic pl-1">
-                      Chưa có vận đơn
+                      --
                     </span>
                   )}
 
