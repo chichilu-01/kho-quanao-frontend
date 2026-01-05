@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -8,7 +8,6 @@ import {
   FiCheckCircle,
   FiTruck,
   FiUser,
-  FiPhone,
   FiMapPin,
 } from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
@@ -16,13 +15,19 @@ import { notify } from "../../hooks/useToastNotify";
 // ✅ API Config
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
+// Helper: Format tiền tệ hiển thị
 const money = (v) =>
   Number(v || 0).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "đ";
+
+// Helper: Format số khi nhập (có dấu chấm phân cách)
+const formatNumberInput = (val) => {
+  if (!val) return "";
+  return Number(val).toLocaleString("vi-VN");
+};
 
 export default function OrderCart({
   items,
   setItems,
-  // New props for deposit and customer editing
   deposit,
   setDeposit,
   note,
@@ -31,7 +36,7 @@ export default function OrderCart({
   customers,
   isNewCustomer,
   newCustomer,
-  setNewCustomer, // Need this to update new customer info from cart
+  setNewCustomer,
   createdOrder,
   setCreatedOrder,
   loading,
@@ -41,16 +46,27 @@ export default function OrderCart({
 }) {
   const [trackingCode, setTrackingCode] = useState("");
 
+  // Sửa lỗi Mobile: Dùng State để lắng nghe thay đổi kích thước màn hình
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile(); // Check ngay lần đầu
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // ===========================
-  // UPDATE QTY
+  // ✅ FIX: UPDATE QTY (IMMUTABLE)
   // ===========================
   const updateQty = (idx, qty) => {
     setItems((prev) => {
-      const clone = [...prev];
-      qty = Math.max(1, Number(qty || 1));
-      // Optional: Check stock logic here if needed
-      clone[idx].quantity = qty;
-      return clone;
+      const newQty = Math.max(1, Number(qty || 1));
+      // Tạo mảng mới
+      const newItems = [...prev];
+      // Quan trọng: Phải tạo object mới cho phần tử bị thay đổi
+      newItems[idx] = { ...newItems[idx], quantity: newQty };
+      return newItems;
     });
   };
 
@@ -59,8 +75,10 @@ export default function OrderCart({
   };
 
   // Calculations
+  // Ép kiểu an toàn cho deposit để tránh lỗi NaN
+  const safeDeposit = Number(String(deposit).replace(/\./g, "")) || 0;
   const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0);
-  const remaining = subtotal - (Number(deposit) || 0);
+  const remaining = subtotal - safeDeposit;
 
   const canSubmit =
     !loading &&
@@ -73,7 +91,6 @@ export default function OrderCart({
   const submit = async () => {
     if (!canSubmit) return;
 
-    // Basic validation
     if (isNewCustomer && (!newCustomer.name || !newCustomer.phone)) {
       return notify.error("Vui lòng nhập tên và SĐT khách hàng!");
     }
@@ -108,9 +125,9 @@ export default function OrderCart({
         customer_id: Number(finalCustomerId),
         note,
         china_tracking_code: trackingCode,
-        deposit: Number(deposit) || 0, // Include deposit
+        deposit: safeDeposit, // Dùng số đã làm sạch
         items: items.map((it) => ({
-          variant_id: it.variant_id || null, // Handle null variant_id
+          variant_id: it.variant_id || null,
           quantity: it.quantity,
           price: it.price,
         })),
@@ -127,9 +144,10 @@ export default function OrderCart({
       if (!resOrder.ok)
         throw new Error(jsonOrder.message || "Lỗi tạo đơn hàng");
 
-      // 4. Update variants
-      if (selectedProductId && loadVariants)
+      // 4. Update variants (Kiểm tra an toàn trước khi gọi)
+      if (selectedProductId && typeof loadVariants === "function") {
         await loadVariants(selectedProductId);
+      }
 
       // 5. Success
       setCreatedOrder({
@@ -139,7 +157,7 @@ export default function OrderCart({
             ? newCustomer
             : customers.find((c) => String(c.id) === String(customerId)),
         total: subtotal,
-        deposit: Number(deposit) || 0,
+        deposit: safeDeposit,
         note,
         items,
         china_tracking_code: trackingCode,
@@ -148,7 +166,7 @@ export default function OrderCart({
       setItems([]);
       setNote("");
       setTrackingCode("");
-      setDeposit("");
+      setDeposit(""); // Reset về chuỗi rỗng
 
       notify.success(`✅ Đơn hàng #${jsonOrder.id} đã được tạo thành công!`);
     } catch (err) {
@@ -166,18 +184,21 @@ export default function OrderCart({
     if (!createdOrder) return;
 
     const doc = new jsPDF();
+    // Font setup (Lưu ý: jsPDF mặc định không hỗ trợ tiếng Việt có dấu tốt trừ khi add font custom)
+    // Code dưới đây dùng font mặc định nên có thể lỗi hiển thị tiếng Việt.
+
     doc.setFontSize(18);
-    doc.text("HÓA ĐƠN BÁN HÀNG", 105, 20, { align: "center" });
+    doc.text("HOA DON BAN HANG", 105, 20, { align: "center" }); // Dùng không dấu để an toàn
 
     doc.setFontSize(12);
-    doc.text(`Mã đơn: #${createdOrder.id}`, 14, 30);
-    doc.text(`Khách hàng: ${createdOrder.customer?.name}`, 14, 36);
-    doc.text(`SĐT: ${createdOrder.customer?.phone || ""}`, 14, 42);
-    doc.text(`Địa chỉ: ${createdOrder.customer?.address || ""}`, 14, 48);
+    doc.text(`Ma don: #${createdOrder.id}`, 14, 30);
+    const cusName = createdOrder.customer?.name || "Khach le";
+    doc.text(`Khach hang: ${cusName}`, 14, 36);
+    doc.text(`SDT: ${createdOrder.customer?.phone || ""}`, 14, 42);
 
     const rows = createdOrder.items.map((it, i) => [
       i + 1,
-      it.product_name,
+      it.product_name, // Nếu tên SP có dấu tiếng Việt có thể bị lỗi font
       `${it.size || "-"}/${it.color || "-"}`,
       it.quantity,
       money(it.price),
@@ -186,20 +207,20 @@ export default function OrderCart({
 
     doc.autoTable({
       startY: 55,
-      head: [["#", "Sản phẩm", "Phân loại", "SL", "Giá", "Thành tiền"]],
+      head: [["#", "San pham", "Phan loai", "SL", "Gia", "Thanh tien"]],
       body: rows,
       theme: "grid",
-      styles: { font: "helvetica", fontSize: 10 },
+      styles: { fontSize: 10 },
       headStyles: { fillColor: [41, 128, 185] },
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
 
-    doc.text(`Tổng tiền: ${money(createdOrder.total)}`, 140, finalY);
-    doc.text(`Đã cọc: ${money(createdOrder.deposit)}`, 140, finalY + 6);
+    doc.text(`Tong tien: ${money(createdOrder.total)}`, 140, finalY);
+    doc.text(`Da coc: ${money(createdOrder.deposit)}`, 140, finalY + 6);
     doc.setFont(undefined, "bold");
     doc.text(
-      `CÒN LẠI: ${money(createdOrder.total - (createdOrder.deposit || 0))}`,
+      `CON LAI: ${money(createdOrder.total - (createdOrder.deposit || 0))}`,
       140,
       finalY + 14,
     );
@@ -207,12 +228,6 @@ export default function OrderCart({
     doc.save(`HoaDon_${createdOrder.id}.pdf`);
   };
 
-  // ===========================================================
-  // MOBILE FULLSCREEN CHECK
-  // ===========================================================
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
-  // Selected customer for display if not new
   const existingCustomer = customers.find((c) => c.id === Number(customerId));
 
   return (
@@ -227,14 +242,13 @@ export default function OrderCart({
         }
       `}
       style={{
-        height: isMobile ? "100vh" : "auto",
+        height: isMobile ? "calc(100vh - 70px)" : "auto", // Fix chiều cao mobile
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {isMobile && (
-        <div className="w-12 h-1.5 bg-gray-400/50 rounded-full mx-auto mb-3 flex-shrink-0"></div>
-      )}
+      {/* ... Phần Header và Customer giữ nguyên ... */}
 
+      {/* HEADER GIỎ HÀNG */}
       <div className="flex-shrink-0 pb-3 border-b mb-2">
         <h3 className="font-bold text-xl flex items-center gap-2 text-gray-700">
           <FiShoppingCart className="text-green-600" /> Giỏ hàng ({items.length}
@@ -326,7 +340,7 @@ export default function OrderCart({
                   <FiTrash2 size={16} />
                 </button>
 
-                {/* Image Placeholder */}
+                {/* Placeholder Ảnh */}
                 <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-gray-400">
                   IMG
                 </div>
@@ -408,15 +422,19 @@ export default function OrderCart({
             <input
               type="text"
               inputMode="numeric"
-              value={deposit}
+              // ✅ FIX: Format số khi hiển thị (100.000)
+              value={formatNumberInput(deposit)}
               placeholder="0"
               onChange={(e) => {
-                const raw = e.target.value.replace(/\D/g, "");
+                // Chỉ giữ lại số
+                const raw = e.target.value
+                  .replace(/\./g, "")
+                  .replace(/\D/g, "");
                 setDeposit(raw);
               }}
               className="w-full text-right font-bold text-green-600
-                         border-b border-gray-200 focus:border-green-500
-                         outline-none py-0.5 bg-transparent pr-4"
+                           border-b border-gray-200 focus:border-green-500
+                           outline-none py-0.5 bg-transparent pr-4"
             />
             <span className="absolute right-0 top-0.5 text-xs text-gray-400 pointer-events-none">
               đ
@@ -453,6 +471,7 @@ export default function OrderCart({
 
       <AnimatePresence>
         {createdOrder && (
+          // ... (Giữ nguyên phần Popup thành công, chỉ lưu ý phần in PDF ở trên đã sửa)
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

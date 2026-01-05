@@ -21,6 +21,8 @@ export default function CreateOrder() {
 
   const [customerId, setCustomerId] = useState("");
   const [isNewCustomer, setIsNewCustomer] = useState(false);
+
+  // State quản lý thông tin khách mới
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     phone: "",
@@ -32,8 +34,8 @@ export default function CreateOrder() {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [items, setItems] = useState([]);
 
-  // 👇 THÊM STATE TIỀN CỌC Ở ĐÂY 👇
-  const [deposit, setDeposit] = useState(0);
+  // 👇 THÊM STATE TIỀN CỌC Ở ĐÂY
+  const [deposit, setDeposit] = useState("");
 
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,14 +78,14 @@ export default function CreateOrder() {
   const loadVariants = useCallback(async (pid) => {
     if (!pid) return setVariants([]);
 
-    setLoadingVariants(true); // Bắt đầu load
+    setLoadingVariants(true);
     try {
       const data = await api(`/variants/by-product/${pid}`);
       setVariants(data);
     } catch {
       notify.error("⚠️ Không thể tải biến thể");
     } finally {
-      setLoadingVariants(false); // Kết thúc load
+      setLoadingVariants(false);
     }
   }, []);
 
@@ -128,7 +130,7 @@ export default function CreateOrder() {
               loadVariants={loadVariants}
               items={items}
               setItems={setItems}
-              loadingVariants={loadingVariants} // Truyền state loading xuống
+              loadingVariants={loadingVariants}
             />
           </div>
         </motion.div>
@@ -137,7 +139,6 @@ export default function CreateOrder() {
         <OrderCart
           items={items}
           setItems={setItems}
-          // 👇 Truyền deposit xuống
           deposit={deposit}
           setDeposit={setDeposit}
           note={note}
@@ -146,11 +147,13 @@ export default function CreateOrder() {
           customers={customers}
           isNewCustomer={isNewCustomer}
           newCustomer={newCustomer}
+          // ✅ FIX: Truyền hàm update khách mới xuống OrderCart
+          setNewCustomer={setNewCustomer}
           createdOrder={createdOrder}
           setCreatedOrder={setCreatedOrder}
           loading={loading}
           setLoading={setLoading}
-          loadVariants={loadVariants} // Để refresh kho sau khi đặt
+          loadVariants={loadVariants}
           selectedProductId={selectedProductId}
         />
       </div>
@@ -221,7 +224,6 @@ export default function CreateOrder() {
             <OrderCart
               items={items}
               setItems={setItems}
-              // 👇 Truyền deposit xuống cho mobile
               deposit={deposit}
               setDeposit={setDeposit}
               note={note}
@@ -230,6 +232,8 @@ export default function CreateOrder() {
               customers={customers}
               isNewCustomer={isNewCustomer}
               newCustomer={newCustomer}
+              // ✅ FIX: Truyền hàm update khách mới xuống OrderCart Mobile
+              setNewCustomer={setNewCustomer}
               createdOrder={createdOrder}
               setCreatedOrder={setCreatedOrder}
               loading={loading}
