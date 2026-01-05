@@ -5,8 +5,12 @@ import CustomerStats from "./CustomerStats";
 import CustomerForm from "./CustomerForm";
 import CustomerList from "./CustomerList";
 import CustomerDetail from "./CustomerDetail";
-import { FiGrid, FiList as FiListIcon } from "react-icons/fi";
-import { FiPhoneCall } from "react-icons/fi";
+import {
+  FiGrid,
+  FiList as FiListIcon,
+  FiPhoneCall,
+  FiChevronLeft,
+} from "react-icons/fi";
 import { FaFacebookF } from "react-icons/fa";
 
 function money(n) {
@@ -89,7 +93,6 @@ export default function Customers() {
       setStats({
         total_customers: customers.length,
         total_orders,
-        total_revenue,
         total_revenue,
       });
     } catch {
@@ -277,16 +280,25 @@ export default function Customers() {
       <div className="md:hidden pt-[60px] pb-[80px]">
         {/* FULL DETAIL */}
         {viewMode === "detail" && detail && (
-          <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
-            <div className="p-4">
+          <div className="fixed inset-0 bg-white z-50 overflow-y-auto bg-gray-50">
+            {/* ✨ HEADER HIỆN ĐẠI (Sticky Top) */}
+            <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-4 py-3 flex items-center gap-3 shadow-sm">
               <button
                 onClick={() => setViewMode("list")}
-                className="text-blue-600 text-sm font-bold flex items-center gap-1"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 active:scale-95 transition-all"
               >
-                ← Quay lại
+                <FiChevronLeft size={24} />
               </button>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-lg text-gray-800 truncate">
+                  {detail.name || "Chi tiết khách hàng"}
+                </h3>
+                <p className="text-xs text-gray-500">Thông tin chi tiết</p>
+              </div>
             </div>
 
+            {/* Nội dung chi tiết */}
             <CustomerDetail
               detail={detail}
               editing={editing}
