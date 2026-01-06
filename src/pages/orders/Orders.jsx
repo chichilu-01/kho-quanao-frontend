@@ -266,7 +266,7 @@ export default function Orders() {
               />
 
               {/* 🔥 ĐÃ SỬA: Đổi h-32 (128px) thành h-[70px] để vừa khít */}
-              <div className="h-[70px]"></div>
+              <div className="h-12"></div>
             </div>
           </div>
         )}
@@ -279,7 +279,7 @@ export default function Orders() {
               onUpdateTracking={handleTrackingUpdate}
             />
             {/* 🔥 ĐÃ SỬA: Spacer cho trang chi tiết luôn */}
-            <div className="h-[70px]"></div>
+            <div className="h-12"></div>
           </div>
         )}
       </div>

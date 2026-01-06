@@ -227,7 +227,7 @@ export default function Products() {
                   />
                 )}
                 {/* Khoảng trống dưới cùng để không bị BottomNav che mất item cuối */}
-                <div className="h-14"></div>
+                <div className="h-15"></div>
               </motion.div>
             )}
 
