@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   FiEdit,
-  FiTrash2,
   FiSave,
   FiChevronLeft,
   FiImage,
@@ -25,24 +24,35 @@ export default function ProductDetail({ selected, setSelected, load }) {
     sale_price: "",
   });
 
-  // State quản lý ảnh mới (Upload thêm)
   const [newImages, setNewImages] = useState([]);
   const [newPreviews, setNewPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showVariantsScreen, setShowVariantsScreen] = useState(false);
 
-  // Sync dữ liệu từ props selected vào form khi mở
+  // 🔥 FIX LỖI 0đ: Sync dữ liệu thông minh hơn
   useEffect(() => {
     if (selected) {
+      console.log("🔍 Dữ liệu chi tiết sản phẩm:", selected); // Xem log này ở F12 để biết tên biến chính xác
+
       setForm({
         sku: selected.sku || "",
         name: selected.name || "",
         category: selected.category || "",
         brand: selected.brand || "",
-        cost_price: selected.cost_price || 0,
-        sale_price: selected.sale_price || 0,
+
+        // 🔥 FIX QUAN TRỌNG: Kiểm tra nhiều trường hợp tên biến giá tiền
+        // API có thể trả về: cost_price, import_price, original_price...
+        cost_price:
+          selected.cost_price ||
+          selected.import_price ||
+          selected.original_price ||
+          0,
+
+        // API có thể trả về: sale_price, price, retail_price...
+        sale_price:
+          selected.sale_price || selected.price || selected.retail_price || 0,
       });
-      // Reset ảnh mới khi chuyển sản phẩm
+
       setNewImages([]);
       setNewPreviews([]);
     }
@@ -52,18 +62,16 @@ export default function ProductDetail({ selected, setSelected, load }) {
   const handleImagesChange = (e) => {
     const files = Array.from(e.target.files || []);
     const previewUrls = files.map((file) => URL.createObjectURL(file));
-
     setNewImages((prev) => [...prev, ...files]);
     setNewPreviews((prev) => [...prev, ...previewUrls]);
   };
 
-  // --- Xóa 1 ảnh trong danh sách chờ upload ---
   const removeNewImage = (index) => {
     setNewImages((prev) => prev.filter((_, i) => i !== index));
     setNewPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- Gửi dữ liệu (Dùng fetch chuẩn) ---
+  // --- Gửi dữ liệu ---
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -71,26 +79,21 @@ export default function ProductDetail({ selected, setSelected, load }) {
     try {
       const fd = new FormData();
 
-      // 1. Append thông tin chữ
+      // Append thông tin chữ
       Object.entries(form).forEach(([key, value]) => {
         fd.append(key, value);
       });
 
-      // 2. Append file ảnh (nếu có)
+      // Append file ảnh
       newImages.forEach((img) => {
         fd.append("images", img);
-        // Lưu ý: Backend phải xử lý key "images" (array) hoặc "image" (single) tùy code của bạn
-        // Nếu backend cũ chỉ nhận 1 ảnh key "image", bạn chỉ nên gửi newImages[0]
       });
 
-      // 3. Lấy token
       const token = localStorage.getItem("token");
 
-      // 4. Gọi API
       const res = await fetch(`${API_BASE}/products/${selected.id}`, {
         method: "PUT",
         headers: {
-          // Không set Content-Type để browser tự xử lý Boundary của FormData
           ...(token && { Authorization: `Bearer ${token}` }),
         },
         body: fd,
@@ -101,10 +104,10 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
       toast.success("🎉 Đã cập nhật sản phẩm!");
 
-      // Load lại dữ liệu mới nhất
+      // Load lại dữ liệu
       await load(selected.id);
 
-      // Reset ảnh chờ
+      // Reset ảnh
       setNewImages([]);
       setNewPreviews([]);
     } catch (err) {
@@ -149,7 +152,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
         >
           {/* CỘT TRÁI: ẢNH */}
           <div className="space-y-4">
-            {/* Ảnh hiện tại (Cover) */}
             <div>
               <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
                 Ảnh đại diện hiện tại
@@ -161,7 +163,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
                   onError={(e) => (e.target.src = "/no-image.png")}
                   alt="Cover"
                 />
-                {/* Overlay thông báo */}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <span className="text-white text-xs font-medium px-2 py-1 rounded bg-black/50">
                     Ảnh gốc
@@ -176,7 +177,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 <FiUploadCloud /> Thêm ảnh mới / Thay thế
               </label>
 
-              {/* Grid Preview Ảnh Mới */}
               {newPreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mb-2">
                   {newPreviews.map((src, idx) => (
@@ -201,15 +201,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 </div>
               )}
 
-              {/* Input Button */}
-              <label
-                className="
-                flex flex-col items-center justify-center w-full h-24
-                border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl
-                cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700
-                transition
-              "
-              >
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500">
                   <FiImage className="w-6 h-6 mb-1" />
                   <p className="text-xs">Chọn nhiều ảnh</p>
@@ -282,14 +274,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 whileTap={{ scale: 0.98 }}
                 disabled={loading}
                 type="submit"
-                className="
-                  w-full py-3 rounded-xl
-                  bg-gradient-to-r from-blue-600 to-blue-700
-                  text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none
-                  hover:shadow-xl hover:from-blue-700 hover:to-blue-800
-                  transition disabled:opacity-50 disabled:cursor-not-allowed
-                  flex items-center justify-center gap-2
-                "
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   "⏳ Đang lưu..."
@@ -304,7 +289,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
         </form>
       </motion.div>
 
-      {/* VARIANTS SCREEN (Slide-in) */}
+      {/* VARIANTS SCREEN */}
       {showVariantsScreen && (
         <motion.div
           initial={{ x: "100%" }}
@@ -324,7 +309,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
               Quản lý biến thể: {selected.name}
             </h3>
           </div>
-
           <div className="p-4 pb-24 max-w-5xl mx-auto">
             <ProductVariants productId={selected.id} />
           </div>
@@ -334,7 +318,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
   );
 }
 
-// Component input nhỏ gọn
 function Field({ label, value, onChange, type = "text" }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -343,13 +326,7 @@ function Field({ label, value, onChange, type = "text" }) {
       </label>
       <input
         type={type}
-        className="
-          w-full px-4 py-2.5 rounded-lg
-          bg-gray-50 dark:bg-gray-800
-          border border-gray-200 dark:border-gray-700
-          focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-900
-          outline-none transition font-medium text-gray-800 dark:text-gray-100
-        "
+        className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-900 outline-none transition font-medium text-gray-800 dark:text-gray-100"
         value={value}
         placeholder={label}
         onChange={(e) => onChange(e.target.value)}

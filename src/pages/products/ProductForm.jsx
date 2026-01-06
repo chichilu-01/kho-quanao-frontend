@@ -5,12 +5,13 @@ import {
   FiSave,
   FiX,
   FiCamera,
-  FiBox,
   FiDollarSign,
   FiTag,
   FiLayers,
   FiCheckCircle,
 } from "react-icons/fi";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 export default function ProductForm({ load, onCancel }) {
   // --- STATE QUẢN LÝ FORM ---
@@ -50,29 +51,38 @@ export default function ProductForm({ load, onCancel }) {
     e.preventDefault();
 
     // Validate cơ bản
-    if (!form.name || !form.sale_price) {
-      return toast.error("Vui lòng nhập Tên và Giá bán!");
+    if (!form.name) {
+      return toast.error("Vui lòng nhập Tên sản phẩm!");
     }
+    // Cho phép giá = 0, nhưng phải nhập tên
 
     try {
       setLoading(true);
       const fd = new FormData();
 
-      // Append các trường text
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v || ""));
+      // --- 🔥 FIX QUAN TRỌNG: Đảm bảo gửi số đúng định dạng ---
+      fd.append("name", form.name);
+      fd.append("sku", form.sku);
+      fd.append("category", form.category);
+      fd.append("brand", form.brand);
+
+      // Nếu rỗng thì gửi 0, ép kiểu Number để an toàn
+      fd.append("cost_price", Number(form.cost_price) || 0);
+      fd.append("sale_price", Number(form.sale_price) || 0);
+      fd.append("stock", Number(form.stock) || 0);
 
       // Append ảnh (nếu có)
       if (image) {
-        fd.append("image", image); // Backend nên xử lý field này là 'image' hoặc 'images'
+        fd.append("image", image);
       }
 
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/products`, {
+      const res = await fetch(`${API_BASE}/products`, {
         method: "POST",
         body: fd,
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.message);
+      if (!res.ok) throw new Error(json?.message || "Lỗi server");
 
       toast.success(
         <span className="flex items-center gap-2">
@@ -93,8 +103,8 @@ export default function ProductForm({ load, onCancel }) {
       setImage(null);
       setPreview(null);
 
-      // Reload lại danh sách ở component cha
-      if (load) await load(json.id);
+      // Reload lại danh sách ở component cha (Products.js)
+      if (load) await load(json.id); // json.id là ID sản phẩm vừa tạo để auto select
     } catch (err) {
       console.error(err);
       toast.error("❌ " + (err?.message || "Không thể tạo sản phẩm"));
@@ -115,7 +125,7 @@ export default function ProductForm({ load, onCancel }) {
           <FiLayers className="text-blue-600" />
           Thêm sản phẩm mới
         </h2>
-        {/* Nút đóng nếu cần (Optional) */}
+        {/* Nút đóng */}
         {onCancel && (
           <button
             onClick={onCancel}
@@ -128,7 +138,7 @@ export default function ProductForm({ load, onCancel }) {
 
       <form onSubmit={submit} className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* CỘT TRÁI: ẢNH SẢN PHẨM (Chiếm 1 phần) */}
+          {/* CỘT TRÁI: ẢNH SẢN PHẨM */}
           <div className="col-span-1">
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
               Hình ảnh
@@ -142,7 +152,6 @@ export default function ProductForm({ load, onCancel }) {
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
-                  {/* Overlay khi hover để đổi ảnh */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                     <span className="text-white font-medium flex items-center gap-2">
                       <FiCamera /> Đổi ảnh
@@ -156,7 +165,6 @@ export default function ProductForm({ load, onCancel }) {
                 </div>
               )}
 
-              {/* Input file ẩn */}
               <input
                 type="file"
                 accept="image/*"
@@ -164,12 +172,9 @@ export default function ProductForm({ load, onCancel }) {
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-2 text-center">
-              Hỗ trợ: JPG, PNG, WEBP
-            </p>
           </div>
 
-          {/* CỘT PHẢI: THÔNG TIN CHI TIẾT (Chiếm 2 phần) */}
+          {/* CỘT PHẢI: THÔNG TIN CHI TIẾT */}
           <div className="col-span-1 md:col-span-2 space-y-5">
             {/* Hàng 1: Tên & SKU */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -195,7 +200,7 @@ export default function ProductForm({ load, onCancel }) {
               </div>
             </div>
 
-            {/* Hàng 2: Giá & Kho (Group nổi bật) */}
+            {/* Hàng 2: Giá & Kho */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-blue-50/50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
               <div className="col-span-2 sm:col-span-1">
                 <FormInput
@@ -232,7 +237,7 @@ export default function ProductForm({ load, onCancel }) {
               </div>
             </div>
 
-            {/* Hàng 3: Phân loại & Thương hiệu */}
+            {/* Hàng 3: Phân loại */}
             <div className="grid grid-cols-2 gap-4">
               <FormInput
                 label="Loại (Category)"
@@ -254,6 +259,15 @@ export default function ProductForm({ load, onCancel }) {
 
         {/* FOOTER ACTIONS */}
         <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-3 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 font-semibold transition"
+            >
+              Hủy bỏ
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
@@ -279,7 +293,7 @@ export default function ProductForm({ load, onCancel }) {
   );
 }
 
-// --- Component Input Tái Sử Dụng (Để code gọn hơn) ---
+// Component Input Tái Sử Dụng
 const FormInput = ({ label, icon, className = "", required, ...props }) => (
   <div className="flex flex-col gap-1.5">
     <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-1">

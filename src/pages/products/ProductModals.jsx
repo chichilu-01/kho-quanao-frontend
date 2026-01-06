@@ -1,11 +1,6 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiTruck,
-  FiTrash2,
-  FiX,
-  FiAlertTriangle,
-  FiCheck,
-} from "react-icons/fi";
+import { FiTruck, FiX, FiAlertTriangle, FiCheck } from "react-icons/fi";
 import toast from "react-hot-toast";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
@@ -14,9 +9,11 @@ const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
    RESTOCK MODAL — Nhập Hàng
 ---------------------------------------------- */
 export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
+  const [loading, setLoading] = useState(false); // 🔥 Added loading state
+
   const close = () => {
     setOpen(false);
-    setQty(""); // Reset quantity on close
+    setQty("");
   };
 
   const confirmRestock = async () => {
@@ -24,6 +21,7 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
       return toast.error("⚠️ Vui lòng nhập số lượng hợp lệ!");
 
     try {
+      setLoading(true); // Start loading
       const token = localStorage.getItem("token");
 
       const res = await fetch(`${API_BASE}/stock/import`, {
@@ -55,6 +53,8 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
     } catch (err) {
       console.error(err);
       toast.error("❌ " + (err.message || "Không thể nhập hàng"));
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -67,10 +67,10 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={close} // Close when clicking outside
+        onClick={close}
       >
         <motion.div
-          onClick={(e) => e.stopPropagation()} // Prevent close when clicking modal
+          onClick={(e) => e.stopPropagation()}
           initial={{ y: 50, opacity: 0, scale: 0.95 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 50, opacity: 0, scale: 0.95 }}
@@ -110,7 +110,8 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
               <input
                 type="number"
                 autoFocus
-                className="w-full bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900/50 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl py-3 text-center text-2xl font-bold text-blue-600 dark:text-blue-400 outline-none transition-colors placeholder-gray-300"
+                disabled={loading} // Disable input while loading
+                className="w-full bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900/50 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl py-3 text-center text-2xl font-bold text-blue-600 dark:text-blue-400 outline-none transition-colors placeholder-gray-300 disabled:opacity-50"
                 placeholder="0"
                 value={qty}
                 onChange={(e) => setQty(e.target.value)}
@@ -121,15 +122,17 @@ export function RestockModal({ open, setOpen, product, qty, setQty, reload }) {
             <div className="flex gap-3">
               <button
                 onClick={close}
-                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-600 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                disabled={loading}
+                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-600 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
               >
                 Hủy
               </button>
               <button
                 onClick={confirmRestock}
-                className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none active:scale-95 transition-transform"
+                disabled={loading} // Disable button
+                className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Xác nhận
+                {loading ? "Đang lưu..." : "Xác nhận"}
               </button>
             </div>
           </div>
@@ -149,10 +152,13 @@ export function DeleteModal({
   reload,
   clearSelected,
 }) {
+  const [loading, setLoading] = useState(false); // 🔥 Added loading state
+
   if (!open || !selected) return null;
 
   const confirmDelete = async () => {
     try {
+      setLoading(true); // Start loading
       const token = localStorage.getItem("token");
 
       const res = await fetch(`${API_BASE}/products/${selected.id}`, {
@@ -172,6 +178,8 @@ export function DeleteModal({
     } catch (err) {
       console.error(err);
       toast.error("❌ Không thể xoá sản phẩm");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -182,7 +190,7 @@ export function DeleteModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={() => setOpen(false)}
+        onClick={() => !loading && setOpen(false)} // Prevent close if loading
       >
         <motion.div
           onClick={(e) => e.stopPropagation()}
@@ -210,15 +218,17 @@ export function DeleteModal({
             <div className="flex gap-3 pt-4">
               <button
                 onClick={() => setOpen(false)}
-                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-600 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                disabled={loading}
+                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-600 font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition disabled:opacity-50"
               >
                 Không, giữ lại
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-200 dark:shadow-none active:scale-95 transition-transform"
+                disabled={loading}
+                className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-200 dark:shadow-none active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Đồng ý ẩn
+                {loading ? "Đang xử lý..." : "Đồng ý ẩn"}
               </button>
             </div>
           </div>
