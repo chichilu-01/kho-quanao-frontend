@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { FiPackage, FiTruck, FiEdit3 } from "react-icons/fi";
 
-// Link ảnh dự phòng online (fix lỗi 404 khi không tải được ảnh)
 const FALLBACK_IMAGE = "https://placehold.co/400x400?text=No+Image";
 
 const money = (v) => (Number(v || 0).toLocaleString("vi-VN") || 0) + "đ";
@@ -15,7 +14,6 @@ export default function ProductList({
   viewType = "grid",
   gridCols = 3,
 }) {
-  // Config số cột cho Grid View
   const gridClassMap = {
     2: "grid-cols-2",
     3: "grid-cols-2 md:grid-cols-3",
@@ -23,7 +21,7 @@ export default function ProductList({
     5: "grid-cols-2 md:grid-cols-4 lg:grid-cols-5",
   };
 
-  // --- 1. GIAO DIỆN LƯỚI (GRID) ---
+  // --- GRID VIEW (Giữ nguyên cho đẹp) ---
   const GridItem = ({ p }) => {
     const isSelected = selected?.id === p.id;
     const stock = Number(p.stock);
@@ -38,16 +36,15 @@ export default function ProductList({
         className={`
           group relative flex flex-col bg-white dark:bg-gray-800 overflow-hidden cursor-pointer transition-all duration-300
 
-          /* MOBILE: Vuông vức, viền mỏng */
-          rounded-none border-b border-r border-gray-100 dark:border-gray-800
+          /* Mobile: Bỏ border trái phải để full màn */
+          rounded-none border-b border-gray-100 dark:border-gray-800 border-x-0
 
-          /* PC (md trở lên): Bo góc, đổ bóng đẹp */
+          /* PC: Card đẹp */
           md:rounded-2xl md:border md:shadow-sm md:hover:shadow-xl md:hover:border-blue-200
 
           ${isSelected ? "z-10 ring-2 ring-blue-500 md:border-blue-500" : ""}
         `}
       >
-        {/* Ảnh vuông */}
         <div className="aspect-square w-full bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
           <img
             src={p.cover_image || FALLBACK_IMAGE}
@@ -55,8 +52,6 @@ export default function ProductList({
             onError={(e) => (e.target.src = FALLBACK_IMAGE)}
             alt={p.name}
           />
-
-          {/* Badge Hết hàng */}
           <div className="absolute top-2 left-2">
             {stock === 0 ? (
               <span className="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
@@ -68,30 +63,20 @@ export default function ProductList({
               </span>
             ) : null}
           </div>
-
-          {/* Giá tiền */}
           <div className="absolute bottom-1 right-1 bg-white/90 dark:bg-gray-800/90 text-blue-700 dark:text-blue-400 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
             {money(p.sale_price || p.price)}
           </div>
         </div>
-
-        {/* Thông tin */}
         <div className="p-2 flex flex-col flex-1">
-          <h4
-            className="text-xs font-medium text-gray-700 dark:text-gray-100 line-clamp-2 leading-tight mb-1 group-hover:text-blue-600"
-            title={p.name}
-          >
+          <h4 className="text-xs font-medium text-gray-700 dark:text-gray-100 line-clamp-2 leading-tight mb-1 group-hover:text-blue-600">
             {p.name}
           </h4>
-          <div className="text-[10px] text-gray-400 font-mono mt-auto">
-            #{p.id}
-          </div>
         </div>
       </motion.div>
     );
   };
 
-  // --- 2. GIAO DIỆN DANH SÁCH (LIST - FIX CHO MOBILE) ---
+  // --- LIST VIEW (FIX FULL MÀN HÌNH Ở ĐÂY) ---
   const ListItem = ({ p }) => {
     const isSelected = selected?.id === p.id;
     const stock = Number(p.stock);
@@ -105,20 +90,19 @@ export default function ProductList({
         className={`
           group flex gap-3 cursor-pointer transition-all duration-200
 
-          /* === MOBILE STYLES (Phẳng, Full width) === */
-          w-full
+          /* === MOBILE STYLES (CỰC CĂNG) === */
+          !w-full          /* Ép full width */
+          !m-0             /* Ép không margin */
+          !rounded-none    /* Ép vuông góc */
           p-3
           bg-white dark:bg-gray-900
-          rounded-none 
-          border-b border-gray-100 dark:border-gray-800  /* Chỉ gạch chân */
-          mb-0 /* Không khoảng cách */
 
-          /* === PC STYLES (Card nổi) === */
-          md:rounded-xl 
-          md:border md:border-gray-100 md:dark:border-gray-700
-          md:mb-2 
-          md:p-3
-          md:shadow-sm md:hover:shadow-md md:hover:border-blue-300
+          /* Chỉ giữ border dưới, bỏ 2 bên */
+          border-b border-gray-100 dark:border-gray-800 border-x-0
+
+          /* === PC STYLES === */
+          md:rounded-xl md:border md:border-gray-100 md:dark:border-gray-700
+          md:mb-2 md:p-3 md:shadow-sm md:hover:shadow-md md:hover:border-blue-300
           md:bg-white md:dark:bg-gray-800
 
           ${
@@ -128,7 +112,6 @@ export default function ProductList({
           }
         `}
       >
-        {/* Ảnh nhỏ bên trái */}
         <div className="w-[70px] h-[70px] flex-shrink-0 bg-gray-100 rounded md:rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 relative">
           <img
             src={p.cover_image || FALLBACK_IMAGE}
@@ -143,7 +126,6 @@ export default function ProductList({
           )}
         </div>
 
-        {/* Nội dung bên phải */}
         <div className="flex-1 flex flex-col justify-center min-w-0 py-0.5">
           <div className="flex justify-between items-start gap-2">
             <div>
@@ -154,16 +136,13 @@ export default function ProductList({
                 Mã: <span className="font-mono">{p.sku || "---"}</span>
               </div>
             </div>
-
             <div className="text-right shrink-0">
               <div className="text-[15px] font-bold text-blue-600">
                 {money(p.sale_price || p.price)}
               </div>
             </div>
           </div>
-
           <div className="flex items-center justify-between mt-2">
-            {/* Trạng thái kho */}
             <div className="flex items-center gap-2">
               {stock === 0 ? (
                 <span className="text-[11px] text-red-500 font-medium flex items-center gap-1">
@@ -177,8 +156,6 @@ export default function ProductList({
                 </span>
               )}
             </div>
-
-            {/* Nút nhập hàng nhanh (Chỉ hiện khi cần) */}
             {stock <= 5 && (
               <button
                 onClick={(e) => {
@@ -196,7 +173,6 @@ export default function ProductList({
     );
   };
 
-  // --- RENDERING ---
   if (listLoading)
     return (
       <div className="py-20 flex flex-col items-center justify-center text-gray-400 gap-3">
@@ -217,7 +193,7 @@ export default function ProductList({
     <div
       className={
         viewType === "grid"
-          ? `grid ${gridClassMap[gridCols] || "grid-cols-2 md:grid-cols-3"} gap-0 md:gap-4 bg-gray-200 dark:bg-gray-900 md:bg-transparent` // Grid Mobile: gap-0 để dính liền
+          ? `grid ${gridClassMap[gridCols] || "grid-cols-2 md:grid-cols-3"} gap-0 md:gap-4 bg-gray-200 dark:bg-gray-900 md:bg-transparent`
           : "flex flex-col w-full"
       }
     >

@@ -7,7 +7,6 @@ import {
   FiPlus,
   FiGrid,
   FiSearch,
-  FiFilter,
   FiChevronLeft,
 } from "react-icons/fi";
 import { api } from "../../api/client";
@@ -21,21 +20,15 @@ import ProductSkeleton from "../../components/products/ProductSkeleton";
 export default function Products() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState(null);
-
-  // Search & Filter
   const [search, setSearch] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
-
-  // Modals
   const [restockModal, setRestockModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [restockProduct, setRestockProduct] = useState(null);
   const [restockQty, setRestockQty] = useState("");
-
   const [viewMode, setViewMode] = useState("list");
   const [listViewMode, setListViewMode] = useState("list");
 
-  // useQuery
   const {
     data: list = [],
     isLoading,
@@ -59,11 +52,6 @@ export default function Products() {
     toast.error("Không thể kết nối Server!", { id: "err-load" });
   }
 
-  const brands = useMemo(
-    () => [...new Set(list.map((p) => p.brand).filter(Boolean))],
-    [list],
-  );
-
   const filtered = useMemo(() => {
     return list.filter((p) => {
       const matchBrand = selectedBrand ? p.brand === selectedBrand : true;
@@ -86,10 +74,8 @@ export default function Products() {
 
       {/* ======================= PC LAYOUT ======================= */}
       <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* CỘT TRÁI */}
         <div className="w-[400px] lg:w-[450px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shadow-sm shrink-0">
-            {/* Header Controls */}
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 📦 Kho hàng
@@ -123,7 +109,7 @@ export default function Products() {
               <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
               <input
                 className="w-full pl-9 pr-2 py-2 bg-gray-100 dark:bg-gray-900 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                placeholder="Tìm kiếm tên, SKU..."
+                placeholder="Tìm kiếm..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -151,7 +137,6 @@ export default function Products() {
           </div>
         </div>
 
-        {/* CỘT PHẢI */}
         <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 relative">
           <div className="max-w-5xl mx-auto p-8 pb-20">
             {selected ? (
@@ -213,8 +198,8 @@ export default function Products() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                // --- UPDATE: Bỏ p-2 trên mobile (p-0), giữ p-2 trên màn hình lớn ---
-                className="p-0 md:p-2"
+                // --- QUAN TRỌNG: !p-0 để ép sát lề ---
+                className="w-full !p-0 m-0 md:p-2"
               >
                 {isLoading ? (
                   <ProductSkeleton viewType={listViewMode} />
