@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query"; // ✅ Import React Query
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import {
@@ -16,11 +16,10 @@ import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
 import ProductDetail from "./ProductDetail";
 import { RestockModal, DeleteModal } from "./ProductModals";
-// ✅ Import Skeleton vừa tạo
 import ProductSkeleton from "../../components/products/ProductSkeleton";
 
 export default function Products() {
-  const queryClient = useQueryClient(); // Dùng để reload bằng tay khi cần
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState(null);
 
   // Search & Filter
@@ -36,36 +35,30 @@ export default function Products() {
   const [viewMode, setViewMode] = useState("list");
   const [listViewMode, setListViewMode] = useState("list");
 
-  // 🔥 THAY ĐỔI LỚN: Dùng useQuery thay cho useEffect
-  // isLoading: Biến này = true khi đang tải API
+  // useQuery
   const {
     data: list = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["products", search], // Khi biến 'search' đổi, tự động gọi lại API
+    queryKey: ["products", search],
     queryFn: async () => {
-      // Gọi API
       const data = await api(
         `/products${search ? `?q=${encodeURIComponent(search)}` : ""}`,
       );
       return Array.isArray(data) ? data : [];
     },
-    // Giữ dữ liệu cũ hiển thị trong lúc đang tìm kiếm mới (tránh nháy trắng)
     keepPreviousData: true,
   });
 
-  // Hàm reload dùng cho form con (khi thêm/sửa xong)
   const reload = async () => {
     await queryClient.invalidateQueries(["products"]);
   };
 
   if (isError) {
-    // Chỉ báo lỗi nhẹ, không làm crash app
     toast.error("Không thể kết nối Server!", { id: "err-load" });
   }
 
-  // Filter Client-side (Thương hiệu)
   const brands = useMemo(
     () => [...new Set(list.map((p) => p.brand).filter(Boolean))],
     [list],
@@ -138,7 +131,6 @@ export default function Products() {
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
-            {/* 🔥 LOGIC HIỂN THỊ SKELETON Ở ĐÂY */}
             {isLoading ? (
               <ProductSkeleton viewType={listViewMode} />
             ) : (
@@ -146,7 +138,7 @@ export default function Products() {
                 filtered={filtered}
                 selected={selected}
                 setSelected={setSelected}
-                listLoading={false} // React Query lo việc loading rồi
+                listLoading={false}
                 onRestock={(p) => {
                   setRestockProduct(p);
                   setRestockQty("");
@@ -221,9 +213,9 @@ export default function Products() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="p-2"
+                // --- UPDATE: Bỏ p-2 trên mobile (p-0), giữ p-2 trên màn hình lớn ---
+                className="p-0 md:p-2"
               >
-                {/* 🔥 SKELETON CHO MOBILE */}
                 {isLoading ? (
                   <ProductSkeleton viewType={listViewMode} />
                 ) : (
