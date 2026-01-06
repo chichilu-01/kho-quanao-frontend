@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 import { api } from "../../api/client";
 
+// Đảm bảo đường dẫn import đúng với cấu trúc dự án của bạn
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
 import ProductDetail from "./ProductDetail";
@@ -44,6 +45,12 @@ export default function Products() {
       const data = await api(
         `/products${q ? `?q=${encodeURIComponent(q)}` : ""}`,
       );
+
+      // --- DEBUG ERROR 0đ ---
+      // Mở Console (F12) để xem API trả về tên biến là 'price', 'retail_price' hay 'cost_price'
+      console.log("🔥 Dữ liệu API Products trả về:", data);
+      // ----------------------
+
       const arr = Array.isArray(data) ? data : [];
       setList(arr);
 
@@ -51,9 +58,11 @@ export default function Products() {
         const found = arr.find((x) => x.id === selectId);
         setSelected(found || null);
       } else if (!selected && arr?.length && window.innerWidth >= 768) {
+        // Mặc định chọn cái đầu tiên trên PC
         setSelected(arr[0]);
       }
     } catch (err) {
+      console.error(err);
       toast.error("❌ Lỗi tải danh sách");
     } finally {
       setListLoading(false);
@@ -89,21 +98,20 @@ export default function Products() {
       return;
     }
     setViewMode(mode);
-    // Scroll lên đầu khi chuyển tab
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    // 1️⃣ ROOT: Dùng min-h-screen thay vì h-screen để cho phép cuộn toàn trang
-    <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900">
+    // FIX LAYOUT: Dùng h-screen và overflow-hidden để khóa chiều cao trang, tránh 2 thanh cuộn
+    <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 overflow-hidden flex flex-col">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
 
-      {/* ======================= PC LAYOUT (Split View Infinite) ======================= */}
-      <div className="hidden md:flex items-start">
-        {/* CỘT TRÁI: Danh sách (Cuộn vô tận theo trang) */}
-        <div className="w-[400px] lg:w-[450px] xl:w-[500px] min-h-screen border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
-          {/* Header Cột Trái (Dính ở trên cùng) */}
-          <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      {/* ======================= PC LAYOUT (Split View Fixed) ======================= */}
+      <div className="hidden md:flex flex-1 overflow-hidden">
+        {/* CỘT TRÁI: Danh sách */}
+        <div className="w-[400px] lg:w-[450px] xl:w-[500px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
+          {/* Header Cột Trái (Không dùng Sticky nữa vì cha flex-col đã cố định nó) */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shadow-sm shrink-0">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 📦 Kho hàng
@@ -135,8 +143,7 @@ export default function Products() {
                 <button
                   onClick={() => {
                     setSelected(null);
-                    // PC: Scroll phải lên đầu để thấy form tạo mới
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    // Không cần scroll window vì layout đã cố định
                   }}
                   className="ml-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-blue-700 shadow-lg shadow-blue-500/30"
                 >
@@ -156,15 +163,12 @@ export default function Products() {
             </div>
           </div>
 
-          {/* List Content (Không overflow-auto nữa, để nó dài tự nhiên) */}
-          <div className="p-3">
+          {/* List Content: QUAN TRỌNG - overflow-y-auto để chỉ vùng này cuộn */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
             <ProductList
               filtered={filtered}
               selected={selected}
-              setSelected={(p) => {
-                setSelected(p);
-                // Trên PC không cần chuyển viewMode vì xem split view
-              }}
+              setSelected={setSelected}
               listLoading={listLoading}
               onRestock={(p) => {
                 setRestockProduct(p);
@@ -177,10 +181,10 @@ export default function Products() {
           </div>
         </div>
 
-        {/* CỘT PHẢI: Chi tiết (Sticky - Dính chặt khi cuộn trang) */}
-        <div className="flex-1 sticky top-0 h-screen overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900">
-          {/* Container giới hạn chiều rộng nội dung */}
-          <div className="max-w-5xl mx-auto p-8">
+        {/* CỘT PHẢI: Chi tiết */}
+        {/* Dùng flex-1 và overflow-y-auto để vùng này cuộn độc lập */}
+        <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 relative">
+          <div className="max-w-5xl mx-auto p-8 pb-20">
             {selected ? (
               <ProductDetail
                 selected={selected}
@@ -194,11 +198,10 @@ export default function Products() {
         </div>
       </div>
 
-      {/* ======================= MOBILE LAYOUT (1 Cột Duy Nhất) ======================= */}
-      <div className="md:hidden pb-20">
-        {" "}
-        {/* Padding bottom để không bị che bởi browser bar */}
-        {/* HEADER MOBILE (Sticky - Dính trên cùng) */}
+      {/* ======================= MOBILE LAYOUT (Giữ nguyên logic cũ, chỉ fix container) ======================= */}
+      {/* Thêm overflow-y-auto để mobile cũng cuộn mượt trong vùng cho phép */}
+      <div className="md:hidden flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 pb-20">
+        {/* HEADER MOBILE (Sticky) */}
         {viewMode === "list" && (
           <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-all">
             <div className="flex items-center gap-2 px-3 h-[60px]">
@@ -248,10 +251,8 @@ export default function Products() {
                 </button>
               </div>
 
-              {/* Nav Icons Separator */}
               <div className="w-[1px] h-6 bg-gray-300 mx-1"></div>
 
-              {/* Create Button */}
               <button
                 onClick={() => switchTab("create")}
                 className="w-10 h-10 flex items-center justify-center text-white bg-blue-600 rounded-full shadow-lg shadow-blue-500/40"
@@ -261,7 +262,8 @@ export default function Products() {
             </div>
           </div>
         )}
-        {/* BODY MOBILE (Chảy tự nhiên) */}
+
+        {/* BODY MOBILE */}
         <div className="p-2">
           <AnimatePresence mode="wait">
             {viewMode === "list" && (
@@ -277,7 +279,10 @@ export default function Products() {
                   setSelected={(p) => {
                     setSelected(p);
                     setViewMode("edit");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    // Ở mobile dùng window scroll được vì overflow ở div cha
+                    document
+                      .querySelector(".md\\:hidden")
+                      ?.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   listLoading={listLoading}
                   onRestock={(p) => {
@@ -288,7 +293,6 @@ export default function Products() {
                   viewType={listViewMode}
                   gridCols={2}
                 />
-                {/* Khoảng trống dưới cùng để lướt hết */}
                 <div className="h-10"></div>
               </motion.div>
             )}
