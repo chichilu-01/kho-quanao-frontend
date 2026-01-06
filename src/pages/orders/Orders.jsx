@@ -233,17 +233,18 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT */}
-      <div className="md:hidden flex-1 overflow-y-auto w-full pb-0 bg-gray-50 dark:bg-gray-900">
+      {/* MOBILE LAYOUT - ĐÃ SỬA LẠI HOÀN TOÀN */}
+      <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
-          <div className="w-full">
-            <div className="p-3 sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 backdrop-blur-sm">
+          <>
+            {/* 1. Phần tìm kiếm cố định ở trên */}
+            <div className="p-3 bg-gray-50 dark:bg-gray-900 shrink-0 z-10">
               <form
                 onSubmit={handleSearch}
                 className="flex bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
               >
                 <input
-                  className="flex-1 outline-none bg-transparent text-sm"
+                  className="flex-1 outline-none bg-transparent text-sm dark:text-gray-200"
                   placeholder="🔍 Tìm mã vận đơn..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -254,7 +255,8 @@ export default function Orders() {
               </form>
             </div>
 
-            <div className="w-full">
+            {/* 2. Phần danh sách tự giãn (flex-1) và có thanh cuộn riêng */}
+            <div className="flex-1 overflow-y-auto pb-24 px-1">
               <OrderList
                 filtered={filtered}
                 loading={loading}
@@ -264,22 +266,20 @@ export default function Orders() {
                   setViewMode("detail");
                 }}
               />
-
-              {/* 🔥 ĐÃ SỬA: Đổi h-32 (128px) thành h-[70px] để vừa khít */}
-              <div className="h-12"></div>
+              {/* Không còn thẻ div h-12 rỗng nữa */}
             </div>
-          </div>
+          </>
         )}
+
         {viewMode === "detail" && (
-          <div className="p-0 bg-white dark:bg-gray-800 min-h-full">
+          // Container chi tiết cũng dùng flex-1 và padding đáy
+          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-24">
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}
               updating={updating}
               onUpdateTracking={handleTrackingUpdate}
             />
-            {/* 🔥 ĐÃ SỬA: Spacer cho trang chi tiết luôn */}
-            <div className="h-12"></div>
           </div>
         )}
       </div>
