@@ -125,7 +125,6 @@ export default function Orders() {
   };
 
   return (
-    // 🔥 Bọc trong h-full và flex-col để khớp với App.jsx (Full màn hình)
     <div className="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
       {/* MOBILE HEADER (Tabs) */}
       <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
@@ -153,9 +152,8 @@ export default function Orders() {
         </button>
       </div>
 
-      {/* PC MODE */}
+      {/* PC MODE (Giữ nguyên) */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-full overflow-hidden">
-        {/* CỘT TRÁI */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -218,7 +216,6 @@ export default function Orders() {
           </div>
         </motion.div>
 
-        {/* CỘT PHẢI */}
         <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -237,11 +234,10 @@ export default function Orders() {
       </div>
 
       {/* MOBILE LAYOUT */}
-      {/* 🔥 w-full và bỏ px-3 để nội dung tràn viền */}
-      <div className="md:hidden flex-1 overflow-y-auto w-full pb-24 bg-gray-50 dark:bg-gray-900">
+      {/* 🔥 SỬA: Đổi pb-24 thành pb-0 để hết khoảng trắng thừa */}
+      <div className="md:hidden flex-1 overflow-y-auto w-full pb-0 bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <div className="w-full">
-            {/* Thanh tìm kiếm có padding nhìn cho thoáng */}
             <div className="p-3 sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 backdrop-blur-sm">
               <form
                 onSubmit={handleSearch}
@@ -259,7 +255,6 @@ export default function Orders() {
               </form>
             </div>
 
-            {/* Danh sách đơn hàng - Full Width */}
             <div className="w-full">
               <OrderList
                 filtered={filtered}
@@ -270,6 +265,10 @@ export default function Orders() {
                   setViewMode("detail");
                 }}
               />
+
+              {/* 🔥 QUAN TRỌNG: Spacer đẩy nội dung lên khỏi thanh công cụ */}
+              {/* Tăng chiều cao lên 24 để item cuối cùng lọt hẳn lên trên toolbar */}
+              <div className="h-32"></div>
             </div>
           </div>
         )}
@@ -281,6 +280,8 @@ export default function Orders() {
               updating={updating}
               onUpdateTracking={handleTrackingUpdate}
             />
+            {/* Spacer cho trang chi tiết luôn */}
+            <div className="h-32"></div>
           </div>
         )}
       </div>

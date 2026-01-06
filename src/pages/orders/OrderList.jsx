@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { FiTruck, FiBox, FiCheckCircle } from "react-icons/fi";
+import { FiTruck, FiBox } from "react-icons/fi";
 
 function money(v) {
   return Number(v || 0).toLocaleString("vi-VN") + "đ";
@@ -32,10 +32,9 @@ export default function OrderList({
   }
 
   return (
-    // CONTAINER CHÍNH
-    // Mobile: p-0, space-y-0 (Sát lề, dính liền nhau)
-    // PC: p-2, space-y-3 (Có lề, có khoảng cách giữa các thẻ)
-    <div className="overflow-y-auto max-h-[80vh] scrollbar-hide p-0 space-y-0 md:p-2 md:space-y-3">
+    // 🔥 SỬA: Bỏ "overflow-y-auto" và "max-h-[80vh]"
+    // Để danh sách tự do giãn hết cỡ, việc cuộn sẽ do file cha (Orders.jsx) lo
+    <div className="w-full p-0 space-y-0 md:p-2 md:space-y-3">
       <AnimatePresence>
         {filtered.map((order) => {
           const firstItem = order.items && order.items[0];
@@ -68,19 +67,11 @@ export default function OrderList({
               className={`
                 group relative cursor-pointer transition-all duration-200
 
-                /* === MOBILE STYLES (Giao diện phẳng, giống Facebook) === */
-                w-full
-                p-3
-                bg-white dark:bg-gray-800
-                rounded-none
-                border-b border-gray-100 dark:border-gray-700  /* Chỉ gạch chân dưới */
-                shadow-none
+                /* === MOBILE: Phẳng, Full width === */
+                w-full p-3 bg-white dark:bg-gray-800 rounded-none border-b border-gray-100 dark:border-gray-700 shadow-none
 
-                /* === PC STYLES (Giao diện thẻ nổi) === */
-                md:rounded-2xl
-                md:border md:border-gray-100 md:dark:border-gray-700
-                md:p-4
-                md:shadow-sm md:hover:shadow-lg md:hover:border-blue-300
+                /* === PC: Card nổi === */
+                md:rounded-2xl md:border md:border-gray-100 md:dark:border-gray-700 md:p-4 md:shadow-sm md:hover:shadow-lg md:hover:border-blue-300
 
                 ${
                   selected?.id === order.id
@@ -90,13 +81,13 @@ export default function OrderList({
               `}
             >
               <div className="flex gap-3 md:gap-4">
-                {/* --- 🖼️ ẢNH THUMBNAIL --- */}
+                {/* ẢNH THUMBNAIL */}
                 <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-lg md:rounded-xl overflow-hidden border border-gray-100 bg-gray-50 shadow-inner relative">
                   {imageSrc ? (
                     <img
                       src={imageSrc}
                       alt="sp"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover"
                       onError={(e) =>
                         (e.target.src =
                           "https://placehold.co/100x100?text=No+Img")
@@ -107,8 +98,6 @@ export default function OrderList({
                       <FiBox size={20} />
                     </div>
                   )}
-
-                  {/* Badge số lượng sản phẩm */}
                   {order.items?.length > 1 && (
                     <div className="absolute bottom-0 right-0 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-tl-lg font-bold backdrop-blur-sm">
                       +{order.items.length - 1}
@@ -116,7 +105,7 @@ export default function OrderList({
                   )}
                 </div>
 
-                {/* --- 📝 THÔNG TIN CHÍNH --- */}
+                {/* THÔNG TIN */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                   <div className="flex justify-between items-start">
                     <div>
@@ -149,9 +138,7 @@ export default function OrderList({
                     </div>
                   </div>
 
-                  {/* Footer: Tracking & Status */}
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50 dark:border-gray-700/50">
-                    {/* Mã vận đơn */}
                     <div className="flex items-center gap-2">
                       {order.china_tracking_code ? (
                         <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300 text-[11px] bg-gray-50 dark:bg-gray-700 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-600">
@@ -164,13 +151,8 @@ export default function OrderList({
                         <span className="text-[10px] text-gray-400">---</span>
                       )}
                     </div>
-
-                    {/* Trạng thái */}
                     <span
-                      className={`
-                      px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border
-                      ${statusStyles[order.status] || "bg-gray-100 text-gray-600"}
-                    `}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${statusStyles[order.status] || "bg-gray-100 text-gray-600"}`}
                     >
                       {statusLabel[order.status] || order.status}
                     </span>
