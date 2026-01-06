@@ -65,16 +65,18 @@ export default function Products() {
       return;
     }
     setViewMode(mode);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 overflow-hidden flex flex-col">
+    // 🔥 Thay h-screen bằng h-full để khớp với cha (App.jsx)
+    // Thêm overflow-hidden để đảm bảo layout không bị vỡ
+    <div className="h-full w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col overflow-hidden">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
 
       {/* ======================= PC LAYOUT ======================= */}
-      <div className="hidden md:flex flex-1 overflow-hidden">
-        <div className="w-[400px] lg:w-[450px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
+      <div className="hidden md:flex flex-1 overflow-hidden h-full">
+        {/* CỘT TRÁI */}
+        <div className="w-[400px] lg:w-[450px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10 h-full">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shadow-sm shrink-0">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -137,6 +139,7 @@ export default function Products() {
           </div>
         </div>
 
+        {/* CỘT PHẢI */}
         <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 relative">
           <div className="max-w-5xl mx-auto p-8 pb-20">
             {selected ? (
@@ -153,9 +156,11 @@ export default function Products() {
       </div>
 
       {/* ======================= MOBILE LAYOUT ======================= */}
-      <div className="md:hidden flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 pb-20">
+      {/* 🔥 h-full để chiếm trọn phần còn lại của màn hình */}
+      <div className="md:hidden flex-1 h-full bg-gray-50 dark:bg-gray-900 relative flex flex-col overflow-hidden">
         {viewMode === "list" && (
-          <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-all">
+          // Header cố định (không bị cuộn đi mất)
+          <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm z-20">
             <div className="flex items-center gap-2 px-3 h-[60px]">
               <div className="relative flex-1">
                 <FiSearch className="absolute top-2.5 left-3 text-gray-400 text-lg" />
@@ -190,7 +195,8 @@ export default function Products() {
           </div>
         )}
 
-        <div className="w-full">
+        {/* PHẦN NỘI DUNG CUỘN (Chỉ phần này cuộn) */}
+        <div className="flex-1 overflow-y-auto w-full">
           <AnimatePresence mode="wait">
             {viewMode === "list" && (
               <motion.div
@@ -198,8 +204,7 @@ export default function Products() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                // --- QUAN TRỌNG: !p-0 để ép sát lề ---
-                className="w-full !p-0 m-0 md:p-2"
+                className="w-full p-0 md:p-2"
               >
                 {isLoading ? (
                   <ProductSkeleton viewType={listViewMode} />
@@ -210,9 +215,6 @@ export default function Products() {
                     setSelected={(p) => {
                       setSelected(p);
                       setViewMode("edit");
-                      document
-                        .querySelector(".md\\:hidden")
-                        ?.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     listLoading={false}
                     onRestock={(p) => {
@@ -224,17 +226,19 @@ export default function Products() {
                     gridCols={2}
                   />
                 )}
-                <div className="h-10"></div>
+                {/* Khoảng trống dưới cùng để không bị BottomNav che mất item cuối */}
+                <div className="h-5"></div>
               </motion.div>
             )}
 
             {viewMode === "create" && (
               <motion.div
                 key="create"
-                initial={{ x: 20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -20, opacity: 0 }}
-                className="bg-white dark:bg-gray-900 min-h-screen"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="bg-white dark:bg-gray-900 min-h-full absolute inset-0 z-30 overflow-y-auto"
               >
                 <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-3 flex items-center gap-2 border-b dark:border-gray-800">
                   <button
@@ -252,10 +256,11 @@ export default function Products() {
             {viewMode === "edit" && (
               <motion.div
                 key="edit"
-                initial={{ x: 20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -20, opacity: 0 }}
-                className="bg-white dark:bg-gray-900 min-h-screen"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="bg-white dark:bg-gray-900 min-h-full absolute inset-0 z-30 overflow-y-auto"
               >
                 <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-3 flex items-center justify-between border-b dark:border-gray-800">
                   <div className="flex items-center gap-2">
