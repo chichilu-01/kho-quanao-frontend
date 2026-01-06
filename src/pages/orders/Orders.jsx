@@ -234,7 +234,6 @@ export default function Orders() {
       </div>
 
       {/* MOBILE LAYOUT */}
-      {/* 🔥 SỬA: Đổi pb-24 thành pb-0 để hết khoảng trắng thừa */}
       <div className="md:hidden flex-1 overflow-y-auto w-full pb-0 bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <div className="w-full">
@@ -266,9 +265,8 @@ export default function Orders() {
                 }}
               />
 
-              {/* 🔥 QUAN TRỌNG: Spacer đẩy nội dung lên khỏi thanh công cụ */}
-              {/* Tăng chiều cao lên 24 để item cuối cùng lọt hẳn lên trên toolbar */}
-              <div className="h-32"></div>
+              {/* 🔥 ĐÃ SỬA: Đổi h-32 (128px) thành h-[70px] để vừa khít */}
+              <div className="h-[70px]"></div>
             </div>
           </div>
         )}
@@ -280,8 +278,8 @@ export default function Orders() {
               updating={updating}
               onUpdateTracking={handleTrackingUpdate}
             />
-            {/* Spacer cho trang chi tiết luôn */}
-            <div className="h-32"></div>
+            {/* 🔥 ĐÃ SỬA: Spacer cho trang chi tiết luôn */}
+            <div className="h-[70px]"></div>
           </div>
         )}
       </div>
