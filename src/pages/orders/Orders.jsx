@@ -125,9 +125,9 @@ export default function Orders() {
   };
 
   return (
-    // 🔥 FIX QUAN TRỌNG: Đổi h-full thành h-[100dvh] để đảm bảo full màn hình mobile thật sự
+    // 1. CONTAINER CHÍNH: h-[100dvh] để fix chiều cao mobile, overflow-hidden để chặn cuộn ngoài
     <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
-      {/* MOBILE HEADER (Tabs) */}
+      {/* MOBILE TAB HEADER */}
       <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
         <button
           onClick={() => setViewMode("list")}
@@ -153,7 +153,7 @@ export default function Orders() {
         </button>
       </div>
 
-      {/* PC MODE (Giữ nguyên) */}
+      {/* PC MODE (Giữ nguyên logic cũ) */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-full overflow-hidden">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -234,10 +234,11 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT */}
+      {/* MOBILE LAYOUT - ĐÃ SỬA LỖI 2 THANH CUỘN & GAP */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <>
+            {/* 1. KHU VỰC TÌM KIẾM (CỐ ĐỊNH - KHÔNG CUỘN) */}
             <div className="p-3 bg-gray-50 dark:bg-gray-900 shrink-0 z-10">
               <form
                 onSubmit={handleSearch}
@@ -255,8 +256,11 @@ export default function Orders() {
               </form>
             </div>
 
-            {/* 🔥 ĐÃ SỬA: Giảm padding xuống pb-16 (64px) cho vừa đẹp */}
-            <div className="flex-1 overflow-y-auto pb-16 px-1">
+            {/* 2. KHU VỰC DANH SÁCH (CUỘN ĐỘC LẬP) */}
+            {/* flex-1: chiếm hết chỗ còn lại */}
+            {/* overflow-y-auto: tạo thanh cuộn riêng cho vùng này */}
+            {/* pb-20: Padding đáy để nội dung không bị menu che (khoảng 80px) */}
+            <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth">
               <OrderList
                 filtered={filtered}
                 loading={loading}
@@ -271,8 +275,7 @@ export default function Orders() {
         )}
 
         {viewMode === "detail" && (
-          // 🔥 ĐÃ SỬA: Giảm padding xuống pb-16
-          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-16">
+          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-20">
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}
