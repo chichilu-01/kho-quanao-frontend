@@ -54,7 +54,6 @@ export default function ProductForm({ load, onCancel }) {
     if (!form.name) {
       return toast.error("Vui lòng nhập Tên sản phẩm!");
     }
-    // Cho phép giá = 0, nhưng phải nhập tên
 
     try {
       setLoading(true);
@@ -104,7 +103,7 @@ export default function ProductForm({ load, onCancel }) {
       setPreview(null);
 
       // Reload lại danh sách ở component cha (Products.js)
-      if (load) await load(json.id); // json.id là ID sản phẩm vừa tạo để auto select
+      if (load) await load(json.id);
     } catch (err) {
       console.error(err);
       toast.error("❌ " + (err?.message || "Không thể tạo sản phẩm"));
@@ -117,10 +116,15 @@ export default function ProductForm({ load, onCancel }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700 mb-6"
+      // 🔥 FIX CSS: Mobile phẳng (w-full), PC bo góc (md:rounded...)
+      className="
+        w-full bg-white dark:bg-gray-800 
+        overflow-hidden
+        md:rounded-2xl md:shadow-xl md:border md:border-gray-100 md:dark:border-gray-700 md:mb-6
+      "
     >
-      {/* HEADER */}
-      <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+      {/* HEADER: Ẩn trên Mobile (hidden), Hiện trên PC (md:flex) */}
+      <div className="hidden md:flex bg-gray-50 dark:bg-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-700 justify-between items-center">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
           <FiLayers className="text-blue-600" />
           Thêm sản phẩm mới
@@ -136,8 +140,8 @@ export default function ProductForm({ load, onCancel }) {
         )}
       </div>
 
-      <form onSubmit={submit} className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <form onSubmit={submit} className="p-4 md:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {/* CỘT TRÁI: ẢNH SẢN PHẨM */}
           <div className="col-span-1">
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
@@ -272,11 +276,11 @@ export default function ProductForm({ load, onCancel }) {
             type="submit"
             disabled={loading}
             className="
-                px-8 py-3 rounded-xl 
+                w-full md:w-auto px-8 py-3 rounded-xl 
                 bg-blue-600 text-white font-bold 
                 shadow-lg shadow-blue-200 dark:shadow-none
                 hover:bg-blue-700 hover:shadow-blue-300 transition-all 
-                flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed
             "
           >
             {loading ? (

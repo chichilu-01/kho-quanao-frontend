@@ -32,7 +32,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
   // 🔥 FIX LỖI 0đ: Sync dữ liệu thông minh hơn
   useEffect(() => {
     if (selected) {
-      console.log("🔍 Dữ liệu chi tiết sản phẩm:", selected); // Xem log này ở F12 để biết tên biến chính xác
+      console.log("🔍 Dữ liệu chi tiết sản phẩm:", selected);
 
       setForm({
         sku: selected.sku || "",
@@ -40,15 +40,13 @@ export default function ProductDetail({ selected, setSelected, load }) {
         category: selected.category || "",
         brand: selected.brand || "",
 
-        // 🔥 FIX QUAN TRỌNG: Kiểm tra nhiều trường hợp tên biến giá tiền
-        // API có thể trả về: cost_price, import_price, original_price...
+        // Kiểm tra nhiều trường hợp tên biến giá tiền
         cost_price:
           selected.cost_price ||
           selected.import_price ||
           selected.original_price ||
           0,
 
-        // API có thể trả về: sale_price, price, retail_price...
         sale_price:
           selected.sale_price || selected.price || selected.retail_price || 0,
       });
@@ -128,8 +126,9 @@ export default function ProductDetail({ selected, setSelected, load }) {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
+        // 🔥 FIX CSS: Mobile (px-4, full width), PC (rounded, shadow)
         className="
-          mt-0 px-0 pt-4 pb-24 w-full
+          mt-0 px-4 pt-4 pb-24 w-full
           bg-white dark:bg-gray-900
           md:mt-5 md:p-6 md:rounded-3xl
           md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
@@ -138,8 +137,8 @@ export default function ProductDetail({ selected, setSelected, load }) {
           space-y-6
         "
       >
-        {/* HEADER */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
+        {/* HEADER: Chỉ hiện trên PC (md:flex), Mobile ẩn vì có sticky header ngoài */}
+        <div className="hidden md:flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
           <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
             <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
           </h4>
@@ -148,7 +147,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
         <form
           onSubmit={submit}
-          className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8"
+          className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 md:gap-8"
         >
           {/* CỘT TRÁI: ẢNH */}
           <div className="space-y-4">

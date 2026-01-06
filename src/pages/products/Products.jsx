@@ -4,7 +4,6 @@ import toast, { Toaster } from "react-hot-toast";
 import {
   FiList,
   FiPlus,
-  FiEdit3,
   FiGrid,
   FiSearch,
   FiFilter,
@@ -12,7 +11,7 @@ import {
 } from "react-icons/fi";
 import { api } from "../../api/client";
 
-// Đảm bảo đường dẫn import đúng với cấu trúc dự án của bạn
+// Đảm bảo đường dẫn import đúng
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
 import ProductDetail from "./ProductDetail";
@@ -46,10 +45,8 @@ export default function Products() {
         `/products${q ? `?q=${encodeURIComponent(q)}` : ""}`,
       );
 
-      // --- DEBUG ERROR 0đ ---
-      // Mở Console (F12) để xem API trả về tên biến là 'price', 'retail_price' hay 'cost_price'
+      // Debug dữ liệu xem giá có về 0 không
       console.log("🔥 Dữ liệu API Products trả về:", data);
-      // ----------------------
 
       const arr = Array.isArray(data) ? data : [];
       setList(arr);
@@ -58,7 +55,7 @@ export default function Products() {
         const found = arr.find((x) => x.id === selectId);
         setSelected(found || null);
       } else if (!selected && arr?.length && window.innerWidth >= 768) {
-        // Mặc định chọn cái đầu tiên trên PC
+        // PC: Mặc định chọn cái đầu tiên
         setSelected(arr[0]);
       }
     } catch (err) {
@@ -98,19 +95,20 @@ export default function Products() {
       return;
     }
     setViewMode(mode);
+    // Scroll lên đầu
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    // FIX LAYOUT: Dùng h-screen và overflow-hidden để khóa chiều cao trang, tránh 2 thanh cuộn
+    // 🔥 FIX LAYOUT: h-screen + overflow-hidden để khóa trang, tránh 2 thanh cuộn
     <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 overflow-hidden flex flex-col">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
 
-      {/* ======================= PC LAYOUT (Split View Fixed) ======================= */}
+      {/* ======================= PC LAYOUT (Split View) ======================= */}
       <div className="hidden md:flex flex-1 overflow-hidden">
         {/* CỘT TRÁI: Danh sách */}
         <div className="w-[400px] lg:w-[450px] xl:w-[500px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
-          {/* Header Cột Trái (Không dùng Sticky nữa vì cha flex-col đã cố định nó) */}
+          {/* Header Cột Trái */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shadow-sm shrink-0">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -143,7 +141,6 @@ export default function Products() {
                 <button
                   onClick={() => {
                     setSelected(null);
-                    // Không cần scroll window vì layout đã cố định
                   }}
                   className="ml-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-blue-700 shadow-lg shadow-blue-500/30"
                 >
@@ -163,7 +160,7 @@ export default function Products() {
             </div>
           </div>
 
-          {/* List Content: QUAN TRỌNG - overflow-y-auto để chỉ vùng này cuộn */}
+          {/* List Content: overflow-y-auto để vùng này cuộn độc lập */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
             <ProductList
               filtered={filtered}
@@ -182,7 +179,6 @@ export default function Products() {
         </div>
 
         {/* CỘT PHẢI: Chi tiết */}
-        {/* Dùng flex-1 và overflow-y-auto để vùng này cuộn độc lập */}
         <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 relative">
           <div className="max-w-5xl mx-auto p-8 pb-20">
             {selected ? (
@@ -198,10 +194,9 @@ export default function Products() {
         </div>
       </div>
 
-      {/* ======================= MOBILE LAYOUT (Giữ nguyên logic cũ, chỉ fix container) ======================= */}
-      {/* Thêm overflow-y-auto để mobile cũng cuộn mượt trong vùng cho phép */}
+      {/* ======================= MOBILE LAYOUT ======================= */}
       <div className="md:hidden flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 pb-20">
-        {/* HEADER MOBILE (Sticky) */}
+        {/* HEADER MOBILE (Chỉ hiện ở List View) */}
         {viewMode === "list" && (
           <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-all">
             <div className="flex items-center gap-2 px-3 h-[60px]">
@@ -232,9 +227,6 @@ export default function Products() {
                       </option>
                     ))}
                   </select>
-                  {selectedBrand && (
-                    <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white"></div>
-                  )}
                 </div>
 
                 <button
@@ -263,15 +255,17 @@ export default function Products() {
           </div>
         )}
 
-        {/* BODY MOBILE */}
-        <div className="p-2">
+        {/* BODY MOBILE - 🔥 SỬA: Bỏ padding tổng để Form/Detail tràn viền */}
+        <div className="w-full">
           <AnimatePresence mode="wait">
+            {/* 1. LIST VIEW: Giữ padding p-2 để danh sách đẹp */}
             {viewMode === "list" && (
               <motion.div
                 key="list"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                className="p-2"
               >
                 <ProductList
                   filtered={filtered}
@@ -279,7 +273,6 @@ export default function Products() {
                   setSelected={(p) => {
                     setSelected(p);
                     setViewMode("edit");
-                    // Ở mobile dùng window scroll được vì overflow ở div cha
                     document
                       .querySelector(".md\\:hidden")
                       ?.scrollTo({ top: 0, behavior: "smooth" });
@@ -297,40 +290,45 @@ export default function Products() {
               </motion.div>
             )}
 
+            {/* 2. CREATE VIEW: Full Width, không padding */}
             {viewMode === "create" && (
               <motion.div
                 key="create"
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
+                className="bg-white dark:bg-gray-900 min-h-screen"
               >
-                <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md p-2 flex items-center gap-2 border-b mb-2">
+                {/* Header sticky nhỏ cho màn hình tạo mới */}
+                <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-3 flex items-center gap-2 border-b dark:border-gray-800">
                   <button
                     onClick={() => setViewMode("list")}
-                    className="p-2 rounded-full hover:bg-gray-100"
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
                     <FiChevronLeft size={24} />
                   </button>
-                  <h3 className="font-bold text-lg">Thêm sản phẩm mới</h3>
+                  <h3 className="font-bold text-lg">Thêm sản phẩm</h3>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm p-4">
-                  <ProductForm load={load} />
-                </div>
+
+                {/* Form render trực tiếp, component con sẽ tự lo padding */}
+                <ProductForm load={load} />
               </motion.div>
             )}
 
+            {/* 3. EDIT VIEW: Full Width, không padding */}
             {viewMode === "edit" && (
               <motion.div
                 key="edit"
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
+                className="bg-white dark:bg-gray-900 min-h-screen"
               >
-                <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md p-2 flex items-center justify-between border-b mb-2">
+                <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-3 flex items-center justify-between border-b dark:border-gray-800">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setViewMode("list")}
-                      className="p-2 rounded-full hover:bg-gray-100"
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       <FiChevronLeft size={24} />
                     </button>
@@ -339,19 +337,18 @@ export default function Products() {
                     </h3>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm p-4">
-                  {selected ? (
-                    <ProductDetail
-                      selected={selected}
-                      setSelected={setSelected}
-                      load={load}
-                    />
-                  ) : (
-                    <div className="text-center py-10 text-gray-500">
-                      Chưa chọn sản phẩm
-                    </div>
-                  )}
-                </div>
+
+                {selected ? (
+                  <ProductDetail
+                    selected={selected}
+                    setSelected={setSelected}
+                    load={load}
+                  />
+                ) : (
+                  <div className="text-center py-10 text-gray-500">
+                    Chưa chọn sản phẩm
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
