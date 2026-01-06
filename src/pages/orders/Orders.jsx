@@ -256,7 +256,7 @@ export default function Orders() {
             </div>
 
             {/* 2. Phần danh sách tự giãn (flex-1) và có thanh cuộn riêng */}
-            <div className="flex-1 overflow-y-auto pb-24 px-1">
+            <div className="flex-1 overflow-y-auto pb-12 px-1">
               <OrderList
                 filtered={filtered}
                 loading={loading}
@@ -273,7 +273,7 @@ export default function Orders() {
 
         {viewMode === "detail" && (
           // Container chi tiết cũng dùng flex-1 và padding đáy
-          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-24">
+          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-12">
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}
