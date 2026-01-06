@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query"; // ✅ Import React Query
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import {
@@ -11,14 +12,15 @@ import {
 } from "react-icons/fi";
 import { api } from "../../api/client";
 
-// Đảm bảo đường dẫn import đúng
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
 import ProductDetail from "./ProductDetail";
 import { RestockModal, DeleteModal } from "./ProductModals";
+// ✅ Import Skeleton vừa tạo
+import ProductSkeleton from "../../components/products/ProductSkeleton";
 
 export default function Products() {
-  const [list, setList] = useState([]);
+  const queryClient = useQueryClient(); // Dùng để reload bằng tay khi cần
   const [selected, setSelected] = useState(null);
 
   // Search & Filter
@@ -31,85 +33,70 @@ export default function Products() {
   const [restockProduct, setRestockProduct] = useState(null);
   const [restockQty, setRestockQty] = useState("");
 
-  const [listLoading, setListLoading] = useState(false);
+  const [viewMode, setViewMode] = useState("list");
+  const [listViewMode, setListViewMode] = useState("list");
 
-  // View States
-  const [viewMode, setViewMode] = useState("list"); // 'list' | 'create' | 'edit'
-  const [listViewMode, setListViewMode] = useState("list"); // 'list' | 'grid'
-
-  // Load Data
-  const load = async (selectId, q = "") => {
-    try {
-      setListLoading(true);
+  // 🔥 THAY ĐỔI LỚN: Dùng useQuery thay cho useEffect
+  // isLoading: Biến này = true khi đang tải API
+  const {
+    data: list = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["products", search], // Khi biến 'search' đổi, tự động gọi lại API
+    queryFn: async () => {
+      // Gọi API
       const data = await api(
-        `/products${q ? `?q=${encodeURIComponent(q)}` : ""}`,
+        `/products${search ? `?q=${encodeURIComponent(search)}` : ""}`,
       );
+      return Array.isArray(data) ? data : [];
+    },
+    // Giữ dữ liệu cũ hiển thị trong lúc đang tìm kiếm mới (tránh nháy trắng)
+    keepPreviousData: true,
+  });
 
-      // Debug dữ liệu xem giá có về 0 không
-      console.log("🔥 Dữ liệu API Products trả về:", data);
-
-      const arr = Array.isArray(data) ? data : [];
-      setList(arr);
-
-      if (selectId) {
-        const found = arr.find((x) => x.id === selectId);
-        setSelected(found || null);
-      } else if (!selected && arr?.length && window.innerWidth >= 768) {
-        // PC: Mặc định chọn cái đầu tiên
-        setSelected(arr[0]);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("❌ Lỗi tải danh sách");
-    } finally {
-      setListLoading(false);
-    }
+  // Hàm reload dùng cho form con (khi thêm/sửa xong)
+  const reload = async () => {
+    await queryClient.invalidateQueries(["products"]);
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  if (isError) {
+    // Chỉ báo lỗi nhẹ, không làm crash app
+    toast.error("Không thể kết nối Server!", { id: "err-load" });
+  }
 
-  // Filter
+  // Filter Client-side (Thương hiệu)
   const brands = useMemo(
     () => [...new Set(list.map((p) => p.brand).filter(Boolean))],
     [list],
   );
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return list.filter((p) => {
-      const matchSearch =
-        !q ||
-        p.name?.toLowerCase().includes(q) ||
-        p.sku?.toLowerCase().includes(q);
       const matchBrand = selectedBrand ? p.brand === selectedBrand : true;
-      return matchSearch && matchBrand;
+      return matchBrand;
     });
-  }, [list, search, selectedBrand]);
+  }, [list, selectedBrand]);
 
-  // Xử lý chuyển tab mobile
   const switchTab = (mode) => {
     if (mode === "edit" && !selected) {
       toast("⚠️ Chọn sản phẩm trước");
       return;
     }
     setViewMode(mode);
-    // Scroll lên đầu
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    // 🔥 FIX LAYOUT: h-screen + overflow-hidden để khóa trang, tránh 2 thanh cuộn
     <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 overflow-hidden flex flex-col">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
 
-      {/* ======================= PC LAYOUT (Split View) ======================= */}
+      {/* ======================= PC LAYOUT ======================= */}
       <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* CỘT TRÁI: Danh sách */}
-        <div className="w-[400px] lg:w-[450px] xl:w-[500px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
-          {/* Header Cột Trái */}
+        {/* CỘT TRÁI */}
+        <div className="w-[400px] lg:w-[450px] border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shadow-xl z-10">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shadow-sm shrink-0">
+            {/* Header Controls */}
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 📦 Kho hàng
@@ -120,29 +107,19 @@ export default function Products() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setListViewMode("list")}
-                  className={`p-1.5 rounded-md transition-all ${
-                    listViewMode === "list"
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-400 hover:bg-gray-100"
-                  }`}
+                  className={`p-1.5 rounded-md ${listViewMode === "list" ? "bg-blue-50 text-blue-600" : "text-gray-400"}`}
                 >
                   <FiList size={18} />
                 </button>
                 <button
                   onClick={() => setListViewMode("grid")}
-                  className={`p-1.5 rounded-md transition-all ${
-                    listViewMode === "grid"
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-400 hover:bg-gray-100"
-                  }`}
+                  className={`p-1.5 rounded-md ${listViewMode === "grid" ? "bg-blue-50 text-blue-600" : "text-gray-400"}`}
                 >
                   <FiGrid size={18} />
                 </button>
                 <button
-                  onClick={() => {
-                    setSelected(null);
-                  }}
-                  className="ml-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-blue-700 shadow-lg shadow-blue-500/30"
+                  onClick={() => setSelected(null)}
+                  className="ml-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-blue-700"
                 >
                   <FiPlus /> Mới
                 </button>
@@ -160,35 +137,39 @@ export default function Products() {
             </div>
           </div>
 
-          {/* List Content: overflow-y-auto để vùng này cuộn độc lập */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
-            <ProductList
-              filtered={filtered}
-              selected={selected}
-              setSelected={setSelected}
-              listLoading={listLoading}
-              onRestock={(p) => {
-                setRestockProduct(p);
-                setRestockQty("");
-                setRestockModal(true);
-              }}
-              viewType={listViewMode}
-              gridCols={listViewMode === "grid" ? 2 : 1}
-            />
+            {/* 🔥 LOGIC HIỂN THỊ SKELETON Ở ĐÂY */}
+            {isLoading ? (
+              <ProductSkeleton viewType={listViewMode} />
+            ) : (
+              <ProductList
+                filtered={filtered}
+                selected={selected}
+                setSelected={setSelected}
+                listLoading={false} // React Query lo việc loading rồi
+                onRestock={(p) => {
+                  setRestockProduct(p);
+                  setRestockQty("");
+                  setRestockModal(true);
+                }}
+                viewType={listViewMode}
+                gridCols={listViewMode === "grid" ? 2 : 1}
+              />
+            )}
           </div>
         </div>
 
-        {/* CỘT PHẢI: Chi tiết */}
+        {/* CỘT PHẢI */}
         <div className="flex-1 h-full overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 relative">
           <div className="max-w-5xl mx-auto p-8 pb-20">
             {selected ? (
               <ProductDetail
                 selected={selected}
                 setSelected={setSelected}
-                load={load}
+                load={reload}
               />
             ) : (
-              <ProductForm load={load} />
+              <ProductForm load={reload} />
             )}
           </div>
         </div>
@@ -196,39 +177,19 @@ export default function Products() {
 
       {/* ======================= MOBILE LAYOUT ======================= */}
       <div className="md:hidden flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 pb-20">
-        {/* HEADER MOBILE (Chỉ hiện ở List View) */}
         {viewMode === "list" && (
           <div className="sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm transition-all">
             <div className="flex items-center gap-2 px-3 h-[60px]">
-              {/* Search */}
               <div className="relative flex-1">
                 <FiSearch className="absolute top-2.5 left-3 text-gray-400 text-lg" />
                 <input
-                  className="w-full h-10 bg-gray-100 dark:bg-gray-800 pl-10 pr-2 rounded-full text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full h-10 bg-gray-100 dark:bg-gray-800 pl-10 pr-2 rounded-full text-sm font-medium outline-none"
                   placeholder="Tìm sp..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-
-              {/* Tools */}
               <div className="flex items-center gap-1">
-                <div className="relative w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600">
-                  <FiFilter size={18} />
-                  <select
-                    value={selectedBrand}
-                    onChange={(e) => setSelectedBrand(e.target.value)}
-                    className="absolute inset-0 opacity-0 w-full h-full"
-                  >
-                    <option value="">Tất cả</option>
-                    {brands.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <button
                   onClick={() =>
                     setListViewMode((m) => (m === "grid" ? "list" : "grid"))
@@ -242,12 +203,9 @@ export default function Products() {
                   )}
                 </button>
               </div>
-
-              <div className="w-[1px] h-6 bg-gray-300 mx-1"></div>
-
               <button
                 onClick={() => switchTab("create")}
-                className="w-10 h-10 flex items-center justify-center text-white bg-blue-600 rounded-full shadow-lg shadow-blue-500/40"
+                className="w-10 h-10 flex items-center justify-center text-white bg-blue-600 rounded-full shadow-lg"
               >
                 <FiPlus size={22} />
               </button>
@@ -255,10 +213,8 @@ export default function Products() {
           </div>
         )}
 
-        {/* BODY MOBILE - 🔥 SỬA: Bỏ padding tổng để Form/Detail tràn viền */}
         <div className="w-full">
           <AnimatePresence mode="wait">
-            {/* 1. LIST VIEW: Giữ padding p-2 để danh sách đẹp */}
             {viewMode === "list" && (
               <motion.div
                 key="list"
@@ -267,30 +223,34 @@ export default function Products() {
                 exit={{ opacity: 0 }}
                 className="p-2"
               >
-                <ProductList
-                  filtered={filtered}
-                  selected={selected}
-                  setSelected={(p) => {
-                    setSelected(p);
-                    setViewMode("edit");
-                    document
-                      .querySelector(".md\\:hidden")
-                      ?.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  listLoading={listLoading}
-                  onRestock={(p) => {
-                    setRestockProduct(p);
-                    setRestockQty("");
-                    setRestockModal(true);
-                  }}
-                  viewType={listViewMode}
-                  gridCols={2}
-                />
+                {/* 🔥 SKELETON CHO MOBILE */}
+                {isLoading ? (
+                  <ProductSkeleton viewType={listViewMode} />
+                ) : (
+                  <ProductList
+                    filtered={filtered}
+                    selected={selected}
+                    setSelected={(p) => {
+                      setSelected(p);
+                      setViewMode("edit");
+                      document
+                        .querySelector(".md\\:hidden")
+                        ?.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    listLoading={false}
+                    onRestock={(p) => {
+                      setRestockProduct(p);
+                      setRestockQty("");
+                      setRestockModal(true);
+                    }}
+                    viewType={listViewMode}
+                    gridCols={2}
+                  />
+                )}
                 <div className="h-10"></div>
               </motion.div>
             )}
 
-            {/* 2. CREATE VIEW: Full Width, không padding */}
             {viewMode === "create" && (
               <motion.div
                 key="create"
@@ -299,23 +259,19 @@ export default function Products() {
                 exit={{ x: -20, opacity: 0 }}
                 className="bg-white dark:bg-gray-900 min-h-screen"
               >
-                {/* Header sticky nhỏ cho màn hình tạo mới */}
                 <div className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-3 flex items-center gap-2 border-b dark:border-gray-800">
                   <button
                     onClick={() => setViewMode("list")}
-                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="p-2 rounded-full hover:bg-gray-100"
                   >
                     <FiChevronLeft size={24} />
                   </button>
                   <h3 className="font-bold text-lg">Thêm sản phẩm</h3>
                 </div>
-
-                {/* Form render trực tiếp, component con sẽ tự lo padding */}
-                <ProductForm load={load} />
+                <ProductForm load={reload} />
               </motion.div>
             )}
 
-            {/* 3. EDIT VIEW: Full Width, không padding */}
             {viewMode === "edit" && (
               <motion.div
                 key="edit"
@@ -328,7 +284,7 @@ export default function Products() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setViewMode("list")}
-                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                      className="p-2 rounded-full hover:bg-gray-100"
                     >
                       <FiChevronLeft size={24} />
                     </button>
@@ -337,17 +293,14 @@ export default function Products() {
                     </h3>
                   </div>
                 </div>
-
                 {selected ? (
                   <ProductDetail
                     selected={selected}
                     setSelected={setSelected}
-                    load={load}
+                    load={reload}
                   />
                 ) : (
-                  <div className="text-center py-10 text-gray-500">
-                    Chưa chọn sản phẩm
-                  </div>
+                  <div className="text-center py-10">Chưa chọn SP</div>
                 )}
               </motion.div>
             )}
@@ -355,20 +308,19 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Modals */}
       <RestockModal
         open={restockModal}
         setOpen={setRestockModal}
         product={restockProduct}
         qty={restockQty}
         setQty={setRestockQty}
-        reload={load}
+        reload={reload}
       />
       <DeleteModal
         open={deleteModal}
         setOpen={setDeleteModal}
         selected={selected}
-        reload={load}
+        reload={reload}
         clearSelected={() => setSelected(null)}
       />
     </div>
