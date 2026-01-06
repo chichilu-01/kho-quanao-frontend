@@ -233,7 +233,7 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT - ĐÃ TỐI ƯU KHOẢNG TRỐNG */}
+      {/* MOBILE LAYOUT - ĐÃ SỬA LẠI HOÀN TOÀN */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <>
@@ -255,8 +255,8 @@ export default function Orders() {
               </form>
             </div>
 
-            {/* 2. Phần danh sách: dùng pb-[70px] để vừa khít thanh menu */}
-            <div className="flex-1 overflow-y-auto pb-[40px] px-1">
+            {/* 2. Phần danh sách tự giãn (flex-1) và có thanh cuộn riêng */}
+            <div className="flex-1 overflow-y-auto pb-16 px-1">
               <OrderList
                 filtered={filtered}
                 loading={loading}
@@ -266,13 +266,14 @@ export default function Orders() {
                   setViewMode("detail");
                 }}
               />
+              {/* Không còn thẻ div h-12 rỗng nữa */}
             </div>
           </>
         )}
 
         {viewMode === "detail" && (
-          // Container chi tiết cũng dùng pb-[70px]
-          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-[40px]">
+          // Container chi tiết cũng dùng flex-1 và padding đáy
+          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-16">
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}
