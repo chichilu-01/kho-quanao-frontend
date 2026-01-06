@@ -125,7 +125,8 @@ export default function Orders() {
   };
 
   return (
-    <div className="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
+    // 🔥 FIX QUAN TRỌNG: Đổi h-full thành h-[100dvh] để đảm bảo full màn hình mobile thật sự
+    <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
       {/* MOBILE HEADER (Tabs) */}
       <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
         <button
@@ -233,11 +234,10 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT - ĐÃ SỬA LẠI HOÀN TOÀN */}
+      {/* MOBILE LAYOUT */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <>
-            {/* 1. Phần tìm kiếm cố định ở trên */}
             <div className="p-3 bg-gray-50 dark:bg-gray-900 shrink-0 z-10">
               <form
                 onSubmit={handleSearch}
@@ -255,7 +255,7 @@ export default function Orders() {
               </form>
             </div>
 
-            {/* 2. Phần danh sách tự giãn (flex-1) và có thanh cuộn riêng */}
+            {/* 🔥 ĐÃ SỬA: Giảm padding xuống pb-16 (64px) cho vừa đẹp */}
             <div className="flex-1 overflow-y-auto pb-16 px-1">
               <OrderList
                 filtered={filtered}
@@ -266,13 +266,12 @@ export default function Orders() {
                   setViewMode("detail");
                 }}
               />
-              {/* Không còn thẻ div h-12 rỗng nữa */}
             </div>
           </>
         )}
 
         {viewMode === "detail" && (
-          // Container chi tiết cũng dùng flex-1 và padding đáy
+          // 🔥 ĐÃ SỬA: Giảm padding xuống pb-16
           <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-16">
             <OrderDetail
               selected={selected}
