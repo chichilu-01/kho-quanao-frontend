@@ -27,7 +27,6 @@ export default function Orders() {
     load();
   }, []);
 
-  // 🔹 Tải danh sách
   const load = async (query = "") => {
     setLoading(true);
     try {
@@ -76,8 +75,6 @@ export default function Orders() {
 
     try {
       setUpdating(true);
-
-      // ✅ SỬA LẠI CÚ PHÁP ĐÚNG
       await api(`/orders/${targetId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -128,15 +125,16 @@ export default function Orders() {
   };
 
   return (
-    <>
-      {/* MOBILE TABS */}
-      <div className="flex gap-2 p-3 md:hidden">
+    // 🔥 Bọc trong h-full và flex-col để khớp với App.jsx (Full màn hình)
+    <div className="h-full w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
+      {/* MOBILE HEADER (Tabs) */}
+      <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
         <button
           onClick={() => setViewMode("list")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 ${
+          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 transition-colors ${
             viewMode === "list"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
           }`}
         >
           <FiList /> Danh sách
@@ -145,25 +143,25 @@ export default function Orders() {
         <button
           disabled={!selected}
           onClick={() => selected && setViewMode("detail")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 ${
+          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 transition-colors ${
             viewMode === "detail"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-500"
-          } ${!selected ? "opacity-40" : ""}`}
+              ? "bg-blue-600 text-white shadow-md"
+              : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+          } ${!selected ? "opacity-40 cursor-not-allowed" : ""}`}
         >
           <FiShoppingBag /> Chi tiết
         </button>
       </div>
 
       {/* PC MODE */}
-      <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-[calc(100vh-100px)]">
+      <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-full overflow-hidden">
         {/* CỘT TRÁI */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="card flex flex-col overflow-hidden"
+          className="card flex flex-col overflow-hidden h-full"
         >
-          <div className="flex flex-wrap items-center justify-between mb-4 gap-3">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-3 shrink-0">
             <h3 className="font-bold text-xl flex items-center gap-2 text-gray-800 dark:text-gray-100">
               <FiPackage className="text-blue-500" /> Đơn hàng
             </h3>
@@ -180,7 +178,7 @@ export default function Orders() {
             </div>
           </div>
 
-          <div className="space-y-2 mb-3">
+          <div className="space-y-2 mb-3 shrink-0">
             <form
               onSubmit={handleSearch}
               className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 border border-transparent focus-within:border-blue-500 transition-all"
@@ -210,7 +208,7 @@ export default function Orders() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             <OrderList
               filtered={filtered}
               loading={loading}
@@ -224,7 +222,7 @@ export default function Orders() {
         <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="card overflow-y-auto"
+          className="card overflow-y-auto h-full"
         >
           <h3 className="font-bold text-xl mb-4 flex items-center gap-2 sticky top-0 bg-white dark:bg-gray-800 z-10 pb-2 border-b">
             <FiShoppingBag className="text-green-500" /> Chi tiết đơn hàng
@@ -239,43 +237,53 @@ export default function Orders() {
       </div>
 
       {/* MOBILE LAYOUT */}
-      <div className="md:hidden px-3 pt-[10px] pb-[80px]">
+      {/* 🔥 w-full và bỏ px-3 để nội dung tràn viền */}
+      <div className="md:hidden flex-1 overflow-y-auto w-full pb-24 bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
-          <div className="space-y-3">
-            <form
-              onSubmit={handleSearch}
-              className="flex bg-white p-2 rounded shadow-sm"
-            >
-              <input
-                className="flex-1 outline-none"
-                placeholder="🔍 Tìm mã vận đơn..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+          <div className="w-full">
+            {/* Thanh tìm kiếm có padding nhìn cho thoáng */}
+            <div className="p-3 sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 backdrop-blur-sm">
+              <form
+                onSubmit={handleSearch}
+                className="flex bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+              >
+                <input
+                  className="flex-1 outline-none bg-transparent text-sm"
+                  placeholder="🔍 Tìm mã vận đơn..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <button className="text-blue-600 px-2">
+                  <FiSearch />
+                </button>
+              </form>
+            </div>
+
+            {/* Danh sách đơn hàng - Full Width */}
+            <div className="w-full">
+              <OrderList
+                filtered={filtered}
+                loading={loading}
+                selected={selected}
+                setSelected={(o) => {
+                  setSelected(o);
+                  setViewMode("detail");
+                }}
               />
-              <button className="text-blue-600">
-                <FiSearch />
-              </button>
-            </form>
-            <OrderList
-              filtered={filtered}
-              loading={loading}
-              selected={selected}
-              setSelected={(o) => {
-                setSelected(o);
-                setViewMode("detail");
-              }}
-            />
+            </div>
           </div>
         )}
         {viewMode === "detail" && (
-          <OrderDetail
-            selected={selected}
-            updateStatus={updateStatus}
-            updating={updating}
-            onUpdateTracking={handleTrackingUpdate}
-          />
+          <div className="p-0 bg-white dark:bg-gray-800 min-h-full">
+            <OrderDetail
+              selected={selected}
+              updateStatus={updateStatus}
+              updating={updating}
+              onUpdateTracking={handleTrackingUpdate}
+            />
+          </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
