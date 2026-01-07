@@ -12,7 +12,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 // 1. Import Context để nhận lệnh ẩn/hiện
-import { useNav } from "../../context/NavContext";
+import { useNav } from "../context/NavContext";
 
 export default function BottomNav() {
   const [dark, setDark] = useState(false);
