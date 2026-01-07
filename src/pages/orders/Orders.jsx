@@ -47,7 +47,6 @@ export default function Orders() {
   const handleSearch = (e) => {
     e.preventDefault();
     load(search);
-    // Nếu đang search thì tự động chuyển về tab danh sách để xem kết quả
     if (viewMode !== "list") setViewMode("list");
   };
 
@@ -128,52 +127,59 @@ export default function Orders() {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
-      {/* ============================== */}
-      {/* 1. MOBILE SEARCH (Đã đưa lên đầu) */}
-      {/* ============================== */}
-      <div className="shrink-0 p-3 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 md:hidden z-20">
+
+      {/* ======================================================== */}
+      {/* 🔥 MOBILE HEADER: TÌM KIẾM + TAB NẰM CHUNG 1 HÀNG 🔥 */}
+      {/* ======================================================== */}
+      <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-20 shadow-sm">
+
+        {/* 1. Ô TÌM KIẾM (Chiếm phần lớn diện tích) */}
         <form
           onSubmit={handleSearch}
-          className="flex bg-gray-100 dark:bg-gray-700 p-2 rounded-lg shadow-sm"
+          className="flex-1 flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-xl transition-all focus-within:ring-2 focus-within:ring-blue-400"
         >
           <input
-            className="flex-1 outline-none bg-transparent text-sm dark:text-gray-200 pl-1"
+            className="flex-1 outline-none bg-transparent text-sm dark:text-gray-100 min-w-0"
             placeholder="🔍 Tìm mã vận đơn..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button className="text-blue-600 px-2">
-            <FiSearch />
-          </button>
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(""); load(""); }}
+              className="text-gray-400 text-xs ml-2"
+            >
+              ✕
+            </button>
+          )}
         </form>
-      </div>
 
-      {/* ============================== */}
-      {/* 2. MOBILE TABS (Nằm dưới Search) */}
-      {/* ============================== */}
-      <div className="shrink-0 flex gap-2 p-2 pt-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10 shadow-sm">
-        <button
-          onClick={() => setViewMode("list")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 transition-colors ${
-            viewMode === "list"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-          }`}
-        >
-          <FiList /> Danh sách
-        </button>
+        {/* 2. CỤM NÚT CHUYỂN TAB (Dạng Icon gọn gàng) */}
+        <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 shrink-0">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-2 rounded-md transition-all ${
+              viewMode === "list"
+                ? "bg-white dark:bg-gray-600 text-blue-600 shadow-sm"
+                : "text-gray-400"
+            }`}
+          >
+            <FiList className="text-lg" />
+          </button>
 
-        <button
-          disabled={!selected}
-          onClick={() => selected && setViewMode("detail")}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 transition-colors ${
-            viewMode === "detail"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-          } ${!selected ? "opacity-40 cursor-not-allowed" : ""}`}
-        >
-          <FiShoppingBag /> Chi tiết
-        </button>
+          <button
+            disabled={!selected}
+            onClick={() => selected && setViewMode("detail")}
+            className={`p-2 rounded-md transition-all ${
+              viewMode === "detail"
+                ? "bg-white dark:bg-gray-600 text-blue-600 shadow-sm"
+                : "text-gray-400"
+            } ${!selected ? "opacity-30" : ""}`}
+          >
+            <FiShoppingBag className="text-lg" />
+          </button>
+        </div>
       </div>
 
       {/* PC MODE (Giữ nguyên) */}
@@ -257,12 +263,10 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* ============================== */}
-      {/* 3. MOBILE CONTENT (Phần bên dưới) */}
-      {/* ============================== */}
+      {/* MOBILE CONTENT BODY */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
+
         {viewMode === "list" && (
-          // Đã xóa phần Search ở đây vì đã đưa lên đầu
           <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth no-scrollbar">
             <OrderList
               filtered={filtered}
