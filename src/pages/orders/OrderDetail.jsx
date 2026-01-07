@@ -11,7 +11,7 @@ import {
   FiPhone,
   FiMapPin,
   FiDollarSign,
-  FiCopy, // Thêm icon Copy
+  FiCopy,
 } from "react-icons/fi";
 import { notify } from "../../hooks/useToastNotify";
 import StatusIcon from "./StatusIcon";
@@ -156,10 +156,11 @@ export default function OrderDetail({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="pb-10" // Padding bottom cho mobile
+      // 🔥 SỬA: Bỏ pb-10 cứng, thay bằng p-4 (padding đều) và min-h-full để chiếm hết không gian
+      className="p-4 min-h-full bg-gray-50 dark:bg-gray-900"
     >
       {/* HEADER chung */}
-      <div className="flex justify-between items-start bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+      <div className="flex justify-between items-start bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
             Đơn hàng #{order.id}
@@ -172,7 +173,7 @@ export default function OrderDetail({
       </div>
 
       {/* --- BỐ CỤC CHIA CỘT (GRID) --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start pb-4">
         {/* === CỘT TRÁI (THÔNG TIN KHÁCH) === */}
         <div className="md:col-span-1 space-y-4 md:sticky md:top-4">
           <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
