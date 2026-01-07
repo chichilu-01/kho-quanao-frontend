@@ -47,6 +47,8 @@ export default function Orders() {
   const handleSearch = (e) => {
     e.preventDefault();
     load(search);
+    // Nếu đang search thì tự động chuyển về tab danh sách để xem kết quả
+    if (viewMode !== "list") setViewMode("list");
   };
 
   const handleTrackingUpdate = (id, newCode) => {
@@ -125,10 +127,31 @@ export default function Orders() {
   };
 
   return (
-    // 🔥 QUAN TRỌNG: h-[100dvh] + overflow-hidden để CẮT bỏ thanh cuộn ngoài cùng của Body
     <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
-      {/* MOBILE TAB HEADER - Fixed */}
-      <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
+      {/* ============================== */}
+      {/* 1. MOBILE SEARCH (Đã đưa lên đầu) */}
+      {/* ============================== */}
+      <div className="shrink-0 p-3 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 md:hidden z-20">
+        <form
+          onSubmit={handleSearch}
+          className="flex bg-gray-100 dark:bg-gray-700 p-2 rounded-lg shadow-sm"
+        >
+          <input
+            className="flex-1 outline-none bg-transparent text-sm dark:text-gray-200 pl-1"
+            placeholder="🔍 Tìm mã vận đơn..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="text-blue-600 px-2">
+            <FiSearch />
+          </button>
+        </form>
+      </div>
+
+      {/* ============================== */}
+      {/* 2. MOBILE TABS (Nằm dưới Search) */}
+      {/* ============================== */}
+      <div className="shrink-0 flex gap-2 p-2 pt-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10 shadow-sm">
         <button
           onClick={() => setViewMode("list")}
           className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 transition-colors ${
@@ -153,7 +176,7 @@ export default function Orders() {
         </button>
       </div>
 
-      {/* PC MODE */}
+      {/* PC MODE (Giữ nguyên) */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-full overflow-hidden">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -207,7 +230,6 @@ export default function Orders() {
             </div>
           </div>
 
-          {/* PC LIST - Thêm no-scrollbar nếu muốn ẩn cả trên PC */}
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             <OrderList
               filtered={filtered}
@@ -235,45 +257,26 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT - SẠCH SẼ, KHÔNG THANH CUỘN */}
+      {/* ============================== */}
+      {/* 3. MOBILE CONTENT (Phần bên dưới) */}
+      {/* ============================== */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
-          <>
-            {/* Thanh tìm kiếm - CỐ ĐỊNH */}
-            <div className="p-3 bg-gray-50 dark:bg-gray-900 shrink-0 z-10">
-              <form
-                onSubmit={handleSearch}
-                className="flex bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
-              >
-                <input
-                  className="flex-1 outline-none bg-transparent text-sm dark:text-gray-200"
-                  placeholder="🔍 Tìm mã vận đơn..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <button className="text-blue-600 px-2">
-                  <FiSearch />
-                </button>
-              </form>
-            </div>
-
-            {/* 🔥 Đã thêm 'no-scrollbar' để ẩn thanh cuộn của danh sách */}
-            <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth no-scrollbar">
-              <OrderList
-                filtered={filtered}
-                loading={loading}
-                selected={selected}
-                setSelected={(o) => {
-                  setSelected(o);
-                  setViewMode("detail");
-                }}
-              />
-            </div>
-          </>
+          // Đã xóa phần Search ở đây vì đã đưa lên đầu
+          <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth no-scrollbar">
+            <OrderList
+              filtered={filtered}
+              loading={loading}
+              selected={selected}
+              setSelected={(o) => {
+                setSelected(o);
+                setViewMode("detail");
+              }}
+            />
+          </div>
         )}
 
         {viewMode === "detail" && (
-          // 🔥 Đã thêm 'no-scrollbar' để ẩn thanh cuộn của chi tiết
           <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-20 no-scrollbar">
             <OrderDetail
               selected={selected}
