@@ -8,13 +8,10 @@ import Orders from "./pages/orders/Orders";
 import CreateOrder from "./pages/orders/CreateOrder";
 import StockHistory from "./pages/StockHistory";
 import OrderDetail from "./pages/orders/OrderDetail";
-// 1. Import Context vừa tạo
-import { NavProvider, useNav } from "./context/NavContext";
+// 1. Import Context
+import { NavProvider } from "./context/NavContext";
 
-// Tạo một component con để dùng được hook useNav
 function MainLayout() {
-  const { isNavVisible } = useNav(); // Lấy trạng thái hiển thị từ Context
-
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-b from-[#faf9f7] via-[#f7f5f0] to-[#f4f1ea] text-[#2a2a2a] overflow-hidden">
       {/* PC: Topbar */}
@@ -43,9 +40,7 @@ function MainLayout() {
                 </div>
               }
             />
-            {/* Orders */}
             <Route path="/orders" element={<Orders />} />
-
             <Route
               path="/orders/new"
               element={
@@ -74,7 +69,7 @@ function MainLayout() {
         </div>
       </main>
 
-      {/* MOBILE NAV */}
+      {/* MOBILE NAV - BottomNav tự xử lý ẩn hiện bên trong nó */}
       <div className="block md:hidden">
         <BottomNav />
       </div>
@@ -84,7 +79,6 @@ function MainLayout() {
 
 export default function App() {
   return (
-    // Bọc toàn bộ App trong NavProvider
     <NavProvider>
       <MainLayout />
     </NavProvider>
