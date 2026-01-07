@@ -126,208 +126,228 @@ export default function ProductDetail({ selected, setSelected, load }) {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        // 🔥 FIX CSS: Mobile (px-4, full width), PC (rounded, shadow)
+        // 🔥 SỬA: Dùng cấu trúc min-h-full và padding chuẩn
         className="
-          mt-0 px-4 pt-4 pb-24 w-full
+          w-full min-h-full
+          p-4 md:p-0 
           bg-white dark:bg-gray-900
-          md:mt-5 md:p-6 md:rounded-3xl
-          md:shadow-[0_8px_30px_rgb(0,0,0,0.12)]
-          md:bg-white/60 md:dark:bg-gray-900/60
-          md:border md:border-white/40 md:dark:border-gray-700/50
-          space-y-6
+          md:bg-transparent md:dark:bg-transparent
         "
       >
-        {/* HEADER: Chỉ hiện trên PC (md:flex), Mobile ẩn vì có sticky header ngoài */}
-        <div className="hidden md:flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-50 text-xl flex items-center gap-2">
-            <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
-          </h4>
-          <div className="text-xs text-gray-400">ID: #{selected.id}</div>
-        </div>
-
-        <form
-          onSubmit={submit}
-          className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 md:gap-8"
+        {/* Wrapper cho PC: Tạo card nổi (Mobile thì phẳng) */}
+        <div
+          className="
+           md:bg-white md:dark:bg-gray-800 
+           md:rounded-3xl md:shadow-[0_8px_30px_rgb(0,0,0,0.12)] 
+           md:border md:border-gray-100 md:dark:border-gray-700
+           md:p-8 space-y-6
+        "
         >
-          {/* CỘT TRÁI: ẢNH */}
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
-                Ảnh đại diện hiện tại
-              </label>
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-gray-200 shadow-sm group">
-                <img
-                  src={selected.cover_image || "/no-image.png"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => (e.target.src = "/no-image.png")}
-                  alt="Cover"
-                />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-white text-xs font-medium px-2 py-1 rounded bg-black/50">
-                    Ảnh gốc
-                  </span>
+          {/* HEADER: Chỉ hiện trên PC (md:flex) */}
+          <div className="hidden md:flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+            <h4 className="font-bold text-gray-900 dark:text-white text-xl flex items-center gap-2">
+              <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
+            </h4>
+            <div className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+              ID: #{selected.id}
+            </div>
+          </div>
+
+          <form
+            onSubmit={submit}
+            className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8"
+          >
+            {/* CỘT TRÁI: ẢNH */}
+            <div className="space-y-5">
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
+                  Ảnh đại diện hiện tại
+                </label>
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm group">
+                  <img
+                    src={selected.cover_image || "/no-image.png"}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => (e.target.src = "/no-image.png")}
+                    alt="Cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-medium px-2 py-1 rounded bg-black/50">
+                      Ảnh gốc
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Upload ảnh mới */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  <FiUploadCloud /> Thêm ảnh mới / Thay thế
+                </label>
+
+                {newPreviews.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {newPreviews.map((src, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square rounded-lg overflow-hidden border border-blue-200"
+                      >
+                        <img
+                          src={src}
+                          className="w-full h-full object-cover"
+                          alt="new"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(idx)}
+                          className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600"
+                        >
+                          <FiX size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-gray-800 transition group">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 group-hover:text-blue-500">
+                    <FiImage className="w-6 h-6 mb-1" />
+                    <p className="text-xs">Chọn nhiều ảnh</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImagesChange}
+                  />
+                </label>
               </div>
             </div>
 
-            {/* Upload ảnh mới */}
-            <div>
-              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                <FiUploadCloud /> Thêm ảnh mới / Thay thế
-              </label>
-
-              {newPreviews.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mb-2">
-                  {newPreviews.map((src, idx) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-square rounded-lg overflow-hidden border border-blue-200"
-                    >
-                      <img
-                        src={src}
-                        className="w-full h-full object-cover"
-                        alt="new"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeNewImage(idx)}
-                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600"
-                      >
-                        <FiX size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-gray-700 transition">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500">
-                  <FiImage className="w-6 h-6 mb-1" />
-                  <p className="text-xs">Chọn nhiều ảnh</p>
-                </div>
-                <input
-                  type="file"
-                  className="hidden"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImagesChange}
+            {/* CỘT PHẢI: THÔNG TIN */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field
+                  label="Tên sản phẩm"
+                  value={form.name}
+                  onChange={(v) => setForm({ ...form, name: v })}
                 />
-              </label>
-            </div>
-          </div>
+                <Field
+                  label="Mã SKU"
+                  value={form.sku}
+                  onChange={(v) => setForm({ ...form, sku: v })}
+                />
+              </div>
 
-          {/* CỘT PHẢI: THÔNG TIN */}
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field
-                label="Tên sản phẩm"
-                value={form.name}
-                onChange={(v) => setForm({ ...form, name: v })}
-              />
-              <Field
-                label="Mã SKU"
-                value={form.sku}
-                onChange={(v) => setForm({ ...form, sku: v })}
-              />
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field
+                  label="Danh mục"
+                  value={form.category}
+                  onChange={(v) => setForm({ ...form, category: v })}
+                />
+                <Field
+                  label="Thương hiệu"
+                  value={form.brand}
+                  onChange={(v) => setForm({ ...form, brand: v })}
+                />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field
-                label="Danh mục"
-                value={form.category}
-                onChange={(v) => setForm({ ...form, category: v })}
-              />
-              <Field
-                label="Thương hiệu"
-                value={form.brand}
-                onChange={(v) => setForm({ ...form, brand: v })}
-              />
-            </div>
+              <div className="p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-2xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 gap-6">
+                <Field
+                  label="Giá nhập (Vốn)"
+                  type="number"
+                  value={form.cost_price}
+                  onChange={(v) => setForm({ ...form, cost_price: v })}
+                />
+                <Field
+                  label="Giá bán (Lẻ)"
+                  type="number"
+                  value={form.sale_price}
+                  onChange={(v) => setForm({ ...form, sale_price: v })}
+                />
+              </div>
 
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 gap-6">
-              <Field
-                label="Giá nhập (Vốn)"
-                type="number"
-                value={form.cost_price}
-                onChange={(v) => setForm({ ...form, cost_price: v })}
-              />
-              <Field
-                label="Giá bán (Lẻ)"
-                type="number"
-                value={form.sale_price}
-                onChange={(v) => setForm({ ...form, sale_price: v })}
-              />
-            </div>
+              {/* Action Buttons */}
+              <div className="pt-4 flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowVariantsScreen(true)}
+                  className="w-full py-3.5 rounded-xl border-2 border-indigo-100 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition flex items-center justify-center gap-2"
+                >
+                  🎨 Quản lý Biến thể (Size/Màu)
+                </button>
 
-            {/* Action Buttons */}
-            <div className="pt-4 flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => setShowVariantsScreen(true)}
-                className="w-full py-3 rounded-xl border-2 border-indigo-100 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 font-bold hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition flex items-center justify-center gap-2"
-              >
-                🎨 Quản lý Biến thể (Size/Màu)
-              </button>
-
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                disabled={loading}
-                type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  "⏳ Đang lưu..."
-                ) : (
-                  <>
-                    <FiSave /> Lưu thay đổi
-                  </>
-                )}
-              </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  disabled={loading}
+                  type="submit"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : (
+                    <>
+                      <FiSave className="text-lg" /> Lưu thay đổi
+                    </>
+                  )}
+                </motion.button>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </motion.div>
 
       {/* VARIANTS SCREEN */}
-      {showVariantsScreen && (
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ duration: 0.25 }}
-          className="fixed inset-0 z-[99999] bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto"
-        >
-          <div className="sticky top-0 z-50 p-4 bg-white dark:bg-gray-900 border-b flex items-center gap-2">
-            <button
-              onClick={() => setShowVariantsScreen(false)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            >
-              <FiChevronLeft size={24} />
-            </button>
-            <h3 className="font-bold text-lg">
-              Quản lý biến thể: {selected.name}
-            </h3>
-          </div>
-          <div className="p-4 pb-24 max-w-5xl mx-auto">
-            <ProductVariants productId={selected.id} />
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showVariantsScreen && (
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[99999] bg-white dark:bg-gray-900 shadow-2xl flex flex-col"
+          >
+            <div className="sticky top-0 z-50 p-4 bg-white dark:bg-gray-900 border-b dark:border-gray-800 flex items-center gap-3 shadow-sm">
+              <button
+                onClick={() => setShowVariantsScreen(false)}
+                className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              >
+                <FiChevronLeft size={28} />
+              </button>
+              <div>
+                <h3 className="font-bold text-lg">Quản lý biến thể</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {selected.name}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900">
+              <div className="max-w-4xl mx-auto">
+                <ProductVariants productId={selected.id} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
 
 function Field({ label, value, onChange, type = "text" }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+    <div className="flex flex-col gap-2 group">
+      <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide group-focus-within:text-blue-500 transition-colors">
         {label}
       </label>
       <input
         type={type}
-        className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-900 outline-none transition font-medium text-gray-800 dark:text-gray-100"
+        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-800 outline-none transition font-medium text-gray-800 dark:text-gray-100 placeholder-gray-400"
         value={value}
-        placeholder={label}
+        placeholder={`Nhập ${label.toLowerCase()}...`}
         onChange={(e) => onChange(e.target.value)}
       />
     </div>
