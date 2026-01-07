@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // 1. Thêm useRef
 import { motion } from "framer-motion";
 import {
   FiPackage,
@@ -14,6 +14,9 @@ import { notify } from "../../hooks/useToastNotify";
 import OrderList from "./OrderList";
 import OrderDetail from "./OrderDetail";
 
+// 2. Import Context để điều khiển thanh menu dưới
+import { useNav } from "../../context/NavContext";
+
 export default function Orders() {
   const [list, setList] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -23,9 +26,33 @@ export default function Orders() {
   const [updating, setUpdating] = useState(false);
   const [viewMode, setViewMode] = useState("list");
 
+  // 3. Khai báo hook xử lý ẩn/hiện menu
+  const { setIsNavVisible } = useNav();
+  const lastScrollY = useRef(0);
+
   useEffect(() => {
     load();
+    // Reset menu luôn hiện khi vừa vào trang
+    setIsNavVisible(true);
   }, []);
+
+  // 4. Hàm logic phát hiện cuộn lên/xuống
+  const handleScroll = (e) => {
+    const currentScrollY = e.target.scrollTop;
+
+    // Bỏ qua nảy trên iOS
+    if (currentScrollY < 0) return;
+
+    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+      // Cuộn xuống -> Ẩn Menu
+      setIsNavVisible(false);
+    } else if (currentScrollY < lastScrollY.current) {
+      // Cuộn lên -> Hiện Menu
+      setIsNavVisible(true);
+    }
+
+    lastScrollY.current = currentScrollY;
+  };
 
   const load = async (query = "") => {
     setLoading(true);
@@ -127,13 +154,11 @@ export default function Orders() {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
-
       {/* ======================================================== */}
       {/* 🔥 MOBILE HEADER: TÌM KIẾM + TAB NẰM CHUNG 1 HÀNG 🔥 */}
       {/* ======================================================== */}
       <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-20 shadow-sm">
-
-        {/* 1. Ô TÌM KIẾM (Chiếm phần lớn diện tích) */}
+        {/* 1. Ô TÌM KIẾM */}
         <form
           onSubmit={handleSearch}
           className="flex-1 flex items-center bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-xl transition-all focus-within:ring-2 focus-within:ring-blue-400"
@@ -147,7 +172,10 @@ export default function Orders() {
           {search && (
             <button
               type="button"
-              onClick={() => { setSearch(""); load(""); }}
+              onClick={() => {
+                setSearch("");
+                load("");
+              }}
               className="text-gray-400 text-xs ml-2"
             >
               ✕
@@ -155,7 +183,7 @@ export default function Orders() {
           )}
         </form>
 
-        {/* 2. CỤM NÚT CHUYỂN TAB (Dạng Icon gọn gàng) */}
+        {/* 2. CỤM NÚT CHUYỂN TAB */}
         <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 shrink-0">
           <button
             onClick={() => setViewMode("list")}
@@ -182,7 +210,7 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* PC MODE (Giữ nguyên) */}
+      {/* PC MODE */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-full overflow-hidden">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -262,13 +290,15 @@ export default function Orders() {
           />
         </motion.div>
       </div>
-      
+
       {/* MOBILE CONTENT BODY */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
-
         {viewMode === "list" && (
-          // 🔥 ĐÃ SỬA: Đổi pb-20 thành pb-2 để nội dung sát đáy
-          <div className="flex-1 overflow-y-auto pb-2 px-1 scroll-smooth no-scrollbar">
+          // 5. Thêm onScroll={handleScroll} vào đây để bắt sự kiện cuộn
+          <div
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto pb-2 px-1 scroll-smooth no-scrollbar"
+          >
             <OrderList
               filtered={filtered}
               loading={loading}
@@ -282,8 +312,11 @@ export default function Orders() {
         )}
 
         {viewMode === "detail" && (
-          // 🔥 ĐÃ SỬA: Đổi pb-20 thành pb-2 cho phần chi tiết luôn
-          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-2 no-scrollbar">
+          // 6. Thêm onScroll={handleScroll} vào cả đây
+          <div
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-2 no-scrollbar"
+          >
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}

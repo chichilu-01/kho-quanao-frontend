@@ -8,8 +8,13 @@ import Orders from "./pages/orders/Orders";
 import CreateOrder from "./pages/orders/CreateOrder";
 import StockHistory from "./pages/StockHistory";
 import OrderDetail from "./pages/orders/OrderDetail";
+// 1. Import Context vừa tạo
+import { NavProvider, useNav } from "./context/NavContext";
 
-export default function App() {
+// Tạo một component con để dùng được hook useNav
+function MainLayout() {
+  const { isNavVisible } = useNav(); // Lấy trạng thái hiển thị từ Context
+
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-b from-[#faf9f7] via-[#f7f5f0] to-[#f4f1ea] text-[#2a2a2a] overflow-hidden">
       {/* PC: Topbar */}
@@ -18,7 +23,6 @@ export default function App() {
       </div>
 
       {/* MAIN CONTENT */}
-      {/* Giữ nguyên pb-0 ở đây */}
       <main className="flex-1 pt-0 md:pt-8 px-0 md:px-8 pb-0 md:pb-8 w-full relative overflow-hidden">
         <div className="h-full w-full animate-fadeIn">
           <Routes>
@@ -30,11 +34,7 @@ export default function App() {
                 </div>
               }
             />
-
-            {/* Products tự quản lý cuộn */}
             <Route path="/products" element={<Products />} />
-
-            {/* Customers giữ nguyên nếu chưa sửa code bên trong */}
             <Route
               path="/customers"
               element={
@@ -43,10 +43,7 @@ export default function App() {
                 </div>
               }
             />
-
-            {/* 🔥 ĐÃ SỬA: Xóa thẻ div bọc ngoài (h-full overflow... pb-24) đi. 
-                Để <Orders /> render trực tiếp vì bên trong nó đã xử lý full màn hình rồi. 
-            */}
+            {/* Orders */}
             <Route path="/orders" element={<Orders />} />
 
             <Route
@@ -57,9 +54,6 @@ export default function App() {
                 </div>
               }
             />
-
-            {/* Nếu OrderDetail cũng đã được tối ưu giống Orders thì bỏ bọc luôn, 
-                còn nếu chưa thì tạm giữ nguyên */}
             <Route
               path="/orders/:id"
               element={
@@ -68,7 +62,6 @@ export default function App() {
                 </div>
               }
             />
-
             <Route
               path="/stock"
               element={
@@ -81,10 +74,23 @@ export default function App() {
         </div>
       </main>
 
-      {/* MOBILE NAV */}
-      <div className="block md:hidden fixed bottom-0 inset-x-0 z-50 shrink-0">
+      {/* MOBILE NAV - 🔥 CÓ HIỆU ỨNG TRƯỢT */}
+      <div
+        className={`block md:hidden fixed bottom-0 inset-x-0 z-50 shrink-0 transition-transform duration-300 ease-in-out ${
+          isNavVisible ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
         <BottomNav />
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    // Bọc toàn bộ App trong NavProvider
+    <NavProvider>
+      <MainLayout />
+    </NavProvider>
   );
 }
