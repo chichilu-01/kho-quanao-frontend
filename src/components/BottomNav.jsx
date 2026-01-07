@@ -11,9 +11,15 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+// 1. Import Context để nhận lệnh ẩn/hiện
+import { useNav } from "../../context/NavContext";
 
 export default function BottomNav() {
   const [dark, setDark] = useState(false);
+
+  // 2. Lấy trạng thái hiển thị từ Context
+  // (Lưu ý: Nếu chưa bọc App trong NavProvider thì dòng này sẽ lỗi, hãy đảm bảo đã làm bước App.js trước đó)
+  const { isNavVisible } = useNav();
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -36,7 +42,6 @@ export default function BottomNav() {
     }
   };
 
-  // MENU CHÍNH
   const navItems = [
     { to: "/", icon: <FiHome />, label: "Tổng quan" },
     { to: "/products", icon: <FiBox />, label: "Sản phẩm" },
@@ -48,12 +53,16 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="
-      fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center
-      bg-white/90 backdrop-blur-md border-t border-gray-300 
-      py-2 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]
-      dark:bg-black/90 dark:border-yellow-700/30
-    "
+      className={`
+        fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center
+        bg-white/90 backdrop-blur-md border-t border-gray-300 
+        py-2 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]
+        dark:bg-black/90 dark:border-yellow-700/30
+
+        /* 3. THÊM CLASS XỬ LÝ HIỆU ỨNG TRƯỢT */
+        transition-transform duration-300 ease-in-out
+        ${isNavVisible ? "translate-y-0" : "translate-y-full"}
+      `}
     >
       {/* ================= NAV ITEMS ================= */}
       {navItems.map((item) => (

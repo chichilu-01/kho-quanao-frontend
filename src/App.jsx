@@ -74,12 +74,8 @@ function MainLayout() {
         </div>
       </main>
 
-      {/* MOBILE NAV - 🔥 CÓ HIỆU ỨNG TRƯỢT */}
-      <div
-        className={`block md:hidden fixed bottom-0 inset-x-0 z-50 shrink-0 transition-transform duration-300 ease-in-out ${
-          isNavVisible ? "translate-y-0" : "translate-y-full"
-        }`}
-      >
+      {/* MOBILE NAV */}
+      <div className="block md:hidden">
         <BottomNav />
       </div>
     </div>
