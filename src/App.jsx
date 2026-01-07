@@ -18,15 +18,10 @@ export default function App() {
       </div>
 
       {/* MAIN CONTENT */}
-      {/* 🔥 SỬA: Đổi pb-[85px] thành pb-0 để bỏ khoảng trắng thừa */}
+      {/* Giữ nguyên pb-0 ở đây */}
       <main className="flex-1 pt-0 md:pt-8 px-0 md:px-8 pb-0 md:pb-8 w-full relative overflow-hidden">
         <div className="h-full w-full animate-fadeIn">
           <Routes>
-            {/* 🔥 CÁC TRANG CẦN CUỘN (Dashboard, Orders...):
-               - Thêm class "pb-24" (Padding đáy) vào wrapper div.
-               - Điều này giúp nội dung cuộn được xuống hết mà không bị BottomNav che mất.
-               - Nhưng background vẫn tràn full màn hình.
-            */}
             <Route
               path="/"
               element={
@@ -36,9 +31,10 @@ export default function App() {
               }
             />
 
-            {/* Products tự quản lý cuộn bên trong nó, không cần pb-24 ở đây */}
+            {/* Products tự quản lý cuộn */}
             <Route path="/products" element={<Products />} />
 
+            {/* Customers giữ nguyên nếu chưa sửa code bên trong */}
             <Route
               path="/customers"
               element={
@@ -47,14 +43,12 @@ export default function App() {
                 </div>
               }
             />
-            <Route
-              path="/orders"
-              element={
-                <div className="h-full overflow-y-auto pb-24">
-                  <Orders />
-                </div>
-              }
-            />
+
+            {/* 🔥 ĐÃ SỬA: Xóa thẻ div bọc ngoài (h-full overflow... pb-24) đi. 
+                Để <Orders /> render trực tiếp vì bên trong nó đã xử lý full màn hình rồi. 
+            */}
+            <Route path="/orders" element={<Orders />} />
+
             <Route
               path="/orders/new"
               element={
@@ -63,6 +57,9 @@ export default function App() {
                 </div>
               }
             />
+
+            {/* Nếu OrderDetail cũng đã được tối ưu giống Orders thì bỏ bọc luôn, 
+                còn nếu chưa thì tạm giữ nguyên */}
             <Route
               path="/orders/:id"
               element={
@@ -71,6 +68,7 @@ export default function App() {
                 </div>
               }
             />
+
             <Route
               path="/stock"
               element={
