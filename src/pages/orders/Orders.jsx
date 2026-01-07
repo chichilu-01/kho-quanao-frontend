@@ -262,12 +262,13 @@ export default function Orders() {
           />
         </motion.div>
       </div>
-
+      
       {/* MOBILE CONTENT BODY */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
 
         {viewMode === "list" && (
-          <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth no-scrollbar">
+          // 🔥 ĐÃ SỬA: Đổi pb-20 thành pb-2 để nội dung sát đáy
+          <div className="flex-1 overflow-y-auto pb-2 px-1 scroll-smooth no-scrollbar">
             <OrderList
               filtered={filtered}
               loading={loading}
@@ -281,7 +282,8 @@ export default function Orders() {
         )}
 
         {viewMode === "detail" && (
-          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-20 no-scrollbar">
+          // 🔥 ĐÃ SỬA: Đổi pb-20 thành pb-2 cho phần chi tiết luôn
+          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-2 no-scrollbar">
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}
