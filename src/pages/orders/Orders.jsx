@@ -125,9 +125,9 @@ export default function Orders() {
   };
 
   return (
-    // 1. CONTAINER CHÍNH: h-[100dvh] để fix chiều cao mobile, overflow-hidden để chặn cuộn ngoài
+    // 🔥 QUAN TRỌNG: h-[100dvh] để ép chiều cao bằng màn hình, overflow-hidden để CẮT bỏ thanh cuộn ngoài
     <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
-      {/* MOBILE TAB HEADER */}
+      {/* MOBILE TAB HEADER - Fixed */}
       <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
         <button
           onClick={() => setViewMode("list")}
@@ -153,7 +153,7 @@ export default function Orders() {
         </button>
       </div>
 
-      {/* PC MODE (Giữ nguyên logic cũ) */}
+      {/* PC MODE */}
       <div className="hidden md:grid md:grid-cols-2 gap-6 p-4 animate-fadeIn h-full overflow-hidden">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -234,11 +234,12 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT - ĐÃ SỬA LỖI 2 THANH CUỘN & GAP */}
+      {/* MOBILE LAYOUT - FIXED SCROLLBAR */}
+      {/* flex-col + overflow-hidden ở đây đảm bảo không có thanh cuộn thừa */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <>
-            {/* 1. KHU VỰC TÌM KIẾM (CỐ ĐỊNH - KHÔNG CUỘN) */}
+            {/* Thanh tìm kiếm - CỐ ĐỊNH */}
             <div className="p-3 bg-gray-50 dark:bg-gray-900 shrink-0 z-10">
               <form
                 onSubmit={handleSearch}
@@ -256,10 +257,7 @@ export default function Orders() {
               </form>
             </div>
 
-            {/* 2. KHU VỰC DANH SÁCH (CUỘN ĐỘC LẬP) */}
-            {/* flex-1: chiếm hết chỗ còn lại */}
-            {/* overflow-y-auto: tạo thanh cuộn riêng cho vùng này */}
-            {/* pb-20: Padding đáy để nội dung không bị menu che (khoảng 80px) */}
+            {/* Danh sách - CUỘN RIÊNG BIỆT */}
             <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth">
               <OrderList
                 filtered={filtered}
@@ -275,6 +273,7 @@ export default function Orders() {
         )}
 
         {viewMode === "detail" && (
+          // Chi tiết - CUỘN RIÊNG BIỆT
           <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-20">
             <OrderDetail
               selected={selected}
