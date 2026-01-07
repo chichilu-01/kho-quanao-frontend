@@ -72,7 +72,7 @@ body,
   @apply border-t border-[#e5e1d9] dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200;
 }
 
-/* 🌈 Scrollbar PRO */
+/* 🌈 Scrollbar PRO (Mặc định - Vẫn giữ để dùng cho chỗ khác nếu cần) */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -84,6 +84,21 @@ body,
 
 .dark ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #d4a017 0%, #f2c94c 100%);
+}
+
+/* 🔥🔥 QUAN TRỌNG: CLASS ẨN THANH CUỘN 🔥🔥 */
+/* Thêm đoạn này để các thẻ có class 'no-scrollbar' sẽ bị ẩn thanh cuộn */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
 }
 
 /* ✨ Hiệu ứng chữ vàng */
@@ -168,7 +183,7 @@ body,
   animation: scalePop 0.4s ease-out;
 }
 
-/* 🕶️ Tooltip (nếu dùng ReactTooltip) */
+/* 🕶️ Tooltip */
 .tooltip {
   @apply bg-black/80 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm shadow-lg;
 }

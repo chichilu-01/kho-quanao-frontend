@@ -125,7 +125,7 @@ export default function Orders() {
   };
 
   return (
-    // 🔥 QUAN TRỌNG: h-[100dvh] để ép chiều cao bằng màn hình, overflow-hidden để CẮT bỏ thanh cuộn ngoài
+    // 🔥 QUAN TRỌNG: h-[100dvh] + overflow-hidden để CẮT bỏ thanh cuộn ngoài cùng của Body
     <div className="h-[100dvh] w-full flex flex-col bg-gray-50 dark:bg-gray-900 md:bg-transparent overflow-hidden">
       {/* MOBILE TAB HEADER - Fixed */}
       <div className="shrink-0 flex gap-2 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 md:hidden z-10">
@@ -207,6 +207,7 @@ export default function Orders() {
             </div>
           </div>
 
+          {/* PC LIST - Thêm no-scrollbar nếu muốn ẩn cả trên PC */}
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             <OrderList
               filtered={filtered}
@@ -234,8 +235,7 @@ export default function Orders() {
         </motion.div>
       </div>
 
-      {/* MOBILE LAYOUT - FIXED SCROLLBAR */}
-      {/* flex-col + overflow-hidden ở đây đảm bảo không có thanh cuộn thừa */}
+      {/* MOBILE LAYOUT - SẠCH SẼ, KHÔNG THANH CUỘN */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {viewMode === "list" && (
           <>
@@ -257,8 +257,8 @@ export default function Orders() {
               </form>
             </div>
 
-            {/* Danh sách - CUỘN RIÊNG BIỆT */}
-            <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth">
+            {/* 🔥 Đã thêm 'no-scrollbar' để ẩn thanh cuộn của danh sách */}
+            <div className="flex-1 overflow-y-auto pb-20 px-1 scroll-smooth no-scrollbar">
               <OrderList
                 filtered={filtered}
                 loading={loading}
@@ -273,8 +273,8 @@ export default function Orders() {
         )}
 
         {viewMode === "detail" && (
-          // Chi tiết - CUỘN RIÊNG BIỆT
-          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-20">
+          // 🔥 Đã thêm 'no-scrollbar' để ẩn thanh cuộn của chi tiết
+          <div className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-20 no-scrollbar">
             <OrderDetail
               selected={selected}
               updateStatus={updateStatus}
