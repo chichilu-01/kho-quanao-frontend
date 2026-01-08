@@ -4,7 +4,7 @@ import { notify } from "../../hooks/useToastNotify";
 import CustomerStats from "./CustomerStats";
 import CustomerForm from "./CustomerForm";
 import CustomerDetail from "./CustomerDetail";
-import { motion, AnimatePresence } from "framer-motion"; // Thêm animation
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiGrid,
   FiList as FiListIcon,
@@ -101,8 +101,6 @@ export default function Customers() {
     loadList();
   }, []);
 
-  // --- THAY THẾ HÀM loadList VÀ loadStats CŨ BẰNG ĐOẠN NÀY ---
-
   const loadList = async () => {
     try {
       // 1. Gọi song song cả API khách hàng và API đơn hàng
@@ -125,7 +123,6 @@ export default function Customers() {
       // 3. MAP DỮ LIỆU: Tính tổng đơn và chi tiêu cho TỪNG khách hàng
       const mergedList = customersData.map((cust) => {
         // Lọc ra các đơn hàng của khách này
-        // (Kiểm tra theo customer_id hoặc số điện thoại)
         const customerOrders = ordersData.filter(
           (o) =>
             (o.customer_id && String(o.customer_id) === String(cust.id)) ||
@@ -151,8 +148,6 @@ export default function Customers() {
       notify.error("Không thể tải dữ liệu");
     }
   };
-
-  // Bạn có thể xóa hàm loadStats cũ đi vì logic đã gộp vào loadList
 
   const filtered = useMemo(() => {
     return list.filter((c) => {
@@ -216,7 +211,8 @@ export default function Customers() {
       `}</style>
 
       {/* --- CONTAINER CHÍNH --- */}
-      <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden pt-16">
+      {/* 🔥 SỬA TẠI ĐÂY: pt-0 md:pt-16 */}
+      <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden pt-0 md:pt-16">
         {/* ================= HEADER MOBILE ================= */}
         <div className="md:hidden shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-20">
           <div className="flex items-center justify-between p-3 gap-2">
