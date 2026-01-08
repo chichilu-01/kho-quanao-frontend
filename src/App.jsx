@@ -8,13 +8,9 @@ import Orders from "./pages/orders/Orders";
 import CreateOrder from "./pages/orders/CreateOrder";
 import StockHistory from "./pages/StockHistory";
 import OrderDetail from "./pages/orders/OrderDetail";
-// 1. Import Context (Chỉ cần NavProvider)
 import { NavProvider } from "./context/NavContext";
 
 function MainLayout() {
-  // 🔥 Đã xóa dòng "const { isNavVisible } = useNav();" vì không còn cần thiết ở đây nữa.
-  // BottomNav bên dưới sẽ tự lo việc đó.
-
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-b from-[#faf9f7] via-[#f7f5f0] to-[#f4f1ea] text-[#2a2a2a] overflow-hidden">
       {/* PC: Topbar */}
@@ -26,16 +22,10 @@ function MainLayout() {
       <main className="flex-1 pt-0 md:pt-8 px-0 md:px-8 pb-0 md:pb-8 w-full relative overflow-hidden">
         <div className="h-full w-full animate-fadeIn">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div className="h-full overflow-y-auto pb-24">
-                  <Dashboard />
-                </div>
-              }
-            />
+            {/* 🔥 SỬA LẠI: Dashboard tự quản lý cuộn, KHÔNG BỌC DIV nữa */}
+            <Route path="/" element={<Dashboard />} />
 
-            {/* Products tự quản lý scroll (đã có h-[100dvh]) -> KHÔNG BỌC DIV */}
+            {/* Products tự quản lý scroll -> KHÔNG BỌC DIV */}
             <Route path="/products" element={<Products />} />
 
             <Route
@@ -59,7 +49,6 @@ function MainLayout() {
               }
             />
 
-            {/* OrderDetail khi vào trực tiếp vẫn cần cuộn -> GIỮ NGUYÊN */}
             <Route
               path="/orders/:id"
               element={
@@ -82,7 +71,6 @@ function MainLayout() {
       </main>
 
       {/* MOBILE NAV */}
-      {/* Không cần class transition ở đây nữa, BottomNav tự lo */}
       <div className="block md:hidden">
         <BottomNav />
       </div>
