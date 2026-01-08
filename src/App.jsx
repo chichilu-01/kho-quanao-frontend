@@ -8,10 +8,13 @@ import Orders from "./pages/orders/Orders";
 import CreateOrder from "./pages/orders/CreateOrder";
 import StockHistory from "./pages/StockHistory";
 import OrderDetail from "./pages/orders/OrderDetail";
-// 1. Import Context
+// 1. Import Context (Chỉ cần NavProvider)
 import { NavProvider } from "./context/NavContext";
 
 function MainLayout() {
+  // 🔥 Đã xóa dòng "const { isNavVisible } = useNav();" vì không còn cần thiết ở đây nữa.
+  // BottomNav bên dưới sẽ tự lo việc đó.
+
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-b from-[#faf9f7] via-[#f7f5f0] to-[#f4f1ea] text-[#2a2a2a] overflow-hidden">
       {/* PC: Topbar */}
@@ -31,7 +34,10 @@ function MainLayout() {
                 </div>
               }
             />
+
+            {/* Products tự quản lý scroll (đã có h-[100dvh]) -> KHÔNG BỌC DIV */}
             <Route path="/products" element={<Products />} />
+
             <Route
               path="/customers"
               element={
@@ -40,7 +46,10 @@ function MainLayout() {
                 </div>
               }
             />
+
+            {/* Orders tự quản lý scroll -> KHÔNG BỌC DIV */}
             <Route path="/orders" element={<Orders />} />
+
             <Route
               path="/orders/new"
               element={
@@ -49,6 +58,8 @@ function MainLayout() {
                 </div>
               }
             />
+
+            {/* OrderDetail khi vào trực tiếp vẫn cần cuộn -> GIỮ NGUYÊN */}
             <Route
               path="/orders/:id"
               element={
@@ -57,6 +68,7 @@ function MainLayout() {
                 </div>
               }
             />
+
             <Route
               path="/stock"
               element={
@@ -69,7 +81,8 @@ function MainLayout() {
         </div>
       </main>
 
-      {/* MOBILE NAV - BottomNav tự xử lý ẩn hiện bên trong nó */}
+      {/* MOBILE NAV */}
+      {/* Không cần class transition ở đây nữa, BottomNav tự lo */}
       <div className="block md:hidden">
         <BottomNav />
       </div>
