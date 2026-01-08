@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // Thêm AnimatePresence
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import {
   FiEdit,
@@ -14,7 +14,6 @@ import ProductVariants from "../../components/products/ProductVariants";
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
 export default function ProductDetail({ selected, setSelected, load }) {
-  // State quản lý form
   const [form, setForm] = useState({
     sku: "",
     name: "",
@@ -29,7 +28,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
   const [loading, setLoading] = useState(false);
   const [showVariantsScreen, setShowVariantsScreen] = useState(false);
 
-  // Sync dữ liệu thông minh
   useEffect(() => {
     if (selected) {
       setForm({
@@ -51,7 +49,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
     }
   }, [selected]);
 
-  // --- Xử lý chọn nhiều ảnh ---
   const handleImagesChange = (e) => {
     const files = Array.from(e.target.files || []);
     const previewUrls = files.map((file) => URL.createObjectURL(file));
@@ -64,29 +61,19 @@ export default function ProductDetail({ selected, setSelected, load }) {
     setNewPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --- Gửi dữ liệu ---
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const fd = new FormData();
-
-      Object.entries(form).forEach(([key, value]) => {
-        fd.append(key, value);
-      });
-
-      newImages.forEach((img) => {
-        fd.append("images", img);
-      });
+      Object.entries(form).forEach(([key, value]) => fd.append(key, value));
+      newImages.forEach((img) => fd.append("images", img));
 
       const token = localStorage.getItem("token");
-
       const res = await fetch(`${API_BASE}/products/${selected.id}`, {
         method: "PUT",
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
         body: fd,
       });
 
@@ -109,28 +96,27 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
-      {/* MAIN CARD - Container chính */}
       <motion.div
         key={selected.id}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        // 🔥 FIX: Layout Full màn hình chuẩn, padding hợp lý
+        // 🔥 h-[100dvh] + no-scrollbar: Full màn hình, ẩn thanh cuộn vàng
         className="
-          w-full min-h-full
-          p-4 md:p-0
+          w-full h-[100dvh] overflow-y-auto no-scrollbar
+          p-4 md:p-0 
           bg-white dark:bg-gray-900
           md:bg-transparent md:dark:bg-transparent
+          pb-24 md:pb-0
         "
       >
-        {/* Wrapper cho PC: Tạo card nổi (Mobile thì phẳng) */}
         <div className="
            md:bg-white md:dark:bg-gray-800 
            md:rounded-3xl md:shadow-[0_8px_30px_rgb(0,0,0,0.12)] 
            md:border md:border-gray-100 md:dark:border-gray-700
            md:p-8 space-y-6
         ">
-            {/* HEADER: Chỉ hiện trên PC */}
+            {/* HEADER (PC only) */}
             <div className="hidden md:flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
               <h4 className="font-bold text-gray-900 dark:text-white text-xl flex items-center gap-2">
                 <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
@@ -140,6 +126,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               </div>
             </div>
 
+            {/* 🔥 GIỮ NGUYÊN GRID 2 CỘT CHO PC (lg:grid-cols-[300px_1fr]) */}
             <form
               onSubmit={submit}
               className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8"
@@ -148,10 +135,9 @@ export default function ProductDetail({ selected, setSelected, load }) {
               <div className="space-y-5">
                 <div>
                   <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
-                    Ảnh đại diện hiện tại
+                    Ảnh đại diện
                   </label>
                   <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm group">
-                    {/* 🔥 FIX GIẬT HÌNH: Thêm transform-gpu will-change-transform */}
                     <img
                       src={selected.cover_image || "/no-image.png"}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 transform-gpu will-change-transform backface-hidden"
@@ -171,7 +157,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 {/* Upload ảnh mới */}
                 <div>
                   <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                    <FiUploadCloud /> Thêm ảnh mới / Thay thế
+                    <FiUploadCloud /> Thêm ảnh mới
                   </label>
 
                   {newPreviews.length > 0 && (
@@ -181,7 +167,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
                           key={idx}
                           className="relative aspect-square rounded-lg overflow-hidden border border-blue-200"
                         >
-                          {/* 🔥 FIX GIẬT HÌNH: Áp dụng cả cho thumbnail */}
                           <img
                             src={src}
                             className="w-full h-full object-cover transform-gpu will-change-transform backface-hidden"
@@ -202,7 +187,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                   <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-gray-800 transition group">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 group-hover:text-blue-500">
                       <FiImage className="w-6 h-6 mb-1" />
-                      <p className="text-xs">Chọn nhiều ảnh</p>
+                      <p className="text-xs">Chọn ảnh</p>
                     </div>
                     <input
                       type="file"
@@ -245,13 +230,13 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
                 <div className="p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-2xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 gap-6">
                   <Field
-                    label="Giá nhập (Vốn)"
+                    label="Giá nhập"
                     type="number"
                     value={form.cost_price}
                     onChange={(v) => setForm({ ...form, cost_price: v })}
                   />
                   <Field
-                    label="Giá bán (Lẻ)"
+                    label="Giá bán"
                     type="number"
                     value={form.sale_price}
                     onChange={(v) => setForm({ ...form, sale_price: v })}
@@ -314,7 +299,8 @@ export default function ProductDetail({ selected, setSelected, load }) {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900">
+            {/* 🔥 no-scrollbar cũng thêm vào đây */}
+            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900 no-scrollbar">
               <div className="max-w-4xl mx-auto">
                 <ProductVariants productId={selected.id} />
               </div>
