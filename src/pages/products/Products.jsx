@@ -49,15 +49,29 @@ export default function Products() {
   const { setIsNavVisible } = useNav();
   const lastScrollY = useRef(0);
 
-  // --- LOGIC SCROLL MOBILE ---
+  // --- LOGIC SCROLL MOBILE (ĐÃ SỬA LỖI NHẤP NHÁY) ---
   const handleScroll = (e) => {
     const currentScrollY = e.target.scrollTop;
+
+    // 1. Chặn overscroll (kéo quá đà ở trên cùng)
     if (currentScrollY < 0) return;
-    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+
+    // 2. Tính khoảng cách thay đổi (delta)
+    const diff = currentScrollY - lastScrollY.current;
+
+    // 3. THRESHOLD: Chỉ xử lý nếu cuộn nhiều hơn 10px để tránh rung tay
+    if (Math.abs(diff) < 10) return;
+
+    // 4. Logic Ẩn/Hiện
+    // Chỉ ẩn khi cuộn xuống (diff > 0) và đã kéo xuống một đoạn (> 60px)
+    if (diff > 0 && currentScrollY > 60) {
       setIsNavVisible(false);
-    } else if (currentScrollY < lastScrollY.current) {
+    } else if (diff < 0) {
+      // Hiện lại khi cuộn lên
       setIsNavVisible(true);
     }
+
+    // 5. Cập nhật vị trí cũ
     lastScrollY.current = currentScrollY;
   };
 
