@@ -192,7 +192,7 @@ export default function Customers() {
       `}</style>
 
       {/* --- CONTAINER CHÍNH --- */}
-      <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+      <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden pt-16">
         {/* ================= HEADER MOBILE ================= */}
         <div className="md:hidden shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-20">
           <div className="flex items-center justify-between p-3 gap-2">
