@@ -96,14 +96,28 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
+      {/* 🔥 CSS CỤC BỘ: Ép ẩn thanh cuộn bằng mọi giá */}
+      <style>{`
+        .force-no-scroll::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          background: transparent !important;
+        }
+        .force-no-scroll {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}</style>
+
       <motion.div
         key={selected.id}
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        // 🔥 h-[100dvh] + no-scrollbar: Full màn hình, ẩn thanh cuộn vàng
+        // 🔥 Áp dụng class force-no-scroll vừa tạo
         className="
-          w-full h-[100dvh] overflow-y-auto no-scrollbar
+          w-full h-[100dvh] overflow-y-auto force-no-scroll
           p-4 md:p-0 
           bg-white dark:bg-gray-900
           md:bg-transparent md:dark:bg-transparent
@@ -126,7 +140,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               </div>
             </div>
 
-            {/* 🔥 GIỮ NGUYÊN GRID 2 CỘT CHO PC (lg:grid-cols-[300px_1fr]) */}
+            {/* GIỮ NGUYÊN GRID 2 CỘT CHO PC */}
             <form
               onSubmit={submit}
               className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8"
@@ -230,13 +244,13 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
                 <div className="p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-2xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 gap-6">
                   <Field
-                    label="Giá nhập"
+                    label="Giá nhập (Vốn)"
                     type="number"
                     value={form.cost_price}
                     onChange={(v) => setForm({ ...form, cost_price: v })}
                   />
                   <Field
-                    label="Giá bán"
+                    label="Giá bán (Lẻ)"
                     type="number"
                     value={form.sale_price}
                     onChange={(v) => setForm({ ...form, sale_price: v })}
@@ -299,8 +313,8 @@ export default function ProductDetail({ selected, setSelected, load }) {
               </div>
             </div>
 
-            {/* 🔥 no-scrollbar cũng thêm vào đây */}
-            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900 no-scrollbar">
+            {/* 🔥 Áp dụng force-no-scroll cho Modal luôn */}
+            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900 force-no-scroll">
               <div className="max-w-4xl mx-auto">
                 <ProductVariants productId={selected.id} />
               </div>
