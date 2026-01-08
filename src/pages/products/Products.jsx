@@ -425,7 +425,7 @@ export default function Products() {
                 </div>
                 <div
                   onScroll={handleScroll}
-                  className="flex-1 overflow-y-auto pb-4 hide-scroll-force"
+                  className="flex-1 overflow-y-auto pb-0 hide-scroll-force"
                 >
                   <ProductForm
                     load={reload}
