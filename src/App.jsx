@@ -28,19 +28,13 @@ function MainLayout() {
             {/* Products tự quản lý cuộn */}
             <Route path="/products" element={<Products />} />
 
-            {/* Customers vẫn dùng cuộn mặc định của App (giữ nguyên div bọc) */}
-            <Route
-              path="/customers"
-              element={
-                <div className="h-full overflow-y-auto pb-24">
-                  <Customers />
-                </div>
-              }
-            />
+            {/* 🔥 SỬA: Customers tự quản lý cuộn -> BỎ DIV BỌC */}
+            <Route path="/customers" element={<Customers />} />
 
             {/* Orders tự quản lý cuộn */}
             <Route path="/orders" element={<Orders />} />
 
+            {/* CreateOrder chưa sửa full màn hình nên VẪN CẦN DIV BỌC */}
             <Route
               path="/orders/new"
               element={
@@ -50,6 +44,7 @@ function MainLayout() {
               }
             />
 
+            {/* OrderDetail chưa sửa full màn hình nên VẪN CẦN DIV BỌC */}
             <Route
               path="/orders/:id"
               element={
@@ -59,7 +54,7 @@ function MainLayout() {
               }
             />
 
-            {/* 🔥 SỬA LẠI: StockHistory tự quản lý cuộn -> KHÔNG BỌC DIV NỮA */}
+            {/* StockHistory tự quản lý cuộn */}
             <Route path="/stock" element={<StockHistory />} />
           </Routes>
         </div>

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
 import CustomerStats from "./CustomerStats";
 import CustomerForm from "./CustomerForm";
-import CustomerList from "./CustomerList"; // Giữ lại nếu bạn dùng cho PC
+import CustomerList from "./CustomerList";
 import CustomerDetail from "./CustomerDetail";
 import {
   FiGrid,
@@ -16,6 +16,8 @@ import {
   FiUserPlus,
 } from "react-icons/fi";
 import { FaFacebookF } from "react-icons/fa";
+// 1. Import Context để xử lý ẩn hiện Menu
+import { useNav } from "../../context/NavContext";
 
 // 🎨 Avatar Gradient 2 màu hiện đại
 const avatarGradients = [
@@ -51,7 +53,6 @@ export default function Customers() {
   const [editing, setEditing] = useState(false);
 
   const [search, setSearch] = useState("");
-  // 🔥 Thêm state cho bộ lọc VIP
   const [onlyVIP, setOnlyVIP] = useState(false);
 
   const [stats, setStats] = useState({
@@ -70,6 +71,23 @@ export default function Customers() {
 
   const [viewMode, setViewMode] = useState("list");
   const [listViewMode, setListViewMode] = useState("grid");
+
+  // 2. Setup Hook ẩn hiện Menu
+  const { setIsNavVisible } = useNav();
+  const lastScrollY = useRef(0);
+
+  // 3. Logic xử lý cuộn
+  const handleScroll = (e) => {
+    const currentScrollY = e.target.scrollTop;
+    if (currentScrollY < 0) return;
+
+    if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+      setIsNavVisible(false);
+    } else if (currentScrollY < lastScrollY.current) {
+      setIsNavVisible(true);
+    }
+    lastScrollY.current = currentScrollY;
+  };
 
   const loadList = async () => {
     try {
@@ -101,10 +119,10 @@ export default function Customers() {
   };
 
   useEffect(() => {
+    setIsNavVisible(true);
     loadList();
   }, []);
 
-  // 🔥 Logic tìm kiếm & Lọc nâng cao
   const filtered = useMemo(() => {
     return list.filter((c) => {
       // 1. Lọc VIP
@@ -114,7 +132,6 @@ export default function Customers() {
       const q = search.trim().toLowerCase();
       if (!q) return true;
 
-      // Chuẩn hóa SĐT (bỏ khoảng trắng, gạch ngang để tìm chính xác hơn)
       const phoneClean = (c.phone || "").replace(/\D/g, "");
       const searchClean = q.replace(/\D/g, "");
 
@@ -142,7 +159,7 @@ export default function Customers() {
         notes: "",
       });
       await loadList();
-      setViewMode("list"); // Quay lại list sau khi thêm
+      setViewMode("list");
     } catch {
       notify.error("Lỗi khi thêm khách hàng");
     }
@@ -163,17 +180,14 @@ export default function Customers() {
 
   return (
     <>
-      {/* 🔥 Style ép ẩn thanh cuộn */}
       <style>{`
         .hide-scroll-force::-webkit-scrollbar { display: none !important; width: 0 !important; }
         .hide-scroll-force { -ms-overflow-style: none !important; scrollbar-width: none !important; }
       `}</style>
 
-      {/* CONTAINER CHÍNH FULL MÀN HÌNH */}
       <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
-        {/* === HEADER MOBILE === */}
+        {/* HEADER MOBILE */}
         <div className="md:hidden shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-20">
-          {/* Dòng 1: Tabs Chính */}
           <div className="flex items-center justify-between p-3 gap-2">
             <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex-1">
               <button
@@ -190,7 +204,6 @@ export default function Customers() {
               </button>
             </div>
 
-            {/* Nút thêm mới nổi bật */}
             <button
               onClick={() => setViewMode("create")}
               className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 active:scale-95 transition-transform"
@@ -199,7 +212,6 @@ export default function Customers() {
             </button>
           </div>
 
-          {/* Dòng 2: Search & Filter (Chỉ hiện khi ở tab List) */}
           {viewMode === "list" && (
             <div className="px-3 pb-3 flex items-center gap-2">
               <div className="relative flex-1">
@@ -213,7 +225,6 @@ export default function Customers() {
                 />
               </div>
 
-              {/* Nút Lọc VIP */}
               <button
                 onClick={() => setOnlyVIP(!onlyVIP)}
                 className={`
@@ -231,7 +242,6 @@ export default function Customers() {
                 VIP
               </button>
 
-              {/* Toggle Grid/List */}
               <button
                 onClick={() =>
                   setListViewMode((m) => (m === "grid" ? "list" : "grid"))
@@ -244,43 +254,39 @@ export default function Customers() {
           )}
         </div>
 
-        {/* === BODY CONTENT (SCROLLABLE) === */}
-        <div className="flex-1 overflow-y-auto hide-scroll-force p-3 pb-24 md:p-6 md:pb-6">
-          {/* PC LAYOUT (Giữ nguyên cấu trúc Grid 3 cột) */}
+        {/* BODY CONTENT */}
+        <div
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto hide-scroll-force p-3 pb-24 md:p-6 md:pb-6"
+        >
           <div className="hidden md:grid md:grid-cols-3 gap-6">
             <div className="md:col-span-1">
               <CustomerForm form={form} setForm={setForm} submit={submit} />
             </div>
             <div className="md:col-span-1">
-              {/* Reuse CustomerList component logic inside here or separate file */}
               <CustomerList
                 filtered={filtered}
                 selected={selected}
                 setSelected={setSelected}
                 viewDetail={viewDetail}
-                // ... props khác
               />
             </div>
             <div className="md:col-span-1">
               {detail && (
                 <div className="p-4 rounded-lg border bg-white shadow">
-                  <CustomerDetail detail={detail} /* ...props */ />
+                  <CustomerDetail detail={detail} />
                 </div>
               )}
             </div>
           </div>
 
-          {/* MOBILE CONTENT */}
           <div className="md:hidden">
-            {/* VIEW: CREATE */}
             {viewMode === "create" && (
               <CustomerForm form={form} setForm={setForm} submit={submit} />
             )}
 
-            {/* VIEW: STATS */}
             {viewMode === "stats" && <CustomerStats stats={stats} />}
 
-            {/* VIEW: LIST (Main) */}
             {viewMode === "list" && (
               <div
                 className={
@@ -300,14 +306,12 @@ export default function Customers() {
                       ${listViewMode === "grid" ? "p-3 rounded-2xl flex flex-col items-center text-center gap-2" : "p-3 rounded-xl flex items-center gap-3"}
                     `}
                   >
-                    {/* Badge VIP */}
                     {c.total_orders > 3 && (
                       <span className="absolute top-0 right-0 bg-yellow-400 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-bl-lg shadow-sm z-10">
                         VIP
                       </span>
                     )}
 
-                    {/* Avatar */}
                     <div
                       className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg shadow-inner"
                       style={{ background: getAvatarGradient(c.name) }}
@@ -315,7 +319,6 @@ export default function Customers() {
                       {getInitial(c.name)}
                     </div>
 
-                    {/* Info */}
                     <div className="min-w-0 flex-1">
                       <h4 className="font-bold text-gray-800 dark:text-gray-100 text-sm truncate">
                         {c.name}
@@ -330,7 +333,6 @@ export default function Customers() {
                       )}
                     </div>
 
-                    {/* Actions (List View Only) */}
                     {listViewMode !== "grid" && (
                       <a
                         href={`tel:${c.phone}`}
@@ -341,7 +343,6 @@ export default function Customers() {
                       </a>
                     )}
 
-                    {/* Actions (Grid View Only - Footer) */}
                     {listViewMode === "grid" && (
                       <div className="w-full pt-2 border-t border-gray-50 dark:border-gray-800 flex gap-2 mt-auto">
                         <a
@@ -377,7 +378,6 @@ export default function Customers() {
           </div>
         </div>
 
-        {/* === FULL SCREEN DETAIL MODAL (Mobile Only) === */}
         {viewMode === "detail" && detail && (
           <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col animate-slideIn">
             <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center gap-3 border-b dark:border-gray-700 shadow-sm shrink-0">
