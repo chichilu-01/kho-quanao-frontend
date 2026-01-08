@@ -207,8 +207,8 @@ export default function ProductList({
     <div
       className={
         viewType === "grid"
-          ? `grid ${gridClassMap[gridCols] || "grid-cols-2 md:grid-cols-3"} gap-0 md:gap-4 bg-gray-200 dark:bg-gray-900 md:bg-transparent pb-20`
-          : "flex flex-col w-full pb-20"
+          ? `grid ${gridClassMap[gridCols] || "grid-cols-2 md:grid-cols-3"} gap-0 md:gap-4 bg-gray-200 dark:bg-gray-900 md:bg-transparent pb-0`
+          : "flex flex-col w-full pb-0"
       }
     >
       <AnimatePresence mode="popLayout">

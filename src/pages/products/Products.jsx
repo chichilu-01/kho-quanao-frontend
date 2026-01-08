@@ -51,8 +51,7 @@ export default function Products() {
 
   // --- LOGIC SCROLL MOBILE ---
   const handleScroll = (e) => {
-    // Logic ẩn hiện menu trên mobile dựa trên scroll window
-    const currentScrollY = window.scrollY; // Dùng window scroll thay vì e.target
+    const currentScrollY = e.target.scrollTop;
     if (currentScrollY < 0) return;
     if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
       setIsNavVisible(false);
@@ -61,11 +60,6 @@ export default function Products() {
     }
     lastScrollY.current = currentScrollY;
   };
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     setIsNavVisible(true);
@@ -106,6 +100,7 @@ export default function Products() {
   const stats = useMemo(() => {
     const totalItems = list.length;
     const outOfStock = list.filter((p) => (p.quantity || 0) <= 0).length;
+    // Giả sử có trường price và quantity
     const totalValue = list.reduce(
       (acc, p) => acc + Number(p.price || 0) * Number(p.quantity || 0),
       0,
@@ -128,14 +123,20 @@ export default function Products() {
   };
 
   return (
-    // 🔥 SỬA 1: min-h-screen (thay vì h-screen), bỏ overflow-hidden để trang tự cuộn
-    <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col transition-colors duration-300 pt-0 md:pt-16">
+    // 🔥 FIX 1: pt-0 md:pt-16 (Giữ nguyên fix header PC)
+    <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col overflow-hidden transition-colors duration-300 pt-0 md:pt-16">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
 
-      {/* ======================= PC LAYOUT (Content Height) ======================= */}
-      <div className="hidden md:flex flex-col flex-1 w-full">
-        {/* 1. PC TOP BAR */}
-        <div className="shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm sticky top-16 z-30">
+      {/* 🔥 FIX 2: THÊM STYLE ẨN THANH CUỘN CHO MOBILE */}
+      <style>{`
+        .hide-scroll-force::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        .hide-scroll-force { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+      `}</style>
+
+      {/* ======================= PC LAYOUT (MODERNIZED) ======================= */}
+      <div className="hidden md:flex flex-col h-full w-full overflow-hidden">
+        {/* 1. PC TOP BAR: STATS & TITLE */}
+        <div className="shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm z-20">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
               <span className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-xl">
@@ -148,6 +149,7 @@ export default function Products() {
             </p>
           </div>
 
+          {/* Quick Stats Cards */}
           <div className="flex gap-4">
             <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl">
               <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg text-blue-600 dark:text-blue-300">
@@ -162,17 +164,43 @@ export default function Products() {
                 </p>
               </div>
             </div>
-            {/* ... Các thẻ stats khác giữ nguyên ... */}
+
+            <div className="flex items-center gap-3 px-4 py-2 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800 rounded-xl">
+              <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg text-red-600 dark:text-red-300">
+                <FiAlertCircle size={18} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">
+                  Hết hàng
+                </p>
+                <p className="text-lg font-bold text-red-700 dark:text-red-400">
+                  {stats.outOfStock}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 px-4 py-2 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800 rounded-xl">
+              <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg text-green-600 dark:text-green-300">
+                <FiDollarSign size={18} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">
+                  Giá trị kho
+                </p>
+                <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                  {money(stats.totalValue)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 2. PC MAIN CONTENT SPLIT */}
-        <div className="flex flex-1 items-start">
-          {/* LEFT SIDEBAR: LIST */}
-          {/* 🔥 SỬA 2: Bỏ h-full, bỏ overflow-auto để nó giãn theo nội dung */}
-          <div className="w-[380px] lg:w-[420px] xl:w-[480px] flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl min-h-[calc(100vh-80px)]">
+        <div className="flex-1 flex overflow-hidden">
+          {/* LEFT SIDEBAR: LIST & TOOLS (30-35%) */}
+          <div className="w-[380px] lg:w-[420px] xl:w-[480px] flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl z-10">
             {/* Tools */}
-            <div className="p-4 border-b border-gray-100 dark:border-gray-700 space-y-3 sticky top-[140px] z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur">
+            <div className="p-4 border-b border-gray-100 dark:border-gray-700 space-y-3">
               <div className="relative group">
                 <FiSearch className="absolute top-3 left-3 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
@@ -207,8 +235,7 @@ export default function Products() {
             </div>
 
             {/* Product List Area */}
-            {/* 🔥 SỬA 3: p-3 và pb-10 để tạo khoảng trống nhỏ vừa đủ cuối danh sách */}
-            <div className="p-3 pb-10">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
               {isLoading ? (
                 <ProductSkeleton viewType={listViewMode} />
               ) : (
@@ -223,15 +250,15 @@ export default function Products() {
                     setRestockModal(true);
                   }}
                   viewType={listViewMode}
-                  gridCols={2}
+                  gridCols={2} // Grid 2 cột cho sidebar
                 />
               )}
             </div>
           </div>
 
-          {/* RIGHT SIDEBAR: DETAILS */}
-          <div className="flex-1 bg-gray-50/50 dark:bg-gray-900/50 relative flex flex-col min-h-[calc(100vh-80px)]">
-            <div className="p-6 lg:p-10 sticky top-[140px]">
+          {/* RIGHT SIDEBAR: DETAILS & FORMS (65-70%) */}
+          <div className="flex-1 bg-gray-50/50 dark:bg-gray-900/50 relative overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-10">
               <AnimatePresence mode="wait">
                 {viewMode === "create" ? (
                   <motion.div
@@ -263,6 +290,7 @@ export default function Products() {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
+                    className="h-full"
                   >
                     <ProductDetail
                       selected={selected}
@@ -275,13 +303,16 @@ export default function Products() {
                     key="empty"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex flex-col items-center justify-center text-gray-300 dark:text-gray-600 select-none pt-20"
+                    className="h-full flex flex-col items-center justify-center text-gray-300 dark:text-gray-600 select-none"
                   >
                     <div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6 animate-pulse">
                       <FiPackage size={64} className="opacity-50" />
                     </div>
                     <p className="text-xl font-medium">
                       Chọn một sản phẩm để xem chi tiết
+                    </p>
+                    <p className="text-sm mt-2">
+                      Hoặc nhấn "Thêm mới" để tạo kho
                     </p>
                   </motion.div>
                 )}
@@ -291,11 +322,11 @@ export default function Products() {
         </div>
       </div>
 
-      {/* ======================= MOBILE LAYOUT ======================= */}
-      <div className="md:hidden flex-1 flex flex-col w-full bg-gray-50 dark:bg-gray-900 min-h-screen">
+      {/* ======================= MOBILE LAYOUT (UPDATED) ======================= */}
+      <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* MOBILE HEADER */}
         {viewMode === "list" && (
-          <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-20 shadow-sm sticky top-0">
+          <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-20 shadow-sm">
             <div className="flex-1 relative">
               <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
               <input
@@ -313,7 +344,7 @@ export default function Products() {
                 </button>
               )}
             </div>
-            {/* Buttons List/Grid + Add */}
+
             <div className="flex gap-1 shrink-0">
               <button
                 onClick={() =>
@@ -329,7 +360,7 @@ export default function Products() {
               </button>
               <button
                 onClick={() => switchMode("create")}
-                className="p-2 bg-blue-600 text-white rounded-lg shadow-md"
+                className="p-2 bg-blue-600 text-white rounded-lg shadow-md active:scale-95 transition-transform"
               >
                 <FiPlus size={20} />
               </button>
@@ -337,8 +368,8 @@ export default function Products() {
           </div>
         )}
 
-        {/* MOBILE BODY */}
-        <div className="flex-1 w-full relative">
+        {/* MOBILE BODY - 🔥 FIX GAP & SCROLLBAR */}
+        <div className="flex-1 overflow-hidden w-full relative">
           <AnimatePresence mode="wait">
             {viewMode === "list" && (
               <motion.div
@@ -346,9 +377,13 @@ export default function Products() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                className="h-full w-full"
               >
-                {/* 🔥 SỬA 4: Mobile dùng pb-4 thay vì padding lớn */}
-                <div className="pb-4 px-1">
+                {/* 🔥 FIX 3: Áp dụng class hide-scroll-force và chỉnh pb-4 (đủ nhỏ) */}
+                <div
+                  onScroll={handleScroll}
+                  className="h-full w-full overflow-y-auto pb-0 px-1 scroll-smooth hide-scroll-force"
+                >
                   {isLoading ? (
                     <ProductSkeleton viewType={listViewMode} />
                   ) : (
@@ -376,9 +411,10 @@ export default function Products() {
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
-                className="fixed inset-0 z-30 bg-white dark:bg-gray-900 flex flex-col overflow-y-auto"
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="absolute inset-0 z-30 bg-white dark:bg-gray-900 flex flex-col"
               >
-                <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
+                <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
                   <button
                     onClick={() => switchMode("list")}
                     className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -387,7 +423,10 @@ export default function Products() {
                   </button>
                   <h3 className="font-bold text-lg">Thêm sản phẩm mới</h3>
                 </div>
-                <div className="p-4 pb-20">
+                <div
+                  onScroll={handleScroll}
+                  className="flex-1 overflow-y-auto pb-0 hide-scroll-force"
+                >
                   <ProductForm
                     load={reload}
                     onSuccess={() => setViewMode("list")}
@@ -402,9 +441,10 @@ export default function Products() {
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
-                className="fixed inset-0 z-30 bg-white dark:bg-gray-900 flex flex-col overflow-y-auto"
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="absolute inset-0 z-30 bg-white dark:bg-gray-900 flex flex-col"
               >
-                <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-10">
+                <div className="shrink-0 flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
                   <button
                     onClick={() => switchMode("list")}
                     className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -415,7 +455,10 @@ export default function Products() {
                     {selected?.name || "Chi tiết sản phẩm"}
                   </h3>
                 </div>
-                <div className="p-4 pb-20">
+                <div
+                  onScroll={handleScroll}
+                  className="flex-1 overflow-y-auto pb-0 hide-scroll-force"
+                >
                   {selected && (
                     <ProductDetail
                       selected={selected}
