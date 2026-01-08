@@ -96,19 +96,17 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
-      {/* 🔥 STYLE NÀY SẼ ÉP ẨN THANH CUỘN CHO TOÀN BỘ CÁC THẺ TRONG TRANG NÀY */}
+      {/* 🔥 CSS TOÀN CỤC: Ẩn thanh cuộn cho TẤT CẢ các thẻ (dùng dấu *) */}
       <style>{`
-        .hide-scroll-force, 
-        .hide-scroll-force * {
-          -ms-overflow-style: none !important;  /* IE and Edge */
-          scrollbar-width: none !important;  /* Firefox */
-        }
-        .hide-scroll-force::-webkit-scrollbar, 
-        .hide-scroll-force *::-webkit-scrollbar {
+        *::-webkit-scrollbar {
           display: none !important;
-          width: 0px !important;
-          height: 0px !important;
+          width: 0 !important;
+          height: 0 !important;
           background: transparent !important;
+        }
+        * {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
         }
       `}</style>
 
@@ -117,9 +115,9 @@ export default function ProductDetail({ selected, setSelected, load }) {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
-        // 🔥 Thêm class 'hide-scroll-force' vào đây
+        // 🔥 SỬA: Dùng h-full thay vì 100dvh để khớp với cha, tránh cuộn kép
         className="
-          w-full h-[100dvh] overflow-y-auto hide-scroll-force
+          w-full h-full overflow-y-auto
           p-4 md:p-0 
           bg-white dark:bg-gray-900
           md:bg-transparent md:dark:bg-transparent
@@ -132,6 +130,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
            md:border md:border-gray-100 md:dark:border-gray-700
            md:p-8 space-y-6
         ">
+            {/* HEADER (PC only) */}
             <div className="hidden md:flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
               <h4 className="font-bold text-gray-900 dark:text-white text-xl flex items-center gap-2">
                 <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
@@ -145,6 +144,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               onSubmit={submit}
               className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8"
             >
+              {/* CỘT TRÁI: ẢNH */}
               <div className="space-y-5">
                 <div>
                   <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">
@@ -167,6 +167,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                   </div>
                 </div>
 
+                {/* Upload ảnh mới */}
                 <div>
                   <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                     <FiUploadCloud /> Thêm ảnh mới
@@ -212,6 +213,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 </div>
               </div>
 
+              {/* CỘT PHẢI: THÔNG TIN */}
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <Field
@@ -308,8 +310,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
               </div>
             </div>
 
-            {/* 🔥 Thêm hide-scroll-force vào đây nữa */}
-            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900 hide-scroll-force">
+            <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900">
               <div className="max-w-4xl mx-auto">
                 <ProductVariants productId={selected.id} />
               </div>
