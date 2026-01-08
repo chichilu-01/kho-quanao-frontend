@@ -22,12 +22,13 @@ function MainLayout() {
       <main className="flex-1 pt-0 md:pt-8 px-0 md:px-8 pb-0 md:pb-8 w-full relative overflow-hidden">
         <div className="h-full w-full animate-fadeIn">
           <Routes>
-            {/* 🔥 SỬA LẠI: Dashboard tự quản lý cuộn, KHÔNG BỌC DIV nữa */}
+            {/* Dashboard tự quản lý cuộn */}
             <Route path="/" element={<Dashboard />} />
 
-            {/* Products tự quản lý scroll -> KHÔNG BỌC DIV */}
+            {/* Products tự quản lý cuộn */}
             <Route path="/products" element={<Products />} />
 
+            {/* Customers vẫn dùng cuộn mặc định của App (giữ nguyên div bọc) */}
             <Route
               path="/customers"
               element={
@@ -37,7 +38,7 @@ function MainLayout() {
               }
             />
 
-            {/* Orders tự quản lý scroll -> KHÔNG BỌC DIV */}
+            {/* Orders tự quản lý cuộn */}
             <Route path="/orders" element={<Orders />} />
 
             <Route
@@ -58,14 +59,8 @@ function MainLayout() {
               }
             />
 
-            <Route
-              path="/stock"
-              element={
-                <div className="h-full overflow-y-auto pb-24">
-                  <StockHistory />
-                </div>
-              }
-            />
+            {/* 🔥 SỬA LẠI: StockHistory tự quản lý cuộn -> KHÔNG BỌC DIV NỮA */}
+            <Route path="/stock" element={<StockHistory />} />
           </Routes>
         </div>
       </main>
