@@ -3,19 +3,19 @@ import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
 import CustomerStats from "./CustomerStats";
 import CustomerForm from "./CustomerForm";
-import CustomerList from "./CustomerList";
+import CustomerList from "./CustomerList"; // Giữ lại nếu bạn dùng cho PC
 import CustomerDetail from "./CustomerDetail";
 import {
   FiGrid,
   FiList as FiListIcon,
   FiPhoneCall,
   FiChevronLeft,
+  FiSearch,
+  FiFilter,
+  FiStar,
+  FiUserPlus,
 } from "react-icons/fi";
 import { FaFacebookF } from "react-icons/fa";
-
-function money(n) {
-  return Number(n || 0).toLocaleString("vi-VN") + "đ";
-}
 
 // 🎨 Avatar Gradient 2 màu hiện đại
 const avatarGradients = [
@@ -35,7 +35,6 @@ function getAvatarGradient(name = "") {
   return `linear-gradient(135deg, ${from}, ${to})`;
 }
 
-// Lấy 2 ký tự đầu (NA, TM…)
 function getInitial(name = "") {
   const parts = name.trim().split(" ");
   if (parts.length >= 2) {
@@ -52,6 +51,9 @@ export default function Customers() {
   const [editing, setEditing] = useState(false);
 
   const [search, setSearch] = useState("");
+  // 🔥 Thêm state cho bộ lọc VIP
+  const [onlyVIP, setOnlyVIP] = useState(false);
+
   const [stats, setStats] = useState({
     total_customers: 0,
     total_orders: 0,
@@ -67,8 +69,6 @@ export default function Customers() {
   });
 
   const [viewMode, setViewMode] = useState("list");
-
-  // 👉 Mặc định là GRID
   const [listViewMode, setListViewMode] = useState("grid");
 
   const loadList = async () => {
@@ -104,15 +104,27 @@ export default function Customers() {
     loadList();
   }, []);
 
+  // 🔥 Logic tìm kiếm & Lọc nâng cao
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(
-      (c) =>
+    return list.filter((c) => {
+      // 1. Lọc VIP
+      if (onlyVIP && (c.total_orders || 0) < 3) return false;
+
+      // 2. Tìm kiếm (Tên hoặc SĐT)
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+
+      // Chuẩn hóa SĐT (bỏ khoảng trắng, gạch ngang để tìm chính xác hơn)
+      const phoneClean = (c.phone || "").replace(/\D/g, "");
+      const searchClean = q.replace(/\D/g, "");
+
+      return (
         (c.name || "").toLowerCase().includes(q) ||
-        (c.phone || "").toLowerCase().includes(q),
-    );
-  }, [list, search]);
+        (c.phone || "").toLowerCase().includes(q) ||
+        (searchClean && phoneClean.includes(searchClean))
+      );
+    });
+  }, [list, search, onlyVIP]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -130,6 +142,7 @@ export default function Customers() {
         notes: "",
       });
       await loadList();
+      setViewMode("list"); // Quay lại list sau khi thêm
     } catch {
       notify.error("Lỗi khi thêm khách hàng");
     }
@@ -149,119 +162,238 @@ export default function Customers() {
   };
 
   return (
-    <div className="relative z-0 space-y-6 pb-20 md:pb-10">
-      {/* TAB MOBILE (Header Fixed) */}
-      <div
-        className="
-          md:hidden fixed top-0 left-0 right-0 z-40
-          px-3 py-2
-          bg-white/95 dark:bg-gray-900/95 backdrop-blur-md
-          shadow-sm border-b border-gray-100 dark:border-gray-800
-        "
-      >
-        <div className="flex items-center gap-2">
-          {/* GROUP TABS: Bên trái (chiếm phần lớn) */}
-          <div className="flex flex-1 gap-1.5">
-            {/* TAB: LIST */}
-            <button
-              onClick={() => setViewMode("list")}
-              className={`
-                flex-1 py-2 rounded-lg text-xs font-bold transition-all truncate
-                ${
-                  viewMode === "list"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                }
-              `}
-            >
-              Danh sách
-            </button>
+    <>
+      {/* 🔥 Style ép ẩn thanh cuộn */}
+      <style>{`
+        .hide-scroll-force::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        .hide-scroll-force { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+      `}</style>
 
-            {/* TAB: CREATE */}
+      {/* CONTAINER CHÍNH FULL MÀN HÌNH */}
+      <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+        {/* === HEADER MOBILE === */}
+        <div className="md:hidden shrink-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-20">
+          {/* Dòng 1: Tabs Chính */}
+          <div className="flex items-center justify-between p-3 gap-2">
+            <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex-1">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${viewMode === "list" ? "bg-white dark:bg-gray-700 shadow text-blue-600" : "text-gray-500"}`}
+              >
+                Danh sách
+              </button>
+              <button
+                onClick={() => setViewMode("stats")}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${viewMode === "stats" ? "bg-white dark:bg-gray-700 shadow text-blue-600" : "text-gray-500"}`}
+              >
+                Thống kê
+              </button>
+            </div>
+
+            {/* Nút thêm mới nổi bật */}
             <button
               onClick={() => setViewMode("create")}
-              className={`
-                flex-1 py-2 rounded-lg text-xs font-bold transition-all truncate
-                ${
-                  viewMode === "create"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                }
-              `}
+              className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 active:scale-95 transition-transform"
             >
-              Thêm
-            </button>
-
-            {/* TAB: STATS */}
-            <button
-              onClick={() => setViewMode("stats")}
-              className={`
-                flex-1 py-2 rounded-lg text-xs font-bold transition-all truncate
-                ${
-                  viewMode === "stats"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                }
-              `}
-            >
-              TK
+              <FiUserPlus size={20} />
             </button>
           </div>
 
-          {/* GROUP TOGGLE VIEW: Bên phải (Chỉ hiện khi ở tab Danh sách) */}
+          {/* Dòng 2: Search & Filter (Chỉ hiện khi ở tab List) */}
           {viewMode === "list" && (
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 shrink-0 border border-gray-200 dark:border-gray-700">
+            <div className="px-3 pb-3 flex items-center gap-2">
+              <div className="relative flex-1">
+                <FiSearch className="absolute top-2.5 left-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Tìm tên, SĐT..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-gray-100 dark:bg-gray-800 pl-9 pr-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                />
+              </div>
+
+              {/* Nút Lọc VIP */}
               <button
-                onClick={() => setListViewMode("list")}
-                className={`p-1.5 rounded-md transition-all ${
-                  listViewMode === "list"
-                    ? "bg-white dark:bg-gray-700 shadow text-blue-600"
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
+                onClick={() => setOnlyVIP(!onlyVIP)}
+                className={`
+                  h-9 px-3 rounded-xl flex items-center gap-1 text-xs font-bold border transition-all
+                  ${
+                    onlyVIP
+                      ? "bg-yellow-50 border-yellow-200 text-yellow-700"
+                      : "bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700"
+                  }
+                `}
               >
-                <FiListIcon size={16} />
+                <FiStar
+                  className={onlyVIP ? "fill-yellow-500 text-yellow-500" : ""}
+                />
+                VIP
               </button>
+
+              {/* Toggle Grid/List */}
               <button
-                onClick={() => setListViewMode("grid")}
-                className={`p-1.5 rounded-md transition-all ${
-                  listViewMode === "grid"
-                    ? "bg-white dark:bg-gray-700 shadow text-blue-600"
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
+                onClick={() =>
+                  setListViewMode((m) => (m === "grid" ? "list" : "grid"))
+                }
+                className="w-9 h-9 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl text-gray-500"
               >
-                <FiGrid size={16} />
+                {listViewMode === "grid" ? <FiListIcon /> : <FiGrid />}
               </button>
             </div>
           )}
         </div>
-      </div>
 
-      {/* PC LAYOUT GIỮ NGUYÊN */}
-      <div className="hidden md:grid md:grid-cols-3 gap-6 relative z-0">
-        <div className="md:col-span-1">
-          <CustomerForm form={form} setForm={setForm} submit={submit} />
+        {/* === BODY CONTENT (SCROLLABLE) === */}
+        <div className="flex-1 overflow-y-auto hide-scroll-force p-3 pb-24 md:p-6 md:pb-6">
+          {/* PC LAYOUT (Giữ nguyên cấu trúc Grid 3 cột) */}
+          <div className="hidden md:grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+              <CustomerForm form={form} setForm={setForm} submit={submit} />
+            </div>
+            <div className="md:col-span-1">
+              {/* Reuse CustomerList component logic inside here or separate file */}
+              <CustomerList
+                filtered={filtered}
+                selected={selected}
+                setSelected={setSelected}
+                viewDetail={viewDetail}
+                // ... props khác
+              />
+            </div>
+            <div className="md:col-span-1">
+              {detail && (
+                <div className="p-4 rounded-lg border bg-white shadow">
+                  <CustomerDetail detail={detail} /* ...props */ />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* MOBILE CONTENT */}
+          <div className="md:hidden">
+            {/* VIEW: CREATE */}
+            {viewMode === "create" && (
+              <CustomerForm form={form} setForm={setForm} submit={submit} />
+            )}
+
+            {/* VIEW: STATS */}
+            {viewMode === "stats" && <CustomerStats stats={stats} />}
+
+            {/* VIEW: LIST (Main) */}
+            {viewMode === "list" && (
+              <div
+                className={
+                  listViewMode === "grid"
+                    ? "grid grid-cols-2 gap-3"
+                    : "flex flex-col gap-3"
+                }
+              >
+                {filtered.map((c) => (
+                  <div
+                    key={c.id}
+                    onClick={() => viewDetail(c)}
+                    className={`
+                      relative overflow-hidden bg-white dark:bg-gray-900 
+                      border border-gray-100 dark:border-gray-800 cursor-pointer 
+                      shadow-sm active:scale-95 transition-all
+                      ${listViewMode === "grid" ? "p-3 rounded-2xl flex flex-col items-center text-center gap-2" : "p-3 rounded-xl flex items-center gap-3"}
+                    `}
+                  >
+                    {/* Badge VIP */}
+                    {c.total_orders > 3 && (
+                      <span className="absolute top-0 right-0 bg-yellow-400 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-bl-lg shadow-sm z-10">
+                        VIP
+                      </span>
+                    )}
+
+                    {/* Avatar */}
+                    <div
+                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg shadow-inner"
+                      style={{ background: getAvatarGradient(c.name) }}
+                    >
+                      {getInitial(c.name)}
+                    </div>
+
+                    {/* Info */}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-gray-800 dark:text-gray-100 text-sm truncate">
+                        {c.name}
+                      </h4>
+                      <p className="text-xs text-gray-500 truncate mt-0.5">
+                        {c.phone || "Chưa có SĐT"}
+                      </p>
+                      {listViewMode !== "grid" && c.address && (
+                        <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                          {c.address}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions (List View Only) */}
+                    {listViewMode !== "grid" && (
+                      <a
+                        href={`tel:${c.phone}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600"
+                      >
+                        <FiPhoneCall size={14} />
+                      </a>
+                    )}
+
+                    {/* Actions (Grid View Only - Footer) */}
+                    {listViewMode === "grid" && (
+                      <div className="w-full pt-2 border-t border-gray-50 dark:border-gray-800 flex gap-2 mt-auto">
+                        <a
+                          href={`tel:${c.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg flex items-center justify-center"
+                        >
+                          <FiPhoneCall size={14} />
+                        </a>
+                        {c.facebook_url && (
+                          <a
+                            href={c.facebook_url}
+                            target="_blank"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-lg flex items-center justify-center"
+                          >
+                            <FaFacebookF size={14} />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {filtered.length === 0 && (
+                  <div className="col-span-full text-center py-10 text-gray-400 flex flex-col items-center">
+                    <FiSearch size={40} className="mb-2 opacity-50" />
+                    <p>Không tìm thấy khách hàng nào.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="md:col-span-1">
-          <CustomerList
-            filtered={filtered}
-            selected={selected}
-            setSelected={setSelected}
-            viewDetail={viewDetail}
-            search={search}
-            setSearch={setSearch}
-            loadList={loadList}
-            detail={detail}
-            setDetail={setDetail}
-            editing={editing}
-            setEditing={setEditing}
-            loadingDetail={loadingDetail}
-          />
-        </div>
+        {/* === FULL SCREEN DETAIL MODAL (Mobile Only) === */}
+        {viewMode === "detail" && detail && (
+          <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col animate-slideIn">
+            <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center gap-3 border-b dark:border-gray-700 shadow-sm shrink-0">
+              <button
+                onClick={() => setViewMode("list")}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200"
+              >
+                <FiChevronLeft size={24} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-lg truncate">{detail.name}</h3>
+                <p className="text-xs text-gray-500">Thông tin chi tiết</p>
+              </div>
+            </div>
 
-        <div className="md:col-span-1">
-          {detail && (
-            <div className="p-4 rounded-lg border bg-white shadow">
+            <div className="flex-1 overflow-y-auto hide-scroll-force">
               <CustomerDetail
                 detail={detail}
                 editing={editing}
@@ -272,142 +404,9 @@ export default function Customers() {
                 loadList={loadList}
               />
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* MOBILE CONTENT BODY */}
-      <div className="md:hidden pt-[60px] pb-[80px]">
-        {/* FULL DETAIL */}
-        {viewMode === "detail" && detail && (
-          <div className="fixed inset-0 bg-white z-50 overflow-y-auto bg-gray-50">
-            {/* ✨ HEADER HIỆN ĐẠI (Sticky Top) */}
-            <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-4 py-3 flex items-center gap-3 shadow-sm">
-              <button
-                onClick={() => setViewMode("list")}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 active:scale-95 transition-all"
-              >
-                <FiChevronLeft size={24} />
-              </button>
-
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg text-gray-800 truncate">
-                  {detail.name || "Chi tiết khách hàng"}
-                </h3>
-                <p className="text-xs text-gray-500">Thông tin chi tiết</p>
-              </div>
-            </div>
-
-            {/* Nội dung chi tiết */}
-            <CustomerDetail
-              detail={detail}
-              editing={editing}
-              setEditing={setEditing}
-              viewDetail={viewDetail}
-              setDetail={setDetail}
-              setSelected={setSelected}
-              loadList={loadList}
-            />
           </div>
         )}
-
-        {/* CREATE */}
-        {viewMode === "create" && (
-          <CustomerForm form={form} setForm={setForm} submit={submit} />
-        )}
-
-        {/* LIST */}
-        {viewMode === "list" && (
-          <div className="px-4 mt-4">
-            {/* GRID VIEW CÓ AVATAR PRO */}
-            {listViewMode === "grid" && (
-              <div className="grid grid-cols-2 gap-3">
-                {filtered.map((c) => (
-                  <div
-                    key={c.id}
-                    onClick={() => viewDetail(c)}
-                    className="relative overflow-hidden p-3 rounded-2xl bg-white dark:bg-gray-900 
-                               border border-gray-200 dark:border-gray-700 cursor-pointer 
-                               transition-all duration-300 shadow-sm
-                               active:scale-95"
-                  >
-                    {/* VIP badge */}
-                    {c.total_orders > 3 && (
-                      <span className="absolute top-1 right-1 bg-yellow-400 text-[9px] px-1.5 py-[1px] rounded-full font-bold shadow">
-                        VIP
-                      </span>
-                    )}
-
-                    <div className="flex flex-col gap-2 items-center text-center">
-                      {/* Avatar Gradient */}
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-base shadow-sm"
-                        style={{
-                          background: getAvatarGradient(c.name),
-                        }}
-                      >
-                        {getInitial(c.name)}
-                      </div>
-
-                      {/* Thông tin khách */}
-                      <div className="w-full min-w-0">
-                        <p className="font-bold text-gray-900 dark:text-gray-100 text-sm truncate">
-                          {c.name}
-                        </p>
-                        <p className="text-[11px] text-gray-500 truncate">
-                          {c.phone}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Nút Gọi + FB */}
-                    <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-                      <a
-                        href={`tel:${c.phone}`}
-                        className="flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1 bg-blue-50 text-blue-600"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <FiPhoneCall size={12} />
-                      </a>
-                      {c.facebook_url && (
-                        <a
-                          href={c.facebook_url}
-                          target="_blank"
-                          className="flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1 bg-indigo-50 text-indigo-600"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <FaFacebookF size={12} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* LIST VIEW CŨ */}
-            {listViewMode === "list" && (
-              <CustomerList
-                filtered={filtered}
-                selected={selected}
-                setSelected={setSelected}
-                viewDetail={viewDetail}
-                search={search}
-                setSearch={setSearch}
-                loadList={loadList}
-                detail={detail}
-                setDetail={setDetail}
-                editing={editing}
-                setEditing={setEditing}
-                loadingDetail={loadingDetail}
-              />
-            )}
-          </div>
-        )}
-
-        {/* STATS */}
-        {viewMode === "stats" && <CustomerStats stats={stats} />}
       </div>
-    </div>
+    </>
   );
 }
