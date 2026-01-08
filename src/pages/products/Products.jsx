@@ -123,11 +123,15 @@ export default function Products() {
   };
 
   return (
-    // 🔥 SỬA TẠI ĐÂY: Thêm 'pt-0 md:pt-16' vào cuối class
-    // Mobile (mặc định): pt-0
-    // PC (md trở lên): pt-16 (tương đương 64px để tránh header)
+    // 🔥 FIX 1: pt-0 md:pt-16 (Giữ nguyên fix header PC)
     <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col overflow-hidden transition-colors duration-300 pt-0 md:pt-16">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
+
+      {/* 🔥 FIX 2: THÊM STYLE ẨN THANH CUỘN CHO MOBILE */}
+      <style>{`
+        .hide-scroll-force::-webkit-scrollbar { display: none !important; width: 0 !important; }
+        .hide-scroll-force { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+      `}</style>
 
       {/* ======================= PC LAYOUT (MODERNIZED) ======================= */}
       <div className="hidden md:flex flex-col h-full w-full overflow-hidden">
@@ -318,7 +322,7 @@ export default function Products() {
         </div>
       </div>
 
-      {/* ======================= MOBILE LAYOUT (KEEP LOGIC) ======================= */}
+      {/* ======================= MOBILE LAYOUT (UPDATED) ======================= */}
       <div className="md:hidden flex-1 flex flex-col w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* MOBILE HEADER */}
         {viewMode === "list" && (
@@ -364,7 +368,7 @@ export default function Products() {
           </div>
         )}
 
-        {/* MOBILE BODY */}
+        {/* MOBILE BODY - 🔥 FIX GAP & SCROLLBAR */}
         <div className="flex-1 overflow-hidden w-full relative">
           <AnimatePresence mode="wait">
             {viewMode === "list" && (
@@ -375,9 +379,10 @@ export default function Products() {
                 exit={{ opacity: 0 }}
                 className="h-full w-full"
               >
+                {/* 🔥 FIX 3: Áp dụng class hide-scroll-force và chỉnh pb-4 (đủ nhỏ) */}
                 <div
                   onScroll={handleScroll}
-                  className="h-full w-full overflow-y-auto pb-2 px-1 scroll-smooth hide-scroll-force"
+                  className="h-full w-full overflow-y-auto pb-4 px-1 scroll-smooth hide-scroll-force"
                 >
                   {isLoading ? (
                     <ProductSkeleton viewType={listViewMode} />
@@ -420,7 +425,7 @@ export default function Products() {
                 </div>
                 <div
                   onScroll={handleScroll}
-                  className="flex-1 overflow-y-auto pb-2"
+                  className="flex-1 overflow-y-auto pb-4 hide-scroll-force"
                 >
                   <ProductForm
                     load={reload}
@@ -452,7 +457,7 @@ export default function Products() {
                 </div>
                 <div
                   onScroll={handleScroll}
-                  className="flex-1 overflow-y-auto pb-2"
+                  className="flex-1 overflow-y-auto pb-4 hide-scroll-force"
                 >
                   {selected && (
                     <ProductDetail
