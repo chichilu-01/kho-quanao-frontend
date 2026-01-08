@@ -123,7 +123,10 @@ export default function Products() {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col overflow-hidden transition-colors duration-300">
+    // 🔥 SỬA TẠI ĐÂY: Thêm 'pt-0 md:pt-16' vào cuối class
+    // Mobile (mặc định): pt-0
+    // PC (md trở lên): pt-16 (tương đương 64px để tránh header)
+    <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col overflow-hidden transition-colors duration-300 pt-0 md:pt-16">
       <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
 
       {/* ======================= PC LAYOUT (MODERNIZED) ======================= */}
