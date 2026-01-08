@@ -101,34 +101,58 @@ export default function Customers() {
     loadList();
   }, []);
 
+  // --- THAY THẾ HÀM loadList VÀ loadStats CŨ BẰNG ĐOẠN NÀY ---
+
   const loadList = async () => {
     try {
-      const data = await api("/customers");
-      setList(data);
-      loadStats();
-    } catch (err) {
-      notify.error("Không thể tải danh sách khách hàng");
-    }
-  };
+      // 1. Gọi song song cả API khách hàng và API đơn hàng
+      const [customersData, ordersData] = await Promise.all([
+        api("/customers"),
+        api("/orders"),
+      ]);
 
-  const loadStats = async () => {
-    try {
-      const res = await api("/orders");
-      const total_orders = res.length;
-      const total_revenue = res.reduce(
+      // 2. Tính toán số liệu tổng quan (Stats) ngay tại đây
+      const total_revenue = ordersData.reduce(
         (sum, o) => sum + Number(o.total || 0),
         0,
       );
-      const customers = await api("/customers");
       setStats({
-        total_customers: customers.length,
-        total_orders,
+        total_customers: customersData.length,
+        total_orders: ordersData.length,
         total_revenue,
       });
-    } catch {
-      notify.error("Lỗi thống kê");
+
+      // 3. MAP DỮ LIỆU: Tính tổng đơn và chi tiêu cho TỪNG khách hàng
+      const mergedList = customersData.map((cust) => {
+        // Lọc ra các đơn hàng của khách này
+        // (Kiểm tra theo customer_id hoặc số điện thoại)
+        const customerOrders = ordersData.filter(
+          (o) =>
+            (o.customer_id && String(o.customer_id) === String(cust.id)) ||
+            (o.phone && o.phone === cust.phone),
+        );
+
+        const total_orders = customerOrders.length;
+        const total_spent = customerOrders.reduce(
+          (sum, o) => sum + Number(o.total || 0),
+          0,
+        );
+
+        return {
+          ...cust,
+          total_orders, // Gán số lượng đơn vào khách
+          total_spent, // Gán tổng tiền vào khách
+        };
+      });
+
+      setList(mergedList);
+    } catch (err) {
+      console.error(err);
+      notify.error("Không thể tải dữ liệu");
     }
   };
+
+  // Bạn có thể xóa hàm loadStats cũ đi vì logic đã gộp vào loadList
 
   const filtered = useMemo(() => {
     return list.filter((c) => {
