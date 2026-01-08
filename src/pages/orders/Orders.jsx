@@ -297,7 +297,7 @@ export default function Orders() {
           // 5. Thêm onScroll={handleScroll} vào đây để bắt sự kiện cuộn
           <div
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto pb-2 px-1 scroll-smooth no-scrollbar"
+            className="flex-1 overflow-y-auto pb-0 px-1 scroll-smooth no-scrollbar"
           >
             <OrderList
               filtered={filtered}
@@ -315,7 +315,7 @@ export default function Orders() {
           // 6. Thêm onScroll={handleScroll} vào cả đây
           <div
             onScroll={handleScroll}
-            className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-2 no-scrollbar"
+            className="flex-1 overflow-y-auto p-0 bg-white dark:bg-gray-800 pb-0 no-scrollbar"
           >
             <OrderDetail
               selected={selected}
