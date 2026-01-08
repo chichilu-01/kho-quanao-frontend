@@ -10,10 +10,10 @@ import {
   FiList,
   FiClock,
 } from "react-icons/fi";
-import { api } from "../../api/client";
-import { notify } from "../../hooks/useToastNotify";
+import { api } from "../api/client";
+import { notify } from "../hooks/useToastNotify";
 // 1. Import Context
-import { useNav } from "../../context/NavContext";
+import { useNav } from "../context/NavContext";
 
 export default function StockHistory() {
   const [list, setList] = useState([]);
@@ -82,7 +82,7 @@ export default function StockHistory() {
 
   const exportCSV = () => {
     if (!list.length) return notify.info("Không có dữ liệu để xuất.");
-    // ... (Giữ nguyên logic CSV cũ) ...
+
     const header = [
       "STT",
       "Mã sản phẩm",
