@@ -41,7 +41,7 @@ export default function Dashboard() {
   const { setIsNavVisible } = useNav();
   const lastScrollY = useRef(0);
 
-  // 3. Logic xử lý cuộn
+  // 3. Logic xử lý cuộn để ẩn/hiện menu
   const handleScroll = (e) => {
     const currentScrollY = e.target.scrollTop;
     if (currentScrollY < 0) return;
@@ -55,8 +55,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Luôn hiện menu khi vào trang
-    setIsNavVisible(true);
+    setIsNavVisible(true); // Luôn hiện menu khi mới vào
 
     const fetchData = async () => {
       try {
@@ -128,7 +127,7 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* 🔥 Style ép ẩn thanh cuộn */}
+      {/* 🔥 CSS CỤC BỘ: ÉP ẨN THANH CUỘN TUYỆT ĐỐI */}
       <style>{`
         .hide-scroll-force::-webkit-scrollbar {
           display: none !important;
@@ -142,9 +141,9 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* Container chính: Full màn hình, không cuộn ở đây */}
+      {/* CONTAINER CHÍNH: KHÓA CHIỀU CAO MÀN HÌNH */}
       <div className="h-[100dvh] w-full bg-gray-50/50 flex flex-col overflow-hidden">
-        {/* Phần nội dung cuộn được - Gắn sự kiện onScroll */}
+        {/* KHU VỰC CUỘN: Áp dụng hide-scroll-force */}
         <div
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto hide-scroll-force p-4 md:p-6 pb-24 md:pb-10"
@@ -158,23 +157,23 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-6 max-w-7xl mx-auto">
-              {/* 🆕 LOGO APP & TÊN SHOP */}
-              <div className="md:hidden flex flex-col items-center justify-center mb-6 pt-2">
+              {/* LOGO MOBILE */}
+              <div className="md:hidden flex flex-col items-center justify-center mb-6 pt-4">
                 <div className="relative">
                   <div className="absolute -inset-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-30 animate-pulse"></div>
                   <img
                     src="/icons/icon-192x192.png"
                     alt="App Logo"
-                    className="relative h-16 w-auto object-contain drop-shadow-xl transform transition-transform duration-300"
+                    className="relative h-20 w-auto object-contain drop-shadow-xl transform transition-transform duration-300"
                     onError={(e) => (e.target.style.display = "none")}
                   />
                 </div>
-                <span className="mt-3 text-xs font-extrabold uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-orange-600 drop-shadow-sm">
+                <span className="mt-4 text-sm font-extrabold uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-orange-600 drop-shadow-sm">
                   Kho Quần Áo Rinchan
                 </span>
               </div>
 
-              {/* 1. HEADER */}
+              {/* HEADER */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
@@ -190,7 +189,7 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* 2. GRID THỐNG KÊ */}
+              {/* GRID STATS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <StatCard
                   title="Tổng Doanh Thu"
@@ -222,9 +221,8 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* 3. BIỂU ĐỒ & TOP SẢN PHẨM */}
+              {/* CHARTS & TOP PRODUCTS */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Biểu đồ */}
                 <div className="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-gray-800 flex items-center gap-2">
@@ -297,7 +295,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Top Sản Phẩm */}
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                   <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                     🏆 Top Sản Phẩm
