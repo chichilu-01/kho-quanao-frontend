@@ -358,7 +358,7 @@ export default function OrderDetail({
 
             <div className="border-t border-gray-200 my-3"></div>
 
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center pb-2">
               <span className="font-bold text-gray-800 text-lg flex items-center gap-2">
                 <FiDollarSign className="text-red-500 bg-red-100 rounded-full p-1 w-6 h-6" />
                 CẦN THU (COD)
