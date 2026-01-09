@@ -208,7 +208,7 @@ export default function ProductVariants({ productId }) {
           transition={{ duration: 0.25 }}
           className="fixed inset-0 bg-white dark:bg-gray-900 z-[999999] overflow-y-auto"
         >
-          <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10">
             <button
               onClick={() => setShowForm(false)}
               className="text-gray-700 dark:text-gray-200"
@@ -220,7 +220,8 @@ export default function ProductVariants({ productId }) {
             </p>
           </div>
 
-          <div className="p-4 pb-10">
+          {/* 🔥 Tăng padding-bottom lên pb-32 để không bị che bởi bottom nav */}
+          <div className="p-4 pb-32 md:pb-10">
             <VariantForm
               productId={productId}
               editItem={editItem}
@@ -245,7 +246,7 @@ export default function ProductVariants({ productId }) {
           transition={{ duration: 0.25 }}
           className="fixed inset-0 bg-white dark:bg-gray-900 z-[999999] overflow-y-auto"
         >
-          <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10">
             <button
               onClick={() => setShowBulk(false)}
               className="text-gray-700 dark:text-gray-200"
@@ -255,7 +256,8 @@ export default function ProductVariants({ productId }) {
             <p className="font-semibold">Tạo nhiều biến thể</p>
           </div>
 
-          <div className="p-4 pb-10">
+          {/* 🔥 Tăng padding-bottom lên pb-32 ở đây */}
+          <div className="p-4 pb-32 md:pb-10">
             <VariantBulkForm
               productId={productId}
               onClose={() => setShowBulk(false)}
