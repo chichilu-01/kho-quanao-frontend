@@ -1,196 +1,152 @@
-/* ✅ QUAN TRỌNG: Dòng @import PHẢI nằm ở dòng đầu tiên của file */
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Pacifico&display=swap');
+/* ✅ QUAN TRỌNG: Import Font luôn ở đầu */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Pacifico&family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ===========================================================
-   🌟 RC STUDIO PRO THEME — 2025
-   Phong cách cao cấp, chuyên nghiệp, hỗ trợ dark mode toàn diện
+   🌟 RC STUDIO PRO THEME — ULTIMATE (OPTIMIZED)
+   Phong cách cao cấp, hiệu năng cao, chuẩn Accessibility
    =========================================================== */
 
-/* Cấu hình nền và font */
+/* 1. Cấu hình nền tảng */
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent; /* Fix nháy màu trên mobile khi tap */
 }
 
-html,
-body,
-#root {
+html, body, #root {
   height: 100%;
   font-family: "Poppins", "Inter", system-ui, sans-serif;
   background: linear-gradient(180deg, #faf9f7 0%, #f7f5f0 60%, #f4f1ea 100%);
   color: #2a2a2a;
-  transition: all 0.5s ease;
 }
 
 /* 🌗 Dark mode nền */
-.dark,
-.dark body,
-.dark #root {
+.dark, .dark body, .dark #root {
   background: linear-gradient(180deg, #0b0b0b 0%, #141414 50%, #1c1c1c 100%);
   color: #f1f1f1;
 }
 
-/* 🌈 Input PRO */
+/* 🚀 PERFORMANCE FIX: Chỉ transition những thứ cần thiết */
+body, #root, .card, .input, .btn, .sidebar, header, footer, a, button {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2. Components PRO */
+
+/* Input */
 .input {
-  @apply w-full px-3 py-2 rounded-xl border border-[#e3ded5] bg-white text-[#2a2a2a] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f2c94c] focus:border-[#f2c94c] transition-all duration-200;
+  @apply w-full px-3 py-2 rounded-xl border border-[#e3ded5] bg-white text-[#2a2a2a] 
+  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#f2c94c]/50 focus:border-[#f2c94c] 
+  disabled:opacity-60 disabled:cursor-not-allowed; 
 }
-
-/* Dark mode input */
 .dark .input {
-  @apply bg-[#121212] border-[#2a2a2a] text-gray-200 placeholder-gray-500 focus:ring-[#d4a017];
+  @apply bg-[#121212] border-[#2a2a2a] text-gray-200 placeholder-gray-600 focus:ring-[#d4a017]/50;
 }
 
-/* 🌟 Button PRO */
+/* Button */
 .btn {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-xl bg-gradient-to-r from-[#f2c94c] to-[#d4a017] text-white hover:from-[#f5d56e] hover:to-[#e0b938] focus:ring-2 focus:ring-[#f2c94c] shadow-md hover:shadow-yellow-400/20 transition-all duration-200;
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 font-semibold rounded-xl 
+  bg-gradient-to-r from-[#f2c94c] to-[#d4a017] text-white 
+  hover:from-[#f5d56e] hover:to-[#e0b938] 
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#f2c94c] dark:focus:ring-offset-[#1c1c1c]
+  shadow-md hover:shadow-lg hover:shadow-yellow-400/20 active:scale-95;
 }
-
-/* Dark mode button */
 .dark .btn {
   @apply from-[#d4a017] to-[#f2c94c] text-black hover:from-[#e0b938] hover:to-[#f5d56e];
 }
 
-/* 🌫️ PRO Card với Glass */
+/* Glass Card */
 .card {
-  @apply relative bg-white/90 dark:bg-gray-900/60 backdrop-blur-md border border-[#e9e4da]/50 dark:border-[#2a2a2a] rounded-2xl p-5 shadow-sm hover:shadow-md hover:shadow-[#f2c94c]/30 transition-all duration-300;
+  @apply relative bg-white/90 dark:bg-gray-900/60 backdrop-blur-xl 
+  border border-[#e9e4da]/60 dark:border-[#333] 
+  rounded-2xl p-5 shadow-sm;
 }
-
 .card:hover {
-  box-shadow: 0 0 15px rgba(242, 201, 76, 0.25);
+  @apply shadow-md border-[#f2c94c]/40 dark:border-[#f2c94c]/30;
   transform: translateY(-2px);
 }
+/* Hỗ trợ focus cho card (A11y) */
+.card:focus-within {
+  @apply ring-1 ring-[#f2c94c]/50 border-[#f2c94c];
+}
 
-/* 📊 Table */
+/* Table */
 .table th {
-  @apply bg-[#faf7f2] dark:bg-[#1b1b1b] text-[#444] dark:text-gray-300 text-left p-2 font-medium;
+  @apply bg-[#faf7f2] dark:bg-[#1b1b1b] text-[#444] dark:text-gray-400 text-left p-3 font-semibold text-sm uppercase tracking-wider;
 }
-
 .table td {
-  @apply border-t border-[#e5e1d9] dark:border-gray-700 p-2 text-gray-800 dark:text-gray-200;
+  @apply border-t border-[#e5e1d9] dark:border-gray-800 p-3 text-gray-700 dark:text-gray-300;
 }
 
-/* 🌈 Scrollbar PRO (Mặc định - Vẫn giữ để dùng cho chỗ khác nếu cần) */
+/* 3. Custom Scrollbar (Luxury Style) */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px; /* Mỏng hơn chút cho tinh tế */
+  height: 6px;
 }
-
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #f2c94c 0%, #d4a017 100%);
+  background: rgba(212, 160, 23, 0.3);
   border-radius: 10px;
 }
-
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 160, 23, 0.8);
+}
+/* Dark mode scrollbar */
 .dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #d4a017 0%, #f2c94c 100%);
+  background: rgba(242, 201, 76, 0.3);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(242, 201, 76, 0.8);
 }
 
-/* 🔥🔥 QUAN TRỌNG: CLASS ẨN THANH CUỘN 🔥🔥 */
-/* Thêm đoạn này để các thẻ có class 'no-scrollbar' sẽ bị ẩn thanh cuộn */
+/* Ẩn scrollbar utility */
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
-/* ✨ Hiệu ứng chữ vàng */
+/* 4. Effects & Animations */
 .glow-text {
-  text-shadow:
-    0 0 6px rgba(242, 201, 76, 0.3),
-    0 0 15px rgba(242, 201, 76, 0.5),
-    0 0 30px rgba(212, 160, 23, 0.4);
+  text-shadow: 0 0 10px rgba(242, 201, 76, 0.4), 0 0 20px rgba(242, 201, 76, 0.2);
 }
 
-.logo-glow {
-  filter: drop-shadow(0 0 8px rgba(242, 201, 76, 0.6));
-}
+/* Animation Classes */
+.animate-fadeIn { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-slideIn { animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-scalePop { animation: scalePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); } /* Hiệu ứng nảy (bouncier) */
 
-/* 💫 Glow Pulse Animation */
-@keyframes glowPulse {
-
-  0%,
-  100% {
-    text-shadow:
-      0 0 8px rgba(242, 201, 76, 0.5),
-      0 0 20px rgba(212, 160, 23, 0.4);
-  }
-
-  50% {
-    text-shadow:
-      0 0 15px rgba(242, 201, 76, 0.9),
-      0 0 30px rgba(212, 160, 23, 0.7);
-  }
-}
-
-.glow-pulse {
-  animation: glowPulse 2.5s infinite ease-in-out;
-}
-
-/* 🎬 Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-in-out;
-}
-
 @keyframes slideIn {
-  0% {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(15px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
-
-.animate-slideIn {
-  animation: slideIn 0.6s ease-out;
-}
-
 @keyframes scalePop {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
-.animate-scalePop {
-  animation: scalePop 0.4s ease-out;
-}
-
-/* 🕶️ Tooltip */
+/* 5. Tooltip */
 .tooltip {
-  @apply bg-black/80 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm shadow-lg;
+  @apply absolute z-50 bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-xl -translate-y-2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 transition-all duration-200 pointer-events-none whitespace-nowrap;
 }
 
-/* 🌗 Transition mượt toàn hệ thống */
-* {
-  transition: background-color 0.3s ease,
-    color 0.3s ease,
-    border 0.3s ease;
+/* ✅ ĐIỂM 10: Tôn trọng cài đặt giảm chuyển động của người dùng */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
