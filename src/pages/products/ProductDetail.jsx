@@ -14,11 +14,12 @@ import ProductVariants from "../../components/products/ProductVariants";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
 
-// --- 1. HÀM FORMAT TIỀN TỆ (Thêm dấu chấm) ---
+// --- 1. HÀM FORMAT TIỀN TỆ ---
 const formatCurrency = (value) => {
   if (!value) return "0";
-  // Xóa tất cả ký tự không phải số, sau đó thêm dấu chấm
+  // Xóa tất cả ký tự không phải số
   const rawValue = String(value).replace(/\D/g, "");
+  // Thêm dấu chấm phân cách
   return rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
@@ -45,10 +46,12 @@ export default function ProductDetail({ selected, setSelected, load }) {
         name: selected.name || "",
         category: selected.category || "",
         brand: selected.brand || "",
-        // Lấy giá trị, nếu null thì về 0
-        cost_price: selected.cost_price || selected.import_price || 0,
-        sale_price: selected.sale_price || selected.price || 0,
-        stock: selected.stock || 0,
+
+        // 🔥 SỬA LỖI Ở ĐÂY: Dùng parseInt để cắt bỏ phần thập phân (.00)
+        // Ví dụ: 199000.00 -> 199000
+        cost_price: parseInt(selected.cost_price || selected.import_price || 0),
+        sale_price: parseInt(selected.sale_price || selected.price || 0),
+        stock: parseInt(selected.stock || 0),
       });
 
       setNewImages([]);
@@ -75,7 +78,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
     try {
       const fd = new FormData();
 
-      // 🔥 XỬ LÝ DỮ LIỆU TRƯỚC KHI GỬI (Xóa dấu chấm ở giá tiền)
+      // Xử lý dữ liệu trước khi gửi (Xóa dấu chấm ở giá tiền)
       Object.entries(form).forEach(([key, value]) => {
         if (["cost_price", "sale_price", "stock"].includes(key)) {
           // Xóa dấu chấm, chuyển về số
@@ -255,7 +258,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 />
               </div>
 
-              {/* 🔥 KHU VỰC GIÁ & KHO - ĐÃ SỬA LỖI HIỂN THỊ */}
+              {/* 🔥 KHU VỰC GIÁ & KHO */}
               <div className="p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-2xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 md:grid-cols-3 gap-6">
                 <Field
                   label="Giá nhập (Vốn)"
@@ -275,7 +278,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
                   }}
                 />
 
-                {/* Tồn kho cũng nên cho phép nhập số thoải mái, không dùng type="number" để tránh lỗi cuộn chuột */}
+                {/* Tồn kho */}
                 <div className="col-span-2 md:col-span-1">
                   <Field
                     label="Tồn kho"
@@ -355,7 +358,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
   );
 }
 
-// 🔥 SỬA FIELD: Mặc định type="text" để hỗ trợ format dấu chấm
 function Field({ label, value, onChange, type = "text", icon = null }) {
   return (
     <div className="flex flex-col gap-2 group relative">
