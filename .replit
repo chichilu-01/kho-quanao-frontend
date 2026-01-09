@@ -1,4 +1,5 @@
 modules = ["nodejs-20", "web"]
+
 [agent]
 expertMode = true
 
@@ -12,14 +13,17 @@ name = "kho-quanao-frontend"
 mode = "sequential"
 author = 42720599
 
+# Bước 1: Khởi tạo Tailwind (nếu chưa có)
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx tailwindcss init -p"
 
+# Bước 2: Chạy App (QUAN TRỌNG: Thêm -- --host)
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "npm run dev -- --host"
 
+# Cấu hình cổng mạng
 [[ports]]
 localPort = 5173
 externalPort = 80

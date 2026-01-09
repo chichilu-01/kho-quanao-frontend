@@ -9,10 +9,22 @@ import CreateOrder from "./pages/orders/CreateOrder";
 import StockHistory from "./pages/StockHistory";
 import OrderDetail from "./pages/orders/OrderDetail";
 import { NavProvider } from "./context/NavContext";
+import { useOnlineStatus } from "./hooks/useOnlineStatus"; // 🔥 1. Import Hook
+import { FiWifiOff } from "react-icons/fi"; // Import icon wifi off
 
 function MainLayout() {
+  const isOnline = useOnlineStatus(); // 🔥 2. Lấy trạng thái mạng
+
   return (
     <div className="h-screen w-full flex flex-col bg-gradient-to-b from-[#faf9f7] via-[#f7f5f0] to-[#f4f1ea] text-[#2a2a2a] overflow-hidden">
+      {/* 🔥 3. THANH BÁO OFFLINE (Chỉ hiện khi mất mạng) */}
+      {!isOnline && (
+        <div className="bg-red-600 text-white text-xs font-bold py-1.5 px-4 text-center flex items-center justify-center gap-2 shadow-md z-[9999] animate-fadeIn">
+          <FiWifiOff />
+          Mất kết nối Internet - Đang xem dữ liệu Offline
+        </div>
+      )}
+
       {/* PC: Topbar */}
       <div className="hidden md:block shrink-0">
         <Topbar />
@@ -28,13 +40,13 @@ function MainLayout() {
             {/* Products tự quản lý cuộn */}
             <Route path="/products" element={<Products />} />
 
-            {/* 🔥 SỬA: Customers tự quản lý cuộn -> BỎ DIV BỌC */}
+            {/* Customers tự quản lý cuộn */}
             <Route path="/customers" element={<Customers />} />
 
             {/* Orders tự quản lý cuộn */}
             <Route path="/orders" element={<Orders />} />
 
-            {/* CreateOrder chưa sửa full màn hình nên VẪN CẦN DIV BỌC */}
+            {/* Các trang chưa sửa Full màn hình -> Vẫn giữ div bọc */}
             <Route
               path="/orders/new"
               element={
@@ -44,7 +56,6 @@ function MainLayout() {
               }
             />
 
-            {/* OrderDetail chưa sửa full màn hình nên VẪN CẦN DIV BỌC */}
             <Route
               path="/orders/:id"
               element={

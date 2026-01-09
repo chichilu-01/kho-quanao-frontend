@@ -3,8 +3,9 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  // ❗ Sửa lỗi 404 khi vào trang /products, /orders, /customers
-  base: "./",
+  // 🔥 FIX 1: Đổi thành "/" (tuyệt đối) thay vì "./" (tương đối)
+  // Giúp app chạy đúng khi vào các route sâu như /products/123
+  base: "/",
 
   plugins: [
     react(),
@@ -22,10 +23,10 @@ export default defineConfig({
         short_name: "RC Studio",
         description:
           "Ứng dụng quản lý kho và bán hàng thời trang của RC Studio",
-        theme_color: "#000000",
-        background_color: "#000000",
+        theme_color: "#ffffff", // Nên để màu trắng hoặc màu chủ đạo sáng
+        background_color: "#ffffff",
         display: "standalone",
-        start_url: "/", // OK
+        start_url: "/",
         orientation: "portrait",
         icons: [
           {
@@ -41,27 +42,42 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // 🔥 FIX 2: Quan trọng cho SPA (Single Page App)
+        // Nếu không tìm thấy file, luôn trả về index.html để React Router xử lý
+        navigateFallback: "/index.html",
+
+        // Không áp dụng fallback cho các đường dẫn bắt đầu bằng /api hoặc hình ảnh
+        navigateFallbackDenylist: [
+          /^\/api/,
+          /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+        ],
+
         runtimeCaching: [
           {
+            // Cache API từ Backend Railway
             urlPattern:
               /^https:\/\/kho-quanao-backend-production\.up\.railway\.app\/api\/.*$/,
-            handler: "NetworkFirst",
+            handler: "NetworkFirst", // Ưu tiên mạng, mất mạng mới dùng cache
             options: {
               cacheName: "api-cache",
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24,
+                maxEntries: 100, // Tăng lên chút để lưu được nhiều đơn hàng/sản phẩm hơn
+                maxAgeSeconds: 60 * 60 * 24 * 3, // Lưu 3 ngày (đề phòng mất mạng lâu)
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
               },
             },
           },
           {
+            // Cache hình ảnh
             urlPattern: ({ request }) => request.destination === "image",
-            handler: "CacheFirst",
+            handler: "CacheFirst", // Ưu tiên cache cho ảnh load nhanh
             options: {
               cacheName: "image-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // Lưu 30 ngày
               },
             },
           },
@@ -73,7 +89,7 @@ export default defineConfig({
   server: {
     allowedHosts: [
       "localhost",
-      "f5afe18c-a293-4f59-8649-cc82af0d7d46-00-1144g3c0jfi8g.sisko.replit.dev",
+      "all", // Cho phép tất cả host (tiện khi dev trên Replit/Ngrok)
     ],
     host: true,
     port: 5173,

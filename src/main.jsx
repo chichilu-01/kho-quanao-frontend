@@ -1,29 +1,39 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // 1. Import React Query
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App.jsx";
 import "./index.css";
 import { Toaster } from "react-hot-toast";
 
-// 2. Cấu hình Client cho React Query
+// 2. Cấu hình Client cho React Query (Đã tối ưu cho PWA/Offline)
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // 🔥 QUAN TRỌNG CHO OFFLINE:
+      networkMode: "offlineFirst", // Nếu mất mạng, vẫn trả về dữ liệu trong Cache (không báo lỗi)
+
       refetchOnWindowFocus: false, // Không tự load lại khi click ra ngoài tab
-      staleTime: 1000 * 60 * 5, // Dữ liệu được coi là "mới" trong 5 phút (Cache)
-      retry: 1, // Thử lại 1 lần nếu lỗi mạng
+      retry: false, // Không thử lại liên tục khi mất mạng để đỡ lag
+
+      // Thời gian dữ liệu được coi là "tươi mới" (không cần fetch lại)
+      staleTime: 1000 * 60 * 60, // 1 giờ (Tăng lên để đỡ tốn request)
+
+      // Thời gian giữ Cache trong bộ nhớ (khi user tắt tab hoặc mất mạng)
+      // (Lưu ý: v5 dùng gcTime, v4 dùng cacheTime)
+      gcTime: 1000 * 60 * 60 * 24, // 24 giờ
+    },
+    mutations: {
+      networkMode: "offlineFirst", // Cho phép bấm nút "Lưu" khi mất mạng (nhưng cần xử lý logic queue sau này)
     },
   },
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* 3. Bọc toàn bộ App bằng QueryClientProvider */}
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
-        {/* Toast hiển thị toàn cục */}
         <Toaster
           position="top-right"
           toastOptions={{
