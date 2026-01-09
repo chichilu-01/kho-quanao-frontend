@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom"; // 🔥 Import thêm cái này
 import { api } from "../../api/client";
 import { notify } from "../../hooks/useToastNotify";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
   FiEdit,
@@ -14,6 +15,12 @@ import {
 } from "react-icons/fi";
 import VariantForm from "./VariantForm";
 import VariantBulkForm from "./VariantBulkForm";
+
+// 🔥 Component Portal để đưa Modal ra ngoài cùng
+const Portal = ({ children }) => {
+  if (typeof document === "undefined") return null;
+  return createPortal(children, document.body);
+};
 
 export default function ProductVariants({ productId }) {
   const [variants, setVariants] = useState([]);
@@ -198,77 +205,86 @@ export default function ProductVariants({ productId }) {
       </motion.div>
 
       {/* -------------------------------------- */}
-      {/* SLIDE-IN FORM THÊM / SỬA */}
+      {/* SLIDE-IN FORM THÊM / SỬA (DÙNG PORTAL) */}
       {/* -------------------------------------- */}
-      {showForm && (
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ duration: 0.25 }}
-          className="fixed inset-0 bg-white dark:bg-gray-900 z-[999999] overflow-y-auto"
-        >
-          <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10">
-            <button
-              onClick={() => setShowForm(false)}
-              className="text-gray-700 dark:text-gray-200"
+      <AnimatePresence>
+        {showForm && (
+          <Portal>
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.25 }}
+              // 🔥 z-index cực cao để đè lên tất cả
+              className="fixed inset-0 bg-white dark:bg-gray-900 z-[9999999] overflow-y-auto flex flex-col"
             >
-              <FiChevronLeft size={22} />
-            </button>
-            <p className="font-semibold">
-              {editItem ? "Sửa biến thể" : "Thêm biến thể"}
-            </p>
-          </div>
+              <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10 shrink-0">
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-700 dark:text-gray-200"
+                >
+                  <FiChevronLeft size={22} />
+                </button>
+                <p className="font-semibold">
+                  {editItem ? "Sửa biến thể" : "Thêm biến thể"}
+                </p>
+              </div>
 
-          {/* 🔥 Tăng padding-bottom lên pb-32 để không bị che bởi bottom nav */}
-          <div className="p-4 pb-32 md:pb-10">
-            <VariantForm
-              productId={productId}
-              editItem={editItem}
-              onClose={() => setShowForm(false)}
-              onSaved={() => {
-                load();
-                setShowForm(false);
-              }}
-            />
-          </div>
-        </motion.div>
-      )}
+              {/* 🔥 Padding bottom lớn để tránh bị che */}
+              <div className="p-4 pb-40 flex-1 overflow-y-auto">
+                <VariantForm
+                  productId={productId}
+                  editItem={editItem}
+                  onClose={() => setShowForm(false)}
+                  onSaved={() => {
+                    load();
+                    setShowForm(false);
+                  }}
+                />
+              </div>
+            </motion.div>
+          </Portal>
+        )}
+      </AnimatePresence>
 
       {/* -------------------------------------- */}
-      {/* SLIDE-IN FORM TẠO NHIỀU */}
+      {/* SLIDE-IN FORM TẠO NHIỀU (DÙNG PORTAL) */}
       {/* -------------------------------------- */}
-      {showBulk && (
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ duration: 0.25 }}
-          className="fixed inset-0 bg-white dark:bg-gray-900 z-[999999] overflow-y-auto"
-        >
-          <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10">
-            <button
-              onClick={() => setShowBulk(false)}
-              className="text-gray-700 dark:text-gray-200"
+      <AnimatePresence>
+        {showBulk && (
+          <Portal>
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 bg-white dark:bg-gray-900 z-[9999999] overflow-y-auto flex flex-col"
             >
-              <FiChevronLeft size={22} />
-            </button>
-            <p className="font-semibold">Tạo nhiều biến thể</p>
-          </div>
+              <div className="p-4 flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10 shrink-0">
+                <button
+                  onClick={() => setShowBulk(false)}
+                  className="text-gray-700 dark:text-gray-200"
+                >
+                  <FiChevronLeft size={22} />
+                </button>
+                <p className="font-semibold">Tạo nhiều biến thể</p>
+              </div>
 
-          {/* 🔥 Tăng padding-bottom lên pb-32 ở đây */}
-          <div className="p-4 pb-32 md:pb-10">
-            <VariantBulkForm
-              productId={productId}
-              onClose={() => setShowBulk(false)}
-              onSaved={() => {
-                load();
-                setShowBulk(false);
-              }}
-            />
-          </div>
-        </motion.div>
-      )}
+              {/* 🔥 Padding bottom lớn */}
+              <div className="p-4 pb-40 flex-1 overflow-y-auto">
+                <VariantBulkForm
+                  productId={productId}
+                  onClose={() => setShowBulk(false)}
+                  onSaved={() => {
+                    load();
+                    setShowBulk(false);
+                  }}
+                />
+              </div>
+            </motion.div>
+          </Portal>
+        )}
+      </AnimatePresence>
     </>
   );
 }
