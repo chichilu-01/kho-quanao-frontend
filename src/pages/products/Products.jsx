@@ -139,8 +139,6 @@ export default function Products() {
   return (
     // 🔥 FIX 1: pt-0 md:pt-16 (Giữ nguyên fix header PC)
     <div className="h-[100dvh] w-full bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 flex flex-col overflow-hidden transition-colors duration-300 pt-0 md:pt-16">
-      <Toaster position="top-center" toastOptions={{ duration: 1500 }} />
-
       {/* 🔥 FIX 2: THÊM STYLE ẨN THANH CUỘN CHO MOBILE */}
       <style>{`
         .hide-scroll-force::-webkit-scrollbar { display: none !important; width: 0 !important; }
