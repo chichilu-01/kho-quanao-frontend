@@ -23,7 +23,10 @@ args = "npx tailwindcss init -p"
 task = "shell.exec"
 args = "npm run dev -- --host"
 
-# Cấu hình cổng mạng
+[[ports]]
+localPort = 4173
+externalPort = 3001
+
 [[ports]]
 localPort = 5173
 externalPort = 80
