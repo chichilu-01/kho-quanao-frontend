@@ -8,11 +8,19 @@ import {
   FiImage,
   FiX,
   FiUploadCloud,
-  FiBox, // Icon cho tồn kho
+  FiBox,
 } from "react-icons/fi";
 import ProductVariants from "../../components/products/ProductVariants";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+
+// --- 1. HÀM FORMAT TIỀN TỆ (Thêm dấu chấm) ---
+const formatCurrency = (value) => {
+  if (!value) return "0";
+  // Xóa tất cả ký tự không phải số, sau đó thêm dấu chấm
+  const rawValue = String(value).replace(/\D/g, "");
+  return rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
 
 export default function ProductDetail({ selected, setSelected, load }) {
   const [form, setForm] = useState({
@@ -22,7 +30,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
     brand: "",
     cost_price: "",
     sale_price: "",
-    stock: "", // 🔥 Thêm trường stock
+    stock: "",
   });
 
   const [newImages, setNewImages] = useState([]);
@@ -37,9 +45,10 @@ export default function ProductDetail({ selected, setSelected, load }) {
         name: selected.name || "",
         category: selected.category || "",
         brand: selected.brand || "",
+        // Lấy giá trị, nếu null thì về 0
         cost_price: selected.cost_price || selected.import_price || 0,
         sale_price: selected.sale_price || selected.price || 0,
-        stock: selected.stock || 0, // 🔥 Lấy dữ liệu tồn kho
+        stock: selected.stock || 0,
       });
 
       setNewImages([]);
@@ -65,8 +74,18 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
     try {
       const fd = new FormData();
-      // 🔥 Đảm bảo gửi stock lên server
-      Object.entries(form).forEach(([key, value]) => fd.append(key, value));
+
+      // 🔥 XỬ LÝ DỮ LIỆU TRƯỚC KHI GỬI (Xóa dấu chấm ở giá tiền)
+      Object.entries(form).forEach(([key, value]) => {
+        if (["cost_price", "sale_price", "stock"].includes(key)) {
+          // Xóa dấu chấm, chuyển về số
+          const numberValue = Number(String(value).replace(/\./g, "")) || 0;
+          fd.append(key, numberValue);
+        } else {
+          fd.append(key, value);
+        }
+      });
+
       newImages.forEach((img) => fd.append("images", img));
 
       const token = localStorage.getItem("token");
@@ -82,7 +101,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
       toast.success("🎉 Đã cập nhật sản phẩm!");
       await load(selected.id);
 
-      // Cập nhật lại selected state để UI phản hồi ngay lập tức
+      // Cập nhật lại UI (Giữ nguyên form đang nhập để không bị nhảy số)
       setSelected({ ...selected, ...form });
 
       setNewImages([]);
@@ -99,18 +118,9 @@ export default function ProductDetail({ selected, setSelected, load }) {
 
   return (
     <>
-      {/* 🔥 CSS TOÀN CỤC: Ẩn thanh cuộn */}
       <style>{`
-        *::-webkit-scrollbar {
-          display: none !important;
-          width: 0 !important;
-          height: 0 !important;
-          background: transparent !important;
-        }
-        * {
-          -ms-overflow-style: none !important;
-          scrollbar-width: none !important;
-        }
+        *::-webkit-scrollbar { display: none !important; }
+        * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
       `}</style>
 
       <motion.div
@@ -134,7 +144,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
            md:p-8 space-y-6
         "
         >
-          {/* HEADER (PC only) */}
+          {/* HEADER */}
           <div className="hidden md:flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
             <h4 className="font-bold text-gray-900 dark:text-white text-xl flex items-center gap-2">
               <FiEdit className="text-blue-500" /> Chi tiết sản phẩm
@@ -245,27 +255,34 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 />
               </div>
 
+              {/* 🔥 KHU VỰC GIÁ & KHO - ĐÃ SỬA LỖI HIỂN THỊ */}
               <div className="p-5 bg-yellow-50 dark:bg-yellow-900/10 rounded-2xl border border-yellow-200 dark:border-yellow-800 grid grid-cols-2 md:grid-cols-3 gap-6">
                 <Field
                   label="Giá nhập (Vốn)"
-                  type="number"
-                  value={form.cost_price}
-                  onChange={(v) => setForm({ ...form, cost_price: v })}
+                  value={formatCurrency(form.cost_price)} // Format hiển thị
+                  onChange={(v) => {
+                    // Xóa dấu chấm để lưu số nguyên vào state
+                    const raw = v.replace(/\./g, "");
+                    if (!isNaN(raw)) setForm({ ...form, cost_price: raw });
+                  }}
                 />
                 <Field
                   label="Giá bán (Lẻ)"
-                  type="number"
-                  value={form.sale_price}
-                  onChange={(v) => setForm({ ...form, sale_price: v })}
+                  value={formatCurrency(form.sale_price)} // Format hiển thị
+                  onChange={(v) => {
+                    const raw = v.replace(/\./g, "");
+                    if (!isNaN(raw)) setForm({ ...form, sale_price: raw });
+                  }}
                 />
 
-                {/* 🔥 Ô NHẬP TỒN KHO */}
+                {/* Tồn kho cũng nên cho phép nhập số thoải mái, không dùng type="number" để tránh lỗi cuộn chuột */}
                 <div className="col-span-2 md:col-span-1">
                   <Field
                     label="Tồn kho"
-                    type="number"
                     value={form.stock}
-                    onChange={(v) => setForm({ ...form, stock: v })}
+                    onChange={(v) =>
+                      setForm({ ...form, stock: v.replace(/\D/g, "") })
+                    } // Chỉ cho nhập số
                     icon={<FiBox />}
                   />
                 </div>
@@ -326,7 +343,6 @@ export default function ProductDetail({ selected, setSelected, load }) {
                 </p>
               </div>
             </div>
-
             <div className="flex-1 overflow-y-auto p-4 pb-24 bg-gray-50 dark:bg-gray-900">
               <div className="max-w-4xl mx-auto">
                 <ProductVariants productId={selected.id} />
@@ -339,6 +355,7 @@ export default function ProductDetail({ selected, setSelected, load }) {
   );
 }
 
+// 🔥 SỬA FIELD: Mặc định type="text" để hỗ trợ format dấu chấm
 function Field({ label, value, onChange, type = "text", icon = null }) {
   return (
     <div className="flex flex-col gap-2 group relative">
