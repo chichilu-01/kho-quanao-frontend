@@ -8,45 +8,19 @@ export default defineConfig({
 
   plugins: [
     react(),
-
-    // Vẫn giữ nén Gzip để tải nhanh
-    viteCompression({
-      algorithm: "gzip",
-      ext: ".gz",
-    }),
-
+    viteCompression({ algorithm: "gzip", ext: ".gz" }),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: [
-        "favicon.ico",
-        "robots.txt",
-        "apple-touch-icon.png",
-        "icons/icon-192x192.png",
-        "icons/icon-512x512.png",
-      ],
+      includeAssets: ["favicon.ico", "robots.txt", "icons/*.png"],
       manifest: {
         name: "Kho Quần Áo RC Studio",
         short_name: "RC Studio",
-        description:
-          "Ứng dụng quản lý kho và bán hàng thời trang của RC Studio",
+        description: "App quản lý kho RC Studio",
         theme_color: "#ffffff",
-        background_color: "#ffffff",
         display: "standalone",
-        start_url: "/",
-        orientation: "portrait",
         icons: [
-          {
-            src: "/icons/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any maskable",
-          },
-          {
-            src: "/icons/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any maskable",
-          },
+          { src: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+          { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
         ],
       },
       workbox: {
@@ -54,62 +28,39 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
-        navigateFallbackDenylist: [
-          /^\/api/,
-          /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-        ],
         runtimeCaching: [
-          {
-            urlPattern:
-              /^https:\/\/kho-quanao-backend-production\.up\.railway\.app\/api\/.*$/,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 3,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-              networkTimeoutSeconds: 10,
+            {
+                urlPattern: ({ request }) => request.destination === 'image',
+                handler: 'CacheFirst',
+                options: { cacheName: 'images', expiration: { maxEntries: 50, maxAgeSeconds: 86400 * 30 } }
             },
-          },
-          {
-            urlPattern: ({ request }) => request.destination === "image",
-            handler: "CacheFirst",
-            options: {
-              cacheName: "image-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
-        ],
+            {
+                urlPattern: /^https:\/\/kho-quanao-backend-production\.up\.railway\.app\/api\/.*$/,
+                handler: 'NetworkFirst',
+                options: { cacheName: 'api-cache', networkTimeoutSeconds: 10 }
+            }
+        ]
       },
     }),
   ],
 
-  // 🔥 SỬA LẠI PHẦN NÀY: CHIA FILE AN TOÀN HƠN
+  // 🔥 CẤU HÌNH FIX LỖI MÀN HÌNH TRẮNG
   build: {
     outDir: "dist",
     sourcemap: false,
-    chunkSizeWarningLimit: 2000, // Tăng giới hạn cảnh báo lên
+    chunkSizeWarningLimit: 3000, // Tăng giới hạn lên để không báo vàng
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("node_modules")) {
-            // Chỉ tách riêng React Core (An toàn tuyệt đối)
-            if (
-              id.includes("react") ||
-              id.includes("react-dom") ||
-              id.includes("react-router-dom")
-            ) {
-              return "vendor-react";
-            }
-            // Các thư viện khác gom hết vào 1 cục 'vendor' để tránh lỗi
-            return "vendor";
+          // 1. Chỉ tách riêng các công cụ NẶNG và ĐỘC LẬP (An toàn để tách)
+          if (id.includes('html2canvas') || id.includes('jspdf') || id.includes('xlsx') || id.includes('canvg')) {
+            return 'heavy-tools'; 
+          }
+
+          // 2. Còn lại gom TẤT CẢ (React, Antd, Router...) vào chung 1 file
+          // Đảm bảo app chạy 100% không lỗi thiếu thư viện
+          if (id.includes('node_modules')) {
+            return 'vendor';
           }
         },
       },
