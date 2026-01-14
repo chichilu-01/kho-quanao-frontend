@@ -1,14 +1,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import viteCompression from "vite-plugin-compression";
 
 export default defineConfig({
-  // 🔥 FIX 1: Đổi thành "/" (tuyệt đối) thay vì "./" (tương đối)
-  // Giúp app chạy đúng khi vào các route sâu như /products/123
   base: "/",
 
   plugins: [
     react(),
+
+    // Nén Gzip giúp tải nhanh
+    viteCompression({
+      algorithm: "gzip",
+      ext: ".gz",
+    }),
+
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: [
@@ -23,7 +29,7 @@ export default defineConfig({
         short_name: "RC Studio",
         description:
           "Ứng dụng quản lý kho và bán hàng thời trang của RC Studio",
-        theme_color: "#ffffff", // Nên để màu trắng hoặc màu chủ đạo sáng
+        theme_color: "#ffffff",
         background_color: "#ffffff",
         display: "standalone",
         start_url: "/",
@@ -33,51 +39,50 @@ export default defineConfig({
             src: "/icons/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any maskable",
           },
           {
             src: "/icons/icon-512x512.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any maskable",
           },
         ],
       },
       workbox: {
-        // 🔥 FIX 2: Quan trọng cho SPA (Single Page App)
-        // Nếu không tìm thấy file, luôn trả về index.html để React Router xử lý
         navigateFallback: "/index.html",
-
-        // Không áp dụng fallback cho các đường dẫn bắt đầu bằng /api hoặc hình ảnh
+        cleanupOutdatedCaches: true, // Tự dọn cache cũ
+        clientsClaim: true,
+        skipWaiting: true,
         navigateFallbackDenylist: [
           /^\/api/,
           /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
         ],
-
         runtimeCaching: [
           {
-            // Cache API từ Backend Railway
             urlPattern:
               /^https:\/\/kho-quanao-backend-production\.up\.railway\.app\/api\/.*$/,
-            handler: "NetworkFirst", // Ưu tiên mạng, mất mạng mới dùng cache
+            handler: "NetworkFirst",
             options: {
               cacheName: "api-cache",
               expiration: {
-                maxEntries: 100, // Tăng lên chút để lưu được nhiều đơn hàng/sản phẩm hơn
-                maxAgeSeconds: 60 * 60 * 24 * 3, // Lưu 3 ngày (đề phòng mất mạng lâu)
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 3,
               },
               cacheableResponse: {
                 statuses: [0, 200],
               },
+              networkTimeoutSeconds: 10,
             },
           },
           {
-            // Cache hình ảnh
             urlPattern: ({ request }) => request.destination === "image",
-            handler: "CacheFirst", // Ưu tiên cache cho ảnh load nhanh
+            handler: "CacheFirst",
             options: {
               cacheName: "image-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // Lưu 30 ngày
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
           },
@@ -86,11 +91,73 @@ export default defineConfig({
     }),
   ],
 
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            // 1. Tách React Core (Ưu tiên load trước)
+            if (
+              id.includes("react") ||
+              id.includes("react-dom") ||
+              id.includes("react-router-dom")
+            ) {
+              return "vendor-react";
+            }
+
+            // 2. Tách UI Library (Antd, MUI, Framer...)
+            if (
+              id.includes("antd") ||
+              id.includes("@mui") ||
+              id.includes("framer-motion") ||
+              id.includes("@headlessui")
+            ) {
+              return "vendor-ui";
+            }
+
+            // 3. Tách thư viện dữ liệu (Excel, Chart)
+            if (
+              id.includes("xlsx") ||
+              id.includes("recharts") ||
+              id.includes("chart.js") ||
+              id.includes("moment") ||
+              id.includes("date-fns")
+            ) {
+              return "vendor-data";
+            }
+
+            // 4. 🔥 TÁCH RIÊNG CỤC NẶNG 1MB (HTML2Canvas, PDF)
+            if (
+              id.includes("html2canvas") ||
+              id.includes("jspdf") ||
+              id.includes("canvg") ||
+              id.includes("dompurify")
+            ) {
+              return "vendor-pdf-print";
+            }
+
+            // 5. Tách các tiện ích nhỏ
+            if (
+              id.includes("lodash") ||
+              id.includes("axios") ||
+              id.includes("uuid")
+            ) {
+              return "vendor-utils";
+            }
+
+            // Còn lại
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
+
   server: {
-    allowedHosts: [
-      "localhost",
-      "all", // Cho phép tất cả host (tiện khi dev trên Replit/Ngrok)
-    ],
+    allowedHosts: ["localhost", "all"],
     host: true,
     port: 5173,
   },
