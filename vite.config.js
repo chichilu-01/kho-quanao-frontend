@@ -19,8 +19,8 @@ export default defineConfig({
         // 🔥 QUAN TRỌNG 1: Thêm background_color
         // Màu này PHẢI trùng với màu nền của file icon png của bạn
         // Nếu icon nền trắng -> để #ffffff. Nếu icon nền đen -> để #000000
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        theme_color: "#000000",
+        background_color: "#000000",
 
         display: "standalone",
         orientation: "portrait", // Khóa màn hình dọc (tùy chọn)
