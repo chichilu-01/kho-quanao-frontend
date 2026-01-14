@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     react(),
 
-    // Nén Gzip giúp tải nhanh
+    // Vẫn giữ nén Gzip để tải nhanh
     viteCompression({
       algorithm: "gzip",
       ext: ".gz",
@@ -51,7 +51,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: "/index.html",
-        cleanupOutdatedCaches: true, // Tự dọn cache cũ
+        cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
         navigateFallbackDenylist: [
@@ -91,15 +91,16 @@ export default defineConfig({
     }),
   ],
 
+  // 🔥 SỬA LẠI PHẦN NÀY: CHIA FILE AN TOÀN HƠN
   build: {
     outDir: "dist",
     sourcemap: false,
-    chunkSizeWarningLimit: 1600,
+    chunkSizeWarningLimit: 2000, // Tăng giới hạn cảnh báo lên
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            // 1. Tách React Core (Ưu tiên load trước)
+            // Chỉ tách riêng React Core (An toàn tuyệt đối)
             if (
               id.includes("react") ||
               id.includes("react-dom") ||
@@ -107,48 +108,7 @@ export default defineConfig({
             ) {
               return "vendor-react";
             }
-
-            // 2. Tách UI Library (Antd, MUI, Framer...)
-            if (
-              id.includes("antd") ||
-              id.includes("@mui") ||
-              id.includes("framer-motion") ||
-              id.includes("@headlessui")
-            ) {
-              return "vendor-ui";
-            }
-
-            // 3. Tách thư viện dữ liệu (Excel, Chart)
-            if (
-              id.includes("xlsx") ||
-              id.includes("recharts") ||
-              id.includes("chart.js") ||
-              id.includes("moment") ||
-              id.includes("date-fns")
-            ) {
-              return "vendor-data";
-            }
-
-            // 4. 🔥 TÁCH RIÊNG CỤC NẶNG 1MB (HTML2Canvas, PDF)
-            if (
-              id.includes("html2canvas") ||
-              id.includes("jspdf") ||
-              id.includes("canvg") ||
-              id.includes("dompurify")
-            ) {
-              return "vendor-pdf-print";
-            }
-
-            // 5. Tách các tiện ích nhỏ
-            if (
-              id.includes("lodash") ||
-              id.includes("axios") ||
-              id.includes("uuid")
-            ) {
-              return "vendor-utils";
-            }
-
-            // Còn lại
+            // Các thư viện khác gom hết vào 1 cục 'vendor' để tránh lỗi
             return "vendor";
           }
         },
