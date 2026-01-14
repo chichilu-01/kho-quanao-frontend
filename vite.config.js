@@ -9,11 +9,11 @@ export default defineConfig({
 
   // 🔥 Nâng cấp 2: Cấu hình Alias (viết code gọn hơn)
   // Ví dụ: import Header from '@/components/Header' thay vì '../../components/Header'
-  resolve: {
+  /*resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
+  },*/
 
   plugins: [
     react(),
