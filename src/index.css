@@ -1,5 +1,4 @@
-/* ✅ QUAN TRỌNG: Import Font luôn ở đầu */
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Pacifico&family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+/* Đã xóa @import font để tối ưu tốc độ */
 
 @tailwind base;
 @tailwind components;
@@ -86,7 +85,7 @@ body, #root, .card, .input, .btn, .sidebar, header, footer, a, button {
 
 /* 3. Custom Scrollbar (Luxury Style) */
 ::-webkit-scrollbar {
-  width: 6px; /* Mỏng hơn chút cho tinh tế */
+  width: 6px; 
   height: 6px;
 }
 ::-webkit-scrollbar-track {
@@ -121,7 +120,7 @@ body, #root, .card, .input, .btn, .sidebar, header, footer, a, button {
 /* Animation Classes */
 .animate-fadeIn { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 .animate-slideIn { animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.animate-scalePop { animation: scalePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); } /* Hiệu ứng nảy (bouncier) */
+.animate-scalePop { animation: scalePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); } 
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -141,7 +140,7 @@ body, #root, .card, .input, .btn, .sidebar, header, footer, a, button {
   @apply absolute z-50 bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-xl -translate-y-2 opacity-0 group-hover:opacity-100 group-hover:-translate-y-1 transition-all duration-200 pointer-events-none whitespace-nowrap;
 }
 
-/* ✅ ĐIỂM 10: Tôn trọng cài đặt giảm chuyển động của người dùng */
+/* Tôn trọng cài đặt giảm chuyển động của người dùng */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
